@@ -105,6 +105,13 @@
             "apiVersion": "2020-05-01",
             "name": "[parameters('virtualNetwork_name')]",
             "location": "[variables('location')]",
+            "dependsOn": [
+                "[if(equals(parameters('subnet_JH_addressSpace'), '0.0.0.0/0'), json('null'), resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_JH_name')))]",
+                "[if(equals(parameters('subnet_1_addressSpace'), '0.0.0.0/0'), json('null'), resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_1_name')))]",
+                "[if(equals(parameters('subnet_2_addressSpace'), '0.0.0.0/0'), json('null'), resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_2_name')))]",
+                "[if(equals(parameters('subnet_3_addressSpace'), '0.0.0.0/0'), json('null'), resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_3_name')))]",
+                "[if(equals(parameters('subnet_4_addressSpace'), '0.0.0.0/0'), json('null'), resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_4_name')))]"
+            ],
             "properties": {
                 "addressSpace": {
                     "addressPrefixes": [
@@ -173,10 +180,22 @@
             ],
             "properties": {
                 "addressPrefix": "[parameters('subnet_DC_addressSpace')]",
+                "networkSecurityGroup": {
+                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_DC_name'))]"
+                },
                 "serviceEndpoints": [],
                 "delegations": [],
                 "privateEndpointNetworkPolicies": "Enabled",
                 "privateLinkServiceNetworkPolicies": "Enabled"
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "apiVersion": "2020-05-01",
+            "name": "[parameters('nsg_DC_name')]",
+            "location": "[variables('location')]",
+            "properties": {
+                "securityRules": []
             }
         },
         {
@@ -189,10 +208,23 @@
             ],
             "properties": {
                 "addressPrefix": "[parameters('subnet_JH_addressSpace')]",
+                "networkSecurityGroup": {
+                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_JH_name'))]"
+                },
                 "serviceEndpoints": [],
                 "delegations": [],
                 "privateEndpointNetworkPolicies": "Enabled",
                 "privateLinkServiceNetworkPolicies": "Enabled"
+            }
+        },
+        {
+            "condition": "[not(equals(parameters('subnet_JH_addressSpace'), '0.0.0.0/0'))]",
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "apiVersion": "2020-05-01",
+            "name": "[parameters('nsg_JH_name')]",
+            "location": "[variables('location')]",
+            "properties": {
+                "securityRules": []
             }
         },
         {
@@ -205,10 +237,23 @@
             ],
             "properties": {
                 "addressPrefix": "[parameters('subnet_1_addressSpace')]",
+                "networkSecurityGroup": {
+                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_1_name'))]"
+                },
                 "serviceEndpoints": [],
                 "delegations": [],
                 "privateEndpointNetworkPolicies": "Enabled",
                 "privateLinkServiceNetworkPolicies": "Enabled"
+            }
+        },
+        {
+            "condition": "[not(equals(parameters('subnet_1_addressSpace'), '0.0.0.0/0'))]",
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "apiVersion": "2020-05-01",
+            "name": "[parameters('nsg_1_name')]",
+            "location": "[variables('location')]",
+            "properties": {
+                "securityRules": []
             }
         },
         {
@@ -221,10 +266,23 @@
             ],
             "properties": {
                 "addressPrefix": "[parameters('subnet_2_addressSpace')]",
+                "networkSecurityGroup": {
+                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_2_name'))]"
+                },
                 "serviceEndpoints": [],
                 "delegations": [],
                 "privateEndpointNetworkPolicies": "Enabled",
                 "privateLinkServiceNetworkPolicies": "Enabled"
+            }
+        },
+        {
+            "condition": "[and(not(equals(parameters('subnet_1_addressSpace'), '0.0.0.0/0')), not(equals(parameters('subnet_2_addressSpace'), '0.0.0.0/0')))]",
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "apiVersion": "2020-05-01",
+            "name": "[parameters('nsg_2_name')]",
+            "location": "[variables('location')]",
+            "properties": {
+                "securityRules": []
             }
         },
         {
@@ -237,10 +295,23 @@
             ],
             "properties": {
                 "addressPrefix": "[parameters('subnet_3_addressSpace')]",
+                "networkSecurityGroup": {
+                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_3_name'))]"
+                },
                 "serviceEndpoints": [],
                 "delegations": [],
                 "privateEndpointNetworkPolicies": "Enabled",
                 "privateLinkServiceNetworkPolicies": "Enabled"
+            }
+        },
+        {
+            "condition": "[and(not(equals(parameters('subnet_1_addressSpace'), '0.0.0.0/0')), not(equals(parameters('subnet_2_addressSpace'), '0.0.0.0/0')), not(equals(parameters('subnet_3_addressSpace'), '0.0.0.0/0')))]",
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "apiVersion": "2020-05-01",
+            "name": "[parameters('nsg_3_name')]",
+            "location": "[variables('location')]",
+            "properties": {
+                "securityRules": []
             }
         },
         {
@@ -253,10 +324,23 @@
             ],
             "properties": {
                 "addressPrefix": "[parameters('subnet_4_addressSpace')]",
+                "networkSecurityGroup": {
+                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_4_name'))]"
+                },
                 "serviceEndpoints": [],
                 "delegations": [],
                 "privateEndpointNetworkPolicies": "Enabled",
                 "privateLinkServiceNetworkPolicies": "Enabled"
+            }
+        },
+        {
+            "condition": "[and(not(equals(parameters('subnet_1_addressSpace'), '0.0.0.0/0')), not(equals(parameters('subnet_2_addressSpace'), '0.0.0.0/0')), not(equals(parameters('subnet_3_addressSpace'), '0.0.0.0/0')), not(equals(parameters('subnet_4_addressSpace'), '0.0.0.0/0')))]",
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "apiVersion": "2020-05-01",
+            "name": "[parameters('nsg_4_name')]",
+            "location": "[variables('location')]",
+            "properties": {
+                "securityRules": []
             }
         }
     ]
