@@ -33,6 +33,23 @@
             },
             "defaultValue": "0.0.0.0/0"
         },
+        "useFirewallForEgress": {
+            "type": "string",
+            "metadata": {
+                "description": "Force all egress Internet traffic through the Azure Firewall."
+            },
+            "allowedValues": [
+                "Yes",
+                "No"
+            ],
+            "defaultValue":"Yes"
+        },
+        "routeTableName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name for the route tables used to direct traffic to the Azure Firewall."
+            }
+        },
         "hubSubnetBastionAddressSpace": {
             "type": "string",
             "metadata": {
@@ -126,8 +143,10 @@
     "variables": {
         "deploymentName": "[deployment().Name]",
         "templateLocationURI": "[concat(parameters('assetLocationURI'), 'Templates/')]",
-        "hub-deploymentName": "[concat(variables('deploymentName'), '-Network-Hub')]",
-        "bastion-deploymentName": "[concat(variables('deploymentName'), '-Network-Bastion')]",
+        "deploymentName-prodRouteTable": "[concat(variables('deploymentName'), '-Network-Hub')]",
+        "deploymentName-hub": "[concat(variables('deploymentName'), '-Network-Hub')]",
+        "deploymentName-bastion": "[concat(variables('deploymentName'), '-Network-Bastion')]",
+        "deploymentName-firewall": "[concat(variables('deploymentName'), '-Network-Firewall')]",
         "subnet_DC_fullName": "[concat(parameters('hubSubnetDcName'),'-',replace(parameters('hubSubnetDcAddressSpace'),'/','-'))]",
         "subnet_JH_fullName": "[concat(parameters('hubSubnetJumpHostsName'),'-',replace(parameters('hubSubnetJumpHostsAddressSpace'),'/','-'))]",
         "subnet_1_fullName": "[concat(parameters('hubSubnet1Name'),'-',replace(parameters('hubSubnet1AddressSpace'),'/','-'))]",
@@ -139,14 +158,36 @@
         "nsg_1_name": "[concat(variables('subnet_1_fullName'),'-NSG')]",
         "nsg_2_name": "[concat(variables('subnet_2_fullName'),'-NSG')]",
         "nsg_3_name": "[concat(variables('subnet_3_fullName'),'-NSG')]",
-        "nsg_4_name": "[concat(variables('subnet_4_fullName'),'-NSG')]"
-
+        "nsg_4_name": "[concat(variables('subnet_4_fullName'),'-NSG')]",
+        "firewallNetworkAddress": "[substring(parameters('hubSubnetFirewallAddressSpace'), 0, indexOf(parameters('hubSubnetFirewallAddressSpace'), '/'))]",
+        "firewallPrivateAddress": "[concat(substring(variables('firewallNetworkAddress'), 0, add(lastindexOf(variables('firewallNetworkAddress'), '.'), 1)), string(add(int(last(split(variables('firewallNetworkAddress'), '.'))), 4)))]",
+        "routeTableName": ""
     },
     "resources": [
         {
+            "condition": "[and(not(equals(parameters('hubSubnetFirewallAddressSpace'), '0.0.0.0/0')), equals(parameters('useFirewallForEgress'), 'Yes'))]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
-            "name": "[variables('hub-deploymentName')]",
+            "name": "[variables('deploymentName-prodRouteTable')]",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('templateLocationURI'), 'HubSpoke-RoouteTable.json')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "routeTables_name": {"value": "[parameters('routeTableName')]"},
+                    "routeTables_nextHopIpAddress": {"value": "[variables('firewallPrivateAddress')]"}
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "name": "[variables('deploymentName-hub')]",
+            "dependsOn": [
+                "[if(and(not(equals(parameters('hubSubnetFirewallAddressSpace'), '0.0.0.0/0')), equals(parameters('useFirewallForEgress'), 'Yes')), resourceId('Microsoft.Network/routeTables', parameters('routeTablename')), null())]"
+            ],
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
@@ -176,7 +217,9 @@
                     "nsg_3_name": {"value": "[variables('nsg_3_name')]"},
                     "subnet_4_name": {"value": "[variables('subnet_4_fullName')]"},
                     "subnet_4_addressSpace": {"value": "[parameters('hubSubnet4AddressSpace')]"},
-                    "nsg_4_name": {"value": "[variables('nsg_4_name')]"}
+                    "nsg_4_name": {"value": "[variables('nsg_4_name')]"},
+                    "configureRouteTable": {"value": "[if(and(not(equals(parameters('hubSubnetFirewallAddressSpace'), '0.0.0.0/0')), equals(parameters('useFirewallForEgress'), 'Yes')), 'Yes', 'No')]"},
+                    "routeTableName": {"value": "[parameters('routeTableName')]"}
                 }
             }
         },
@@ -185,13 +228,32 @@
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
             "dependsOn": [
-                "[variables('hub-deploymentName')]"
+                "[variables('deploymentName-hub')]"
             ],
-            "name": "[variables('bastion-deploymentName')]",
+            "name": "[variables('deploymentName-bastion')]",
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
                     "uri": "[concat(variables('templateLocationURI'), 'HubSpoke-Bastion.json')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "vnetName": {"value": "[parameters('hubVnetName')]"}
+                }
+            }
+        },
+        {
+            "condition": "[not(equals(parameters('hubSubnetFirewallAddressSpace'), '0.0.0.0/0'))]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "dependsOn": [
+                "[variables('deploymentName-hub')]"
+            ],
+            "name": "[variables('deploymentName-firewall')]",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('templateLocationURI'), 'HubSpoke-Firewall.json')]",
                     "contentVersion": "1.0.0.0"
                 },
                 "parameters": {

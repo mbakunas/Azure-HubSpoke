@@ -17,6 +17,12 @@
         "hubSubnetFirewallAddressSpace": {
             "value": "10.64.0.64/26"
         },
+        "useFirewallForEgress": {
+            "value": "Yes"
+        },
+        "routeTableName": {
+            "value": "RouteTable-01"
+        },
         "hubSubnetBastionAddressSpace": {
             "value": "10.64.0.128/26"
         },
