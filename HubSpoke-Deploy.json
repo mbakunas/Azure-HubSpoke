@@ -143,7 +143,7 @@
     "variables": {
         "deploymentName": "[deployment().Name]",
         "templateLocationURI": "[concat(parameters('assetLocationURI'), 'Templates/')]",
-        "deploymentName-prodRouteTable": "[concat(variables('deploymentName'), '-Network-Hub')]",
+        "deploymentName-prodRouteTable": "[concat(variables('deploymentName'), '-Network-ProdRouteTable')]",
         "deploymentName-hub": "[concat(variables('deploymentName'), '-Network-Hub')]",
         "deploymentName-bastion": "[concat(variables('deploymentName'), '-Network-Bastion')]",
         "deploymentName-firewall": "[concat(variables('deploymentName'), '-Network-Firewall')]",
@@ -161,7 +161,7 @@
         "nsg_4_name": "[concat(variables('subnet_4_fullName'),'-NSG')]",
         "firewallNetworkAddress": "[substring(parameters('hubSubnetFirewallAddressSpace'), 0, indexOf(parameters('hubSubnetFirewallAddressSpace'), '/'))]",
         "firewallPrivateAddress": "[concat(substring(variables('firewallNetworkAddress'), 0, add(lastindexOf(variables('firewallNetworkAddress'), '.'), 1)), string(add(int(last(split(variables('firewallNetworkAddress'), '.'))), 4)))]",
-        "routeTableName": ""
+        "routeTableName": "foo"
     },
     "resources": [
         {
