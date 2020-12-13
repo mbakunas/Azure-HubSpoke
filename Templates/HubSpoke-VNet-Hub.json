@@ -105,11 +105,12 @@
             "name": "[parameters('virtualNetwork_name')]",
             "location": "[variables('location')]",
             "dependsOn": [
-                "[if(equals(parameters('subnet_JH_addressSpace'), '0.0.0.0/0'), resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_DC_name')), resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_JH_name')))]",
-                "[if(equals(parameters('subnet_1_addressSpace'), '0.0.0.0/0'), resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_DC_name')), resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_1_name')))]",
-                "[if(or(equals(parameters('subnet_1_addressSpace'), '0.0.0.0/0'), equals(parameters('subnet_2_addressSpace'), '0.0.0.0/0')), resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_DC_name')), resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_2_name')))]",
-                "[if(or(equals(parameters('subnet_1_addressSpace'), '0.0.0.0/0'), equals(parameters('subnet_2_addressSpace'), '0.0.0.0/0'), equals(parameters('subnet_3_addressSpace'), '0.0.0.0/0')), resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_DC_name')), resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_3_name')))]",
-                "[if(or(equals(parameters('subnet_1_addressSpace'), '0.0.0.0/0'), equals(parameters('subnet_2_addressSpace'), '0.0.0.0/0'), equals(parameters('subnet_3_addressSpace'), '0.0.0.0/0'), equals(parameters('subnet_4_addressSpace'), '0.0.0.0/0')), resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_DC_name')), resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_4_name')))]"
+                "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_JH_name'))]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_DC_name'))]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_1_name'))]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_2_name'))]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_3_name'))]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_4_name'))]"
             ],
             "properties": {
                 "addressSpace": {
@@ -160,7 +161,8 @@
             "apiVersion": "2020-05-01",
             "name": "[concat(parameters('virtualNetwork_name'),'/AzureBastionSubnet')]",
             "dependsOn": [
-                "[if(equals(parameters('subnet_firewall_addressSpace'), '0.0.0.0/0'), resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetwork_name'),'GatewaySubnet'), resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetwork_name'),'AzureFirewallSubnet'))]"
+                "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetwork_name'),'GatewaySubnet')]",
+                "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetwork_name'),'AzureFirewallSubnet')]"
             ],
             "properties": {
                 "addressPrefix": "[parameters('subnet_bastion_addressSpace')]",
@@ -176,7 +178,9 @@
             "apiVersion": "2020-05-01",
             "name": "[concat(parameters('virtualNetwork_name'),'/',parameters('subnet_DC_name'))]",
             "dependsOn": [
-                "[if(equals(parameters('subnet_bastion_addressSpace'), '0.0.0.0/0'), if(equals(parameters('subnet_firewall_addressSpace'), '0.0.0.0/0'), resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetwork_name'),'GatewaySubnet'),resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetwork_name'),'AzureFirewallSubnet')),resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetwork_name'),'AzureBastionSubnet'))                ]"
+                "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetwork_name'),'GatewaySubnet')]",
+                "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetwork_name'),'AzureFirewallSubnet')]",
+                "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetwork_name'),'AzureBastionSubnet')]"
             ],
             "properties": {
                 "addressPrefix": "[parameters('subnet_DC_addressSpace')]",
@@ -198,7 +202,9 @@
             "apiVersion": "2020-05-01",
             "name": "[concat(parameters('virtualNetwork_name'),'/',parameters('subnet_DC_name'))]",
             "dependsOn": [
-                "[if(equals(parameters('subnet_bastion_addressSpace'), '0.0.0.0/0'), if(equals(parameters('subnet_firewall_addressSpace'), '0.0.0.0/0'), resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetwork_name'),'GatewaySubnet'),resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetwork_name'),'AzureFirewallSubnet')),resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetwork_name'),'AzureBastionSubnet'))                ]"
+                "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetwork_name'),'GatewaySubnet')]",
+                "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetwork_name'),'AzureFirewallSubnet')]",
+                "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetwork_name'),'AzureBastionSubnet')]"
             ],
             "properties": {
                 "addressPrefix": "[parameters('subnet_DC_addressSpace')]",
@@ -255,7 +261,8 @@
             "apiVersion": "2020-05-01",
             "name": "[concat(parameters('virtualNetwork_name'),'/',parameters('subnet_1_name'))]",
             "dependsOn": [
-                "[if(equals(parameters('subnet_JH_addressSpace'), '0.0.0.0/0'), resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetwork_name'), parameters('subnet_DC_name')), resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetwork_name'), parameters('subnet_JH_name')))]"
+                "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetwork_name'), parameters('subnet_DC_name'))]",
+                "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetwork_name'), parameters('subnet_JH_name'))]"
             ],
             "properties": {
                 "addressPrefix": "[parameters('subnet_1_addressSpace')]",

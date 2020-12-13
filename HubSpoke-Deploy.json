@@ -186,7 +186,7 @@
             "apiVersion": "2020-06-01",
             "name": "[variables('deploymentName-hub')]",
             "dependsOn": [
-                "[if(and(not(equals(parameters('hubSubnetFirewallAddressSpace'), '0.0.0.0/0')), equals(parameters('useFirewallForEgress'), 'Yes')), resourceId('Microsoft.Network/routeTables', parameters('routeTablename')), null())]"
+                "[resourceId('Microsoft.Resources/deployments', variables('deploymentName-prodRouteTable'))]"
             ],
             "properties": {
                 "mode": "Incremental",
