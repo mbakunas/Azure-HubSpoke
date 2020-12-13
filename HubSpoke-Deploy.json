@@ -194,8 +194,7 @@
                     "contentVersion": "1.0.0.0"
                 },
                 "parameters": {
-                    "routeTables_name": {"value": "[parameters('routeTableName')]"},
-                    "routeTables_nextHopIpAddress": {"value": "[variables('firewallPrivateAddress')]"}
+                    "routeTables_name": {"value": "[parameters('routeTableName')]"}
                 }
             }
         },
