@@ -127,6 +127,7 @@
         "deploymentName": "[deployment().Name]",
         "templateLocationURI": "[concat(parameters('assetLocationURI'), 'Templates/')]",
         "hub-deploymentName": "[concat(variables('deploymentName'), '-Network-Hub')]",
+        "bastion-deploymentName": "[concat(variables('deploymentName'), '-Network-Bastion')]",
         "subnet_DC_fullName": "[concat(parameters('hubSubnetDcName'),'-',replace(parameters('hubSubnetDcAddressSpace'),'/','-'))]",
         "subnet_JH_fullName": "[concat(parameters('hubSubnetJumpHostsName'),'-',replace(parameters('hubSubnetJumpHostsAddressSpace'),'/','-'))]",
         "subnet_1_fullName": "[concat(parameters('hubSubnet1Name'),'-',replace(parameters('hubSubnet1AddressSpace'),'/','-'))]",
@@ -176,6 +177,25 @@
                     "subnet_4_name": {"value": "[variables('subnet_4_fullName')]"},
                     "subnet_4_addressSpace": {"value": "[parameters('hubSubnet4AddressSpace')]"},
                     "nsg_4_name": {"value": "[variables('nsg_4_name')]"}
+                }
+            }
+        },
+        {
+            "condition": "[not(equals(parameters('hubSubnetBastionAddressSpace'), '0.0.0.0/0'))]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "dependsOn": [
+                "[variables('hub-deploymentName')]"
+            ],
+            "name": "[variables('bastion-deploymentName')]",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('templateLocationURI'), 'HubSpoke-Bastion.json')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "vnetName": {"value": "[parameters('hubVnetName')]"}
                 }
             }
         }
