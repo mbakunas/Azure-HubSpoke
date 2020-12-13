@@ -1,0 +1,60 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "assetLocationURI": {
+            "value": "https://raw.githubusercontent.com/mbakunas/Azure-Stuff/master/"
+        },
+        "hubVnetName": {
+            "value": "VNet-Hub-01"
+        },
+        "hubVnetAddressSpace": {
+            "value": "10.64.0.0/23"
+        },
+        "hubSubnetGatewayAddressSpace": {
+            "value": "10.64.0.0/26"
+        },
+        "hubSubnetFirewallAddressSpace": {
+            "value": "10.64.0.64/26"
+        },
+        "hubSubnetBastionAddressSpace": {
+            "value": "10.64.0.128/64"
+        },
+        "hubSubnetDcName": {
+            "value": "Infra"
+        },
+        "hubSubnetDcAddressSpace": {
+            "value": "10.64.0.192/27"
+        },
+        "hubSubnetJumpHostsName": {
+            "value": "JumpHosts"
+        },
+        "hubSubnetJumpHostsAddressSpace": {
+            "value": "10.64.0.224/27"
+        },
+        "hubSubnet1Name": {
+            "value": "Subnet1"
+        },
+        "hubSubnet1AddressSpace": {
+            "value": "10.65.0.0/27"
+        },
+        "hubSubnet2Name": {
+            "value": "Subnet2"
+        },
+        "hubSubnet2AddressSpace": {
+            "value": "10.65.0.32/27"
+        },
+        "hubSubnet3Name": {
+            "value": "Subnet3"
+        },
+        "hubSubnet3AddressSpace": {
+            "value": "10.65.0.64/27"
+        },
+        "hubSubnet4Name": {
+            "value": "Subnet4"
+        },
+        "hubSubnet4AddressSpace": {
+            "value": "10.65.0.96/27"
+        }
+    }
+}
