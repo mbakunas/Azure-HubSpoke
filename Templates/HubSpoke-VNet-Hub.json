@@ -187,7 +187,7 @@
                     "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_DC_name'))]"
                 },
                 "routeTable": {
-                    "id": "[resourceId('Microsoft.Network/routeTables', parameters('routeTableName'))]"
+                    "id": "[If(equals(parameters('configureRouteTable'), 'Yes'), resourceId('Microsoft.Network/routeTables', parameters('routeTableName')), '')]"
                 },
                 "serviceEndpoints": [],
                 "delegations": [],
