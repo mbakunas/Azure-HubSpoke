@@ -36,25 +36,25 @@
             "value": "Subnet1"
         },
         "hubSubnet1AddressSpace": {
-            "value": "10.65.0.0/27"
+            "value": "10.64.1.0/27"
         },
         "hubSubnet2Name": {
             "value": "Subnet2"
         },
         "hubSubnet2AddressSpace": {
-            "value": "10.65.0.32/27"
+            "value": "10.64.1.32/27"
         },
         "hubSubnet3Name": {
             "value": "Subnet3"
         },
         "hubSubnet3AddressSpace": {
-            "value": "10.65.0.64/27"
+            "value": "10.64.1.64/27"
         },
         "hubSubnet4Name": {
             "value": "Subnet4"
         },
         "hubSubnet4AddressSpace": {
-            "value": "10.65.0.96/27"
+            "value": "10.64.1.96/27"
         }
     }
 }
