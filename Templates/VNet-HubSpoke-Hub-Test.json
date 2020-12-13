@@ -106,11 +106,11 @@
             "name": "[parameters('virtualNetwork_name')]",
             "location": "[variables('location')]",
             "dependsOn": [
-                "[if(equals(parameters('subnet_JH_addressSpace'), '0.0.0.0/0'), json('null'), resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_JH_name')))]",
-                "[if(equals(parameters('subnet_1_addressSpace'), '0.0.0.0/0'), json('null'), resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_1_name')))]",
-                "[if(equals(parameters('subnet_2_addressSpace'), '0.0.0.0/0'), json('null'), resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_2_name')))]",
-                "[if(equals(parameters('subnet_3_addressSpace'), '0.0.0.0/0'), json('null'), resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_3_name')))]",
-                "[if(equals(parameters('subnet_4_addressSpace'), '0.0.0.0/0'), json('null'), resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_4_name')))]"
+                "[if(equals(parameters('subnet_JH_addressSpace'), '0.0.0.0/0'), resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_DC_name')), resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_JH_name')))]",
+                "[if(equals(parameters('subnet_1_addressSpace'), '0.0.0.0/0'), resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_DC_name')), resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_1_name')))]",
+                "[if(or(equals(parameters('subnet_1_addressSpace'), '0.0.0.0/0'), equals(parameters('subnet_2_addressSpace'), '0.0.0.0/0')), resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_DC_name')), resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_2_name')))]",
+                "[if(or(equals(parameters('subnet_1_addressSpace'), '0.0.0.0/0'), equals(parameters('subnet_2_addressSpace'), '0.0.0.0/0'), equals(parameters('subnet_3_addressSpace'), '0.0.0.0/0')), resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_DC_name')), resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_3_name')))]",
+                "[if(or(equals(parameters('subnet_1_addressSpace'), '0.0.0.0/0'), equals(parameters('subnet_2_addressSpace'), '0.0.0.0/0'), equals(parameters('subnet_3_addressSpace'), '0.0.0.0/0'), equals(parameters('subnet_4_addressSpace'), '0.0.0.0/0')), resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_DC_name')), resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_4_name')))]"
             ],
             "properties": {
                 "addressSpace": {
