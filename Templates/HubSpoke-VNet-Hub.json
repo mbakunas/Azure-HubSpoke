@@ -83,14 +83,6 @@
         "nsg_4_name": {
             "type": "string"
         },
-        "configureRouteTable": {
-            "type": "string",
-            "allowedValues": [
-                "Yes",
-                "No"
-            ],
-            "defaultValue": "Yes"
-        },
         "routeTableName": {
             "type": "string"
         }
@@ -187,7 +179,7 @@
                     "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_DC_name'))]"
                 },
                 "routeTable": {
-                    "id": "[If(equals(parameters('configureRouteTable'), 'Yes'), resourceId('Microsoft.Network/routeTables', parameters('routeTableName')), '')]"
+                    "id": "[resourceId('Microsoft.Network/routeTables', parameters('routeTableName'))]"
                 },
                 "serviceEndpoints": [],
                 "delegations": [],
@@ -216,6 +208,9 @@
                 "addressPrefix": "[parameters('subnet_JH_addressSpace')]",
                 "networkSecurityGroup": {
                     "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_JH_name'))]"
+                },
+                "routeTable": {
+                    "id": "[resourceId('Microsoft.Network/routeTables', parameters('routeTableName'))]"
                 },
                 "serviceEndpoints": [],
                 "delegations": [],
@@ -247,6 +242,9 @@
                 "networkSecurityGroup": {
                     "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_1_name'))]"
                 },
+                "routeTable": {
+                    "id": "[resourceId('Microsoft.Network/routeTables', parameters('routeTableName'))]"
+                },
                 "serviceEndpoints": [],
                 "delegations": [],
                 "privateEndpointNetworkPolicies": "Enabled",
@@ -275,6 +273,9 @@
                 "addressPrefix": "[parameters('subnet_2_addressSpace')]",
                 "networkSecurityGroup": {
                     "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_2_name'))]"
+                },
+                "routeTable": {
+                    "id": "[resourceId('Microsoft.Network/routeTables', parameters('routeTableName'))]"
                 },
                 "serviceEndpoints": [],
                 "delegations": [],
@@ -305,6 +306,9 @@
                 "networkSecurityGroup": {
                     "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_3_name'))]"
                 },
+                "routeTable": {
+                    "id": "[resourceId('Microsoft.Network/routeTables', parameters('routeTableName'))]"
+                },
                 "serviceEndpoints": [],
                 "delegations": [],
                 "privateEndpointNetworkPolicies": "Enabled",
@@ -333,6 +337,9 @@
                 "addressPrefix": "[parameters('subnet_4_addressSpace')]",
                 "networkSecurityGroup": {
                     "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_4_name'))]"
+                },
+                "routeTable": {
+                    "id": "[resourceId('Microsoft.Network/routeTables', parameters('routeTableName'))]"
                 },
                 "serviceEndpoints": [],
                 "delegations": [],

@@ -71,9 +71,6 @@
         "nsg_4_name": {
             "value": "Subnet4-10.1.1.96-27-NSG"
         },
-        "configureRouteTable": {
-            "value": "Yes"
-        },
         "routeTableName": {
             "value": "RouteTable-01"
         }
