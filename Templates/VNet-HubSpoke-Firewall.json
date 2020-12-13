@@ -1,0 +1,63 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion":  "1.0.0.0",
+    
+    "parameters": {
+        "vnetName": {
+            "type": "string",
+            "defaultValue": "VNet-Hub-01"
+        }
+
+    },
+    "variables": {
+
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Network/azureFirewalls",
+            "name": "[concat(parameters('vnetName'),'-Firewall')]",
+            "apiVersion": "2020-05-01" ,
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/publicIPAddresses',concat(parameters('vnetName'),'-Firewall-IP'))]"
+            ],
+            "properties": {
+                "sku": {
+                    "name": "AZFW_VNet",
+                    "tier": "Standard"
+                },
+                "threatIntelMode": "Alert",
+                "ipConfigurations": [
+                    {
+                        "name": "[concat(parameters('vnetName'),'-Firewall-IP')]",
+                        "properties": {
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses',concat(parameters('vnetName'),'-Firewall-IP'))]"
+                            },
+                            "subnet": {
+                                "id": "[concat(resourceId('Microsoft.Network/virtualNetworks', parameters('vnetName')),'/subnets/AzureFirewallSubnet')]"
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Network/publicIPAddresses",
+            "name": "[concat(parameters('vnetName'),'-Firewall-IP')]",
+            "apiVersion": "2020-05-01",
+            "location": "[resourceGroup().location]",
+            "sku": {
+                "name": "Standard"
+            },
+            "properties": {
+                "publicIPAddressVersion": "IPv4",
+                "publicIPAllocationMethod": "Static"
+            }
+        }
+
+    ],
+    "outputs": {
+
+    }
+}
