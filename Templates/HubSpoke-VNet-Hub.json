@@ -173,7 +173,6 @@
             }
         },
         {
-            "condition": "[equals(parameters('configureRouteTable'), 'Yes')]",
             "type": "Microsoft.Network/virtualNetworks/subnets",
             "apiVersion": "2020-05-01",
             "name": "[concat(parameters('virtualNetwork_name'),'/',parameters('subnet_DC_name'))]",
@@ -189,27 +188,6 @@
                 },
                 "routeTable": {
                     "id": "[resourceId('Microsoft.Network/routeTables', parameters('routeTableName'))]"
-                },
-                "serviceEndpoints": [],
-                "delegations": [],
-                "privateEndpointNetworkPolicies": "Enabled",
-                "privateLinkServiceNetworkPolicies": "Enabled"
-            }
-        },
-        {
-            "condition": "[equals(parameters('configureRouteTable'), 'No')]",
-            "type": "Microsoft.Network/virtualNetworks/subnets",
-            "apiVersion": "2020-05-01",
-            "name": "[concat(parameters('virtualNetwork_name'),'/',parameters('subnet_DC_name'))]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetwork_name'),'GatewaySubnet')]",
-                "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetwork_name'),'AzureFirewallSubnet')]",
-                "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetwork_name'),'AzureBastionSubnet')]"
-            ],
-            "properties": {
-                "addressPrefix": "[parameters('subnet_DC_addressSpace')]",
-                "networkSecurityGroup": {
-                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_DC_name'))]"
                 },
                 "serviceEndpoints": [],
                 "delegations": [],
