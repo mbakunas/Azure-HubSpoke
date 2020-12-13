@@ -4,7 +4,7 @@
     "parameters": {
         "virtualNetwork_name": {
             "type": "String",
-            "defaultValue": "VNet-01"
+            "defaultValue": "VNet-Hub-01"
         },
         "virtualNetwork_addressSpace": {
             "type": "string",
