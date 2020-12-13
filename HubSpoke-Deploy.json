@@ -144,6 +144,7 @@
         "deploymentName": "[deployment().Name]",
         "templateLocationURI": "[concat(parameters('assetLocationURI'), 'Templates/')]",
         "deploymentName-prodRouteTable": "[concat(variables('deploymentName'), '-Network-ProdRouteTable')]",
+        "deploymentName-prodRouteTable-Empty": "[concat(variables('deploymentName'), '-Network-ProdRouteTable-Empty')]",
         "deploymentName-hub": "[concat(variables('deploymentName'), '-Network-Hub')]",
         "deploymentName-bastion": "[concat(variables('deploymentName'), '-Network-Bastion')]",
         "deploymentName-firewall": "[concat(variables('deploymentName'), '-Network-Firewall')]",
@@ -182,11 +183,29 @@
             }
         },
         {
+            "condition": "[or(equals(parameters('hubSubnetFirewallAddressSpace'), '0.0.0.0/0'), equals(parameters('useFirewallForEgress'), 'No'))]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "name": "[variables('deploymentName-prodRouteTable-Empty')]",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('templateLocationURI'), 'HubSpoke-RoouteTable.json')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "routeTables_name": {"value": "[parameters('routeTableName')]"},
+                    "routeTables_nextHopIpAddress": {"value": "[variables('firewallPrivateAddress')]"}
+                }
+            }
+        },
+        {
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
             "name": "[variables('deploymentName-hub')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Resources/deployments', variables('deploymentName-prodRouteTable'))]"
+                "[resourceId('Microsoft.Resources/deployments', variables('deploymentName-prodRouteTable'))]",
+                "[resourceId('Microsoft.Resources/deployments', variables('deploymentName-prodRouteTable-Empty'))]"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -218,7 +237,6 @@
                     "subnet_4_name": {"value": "[variables('subnet_4_fullName')]"},
                     "subnet_4_addressSpace": {"value": "[parameters('hubSubnet4AddressSpace')]"},
                     "nsg_4_name": {"value": "[variables('nsg_4_name')]"},
-                    "configureRouteTable": {"value": "[if(and(not(equals(parameters('hubSubnetFirewallAddressSpace'), '0.0.0.0/0')), equals(parameters('useFirewallForEgress'), 'Yes')), 'Yes', 'No')]"},
                     "routeTableName": {"value": "[parameters('routeTableName')]"}
                 }
             }
