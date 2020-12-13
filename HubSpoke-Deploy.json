@@ -1,8 +1,184 @@
 {
     "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
-    "parameters": {},
-    "variables": {},
-    "resources": [],
+    "parameters": {
+        "assetLocationURI": {
+            "type": "string",
+            "metadata": {
+                "description": "Publicly accessible location of the child ARM templates."
+            }
+        },
+        "hubVnetName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the hub VNet."
+            }
+        },
+        "hubVnetAddressSpace": {
+            "type": "string",
+            "metadata": {
+                "description": "Address space of the hub VNet in CIDR notation."
+            }
+        },
+        "hubSubnetGatewayAddressSpace": {
+            "type": "string",
+            "metadata": {
+                "description": "Address space of the hub gateway subnet in CIDR notation."
+            }
+        },
+        "hubSubnetFirewallAddressSpace": {
+            "type": "string",
+            "metadata": {
+                "description": "Address space of the hub Azure Firewall subnet in CIDR notation.  Enter 0.0.0.0/0 not to deploy the Azure Firewall."
+            },
+            "defaultValue": "0.0.0.0/0"
+        },
+        "hubSubnetBastionAddressSpace": {
+            "type": "string",
+            "metadata": {
+                "description": "Address space of the hub Azure Bastion subnet in CIDR notation.  Enter 0.0.0.0/0 not to deploy the Azure Bastion."
+            },
+            "defaultValue": "0.0.0.0/0"
+        },
+        "hubSubnetDcName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the subnet housing the domain controllers.  The address space of this subnet will be appended to the value entered here."
+            }
+        },
+        "hubSubnetDcAddressSpace": {
+            "type": "string",
+            "metadata": {
+                "description": "Address space of the subnet housing the domain controllers in CIDR notation."
+            }
+        },
+        "hubSubnetJumpHostsName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the subnet housing the jump hosts.  The address space of this subnet will be appended to the value entered here."
+            },
+            "defaultValue": "JumpHosts"
+        },
+        "hubSubnetJumpHostsAddressSpace": {
+            "type": "string",
+            "metadata": {
+                "description": "Address space of the subnet housing the jump hosts in CIDR notation.  Enter 0.0.0.0/0 not to create the jump hosts subnet."
+            },
+            "defaultValue": "0.0.0.0/0"
+        },
+        "hubSubnet1Name": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the first additional subnet.  The address space of this subnet will be appended to the value entered here."
+            },
+            "defaultValue": "Subnet1"
+        },
+        "hubSubnet1AddressSpace": {
+            "type": "string",
+            "metadata": {
+                "description": "Address space of the first additional subnet.  Enter 0.0.0.0/0 not to create this or any additional subnets."
+            },
+            "defaultValue": "0.0.0.0/0"
+        },
+        "hubSubnet2Name": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the second additional subnet.  The address space of this subnet will be appended to the value entered here."
+            },
+            "defaultValue": "Subnet2"
+        },
+        "hubSubnet2AddressSpace": {
+            "type": "string",
+            "metadata": {
+                "description": "Address space of the second additional subnet.  Enter 0.0.0.0/0 not to create this or any subsequent additional subnets."
+            },
+            "defaultValue": "0.0.0.0/0"
+        },
+        "hubSubnet3Name": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the third additional subnet.  The address space of this subnet will be appended to the value entered here."
+            },
+            "defaultValue": "Subnet3"
+        },
+        "hubSubnet3AddressSpace": {
+            "type": "string",
+            "metadata": {
+                "description": "Address space of the third additional subnet.  Enter 0.0.0.0/0 not to create this or any subsequent additional subnets."
+            },
+            "defaultValue": "0.0.0.0/0"
+        },
+        "hubSubnet4Name": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the fourth additional subnet.  The address space of this subnet will be appended to the value entered here."
+            },
+            "defaultValue": "Subnet4"
+        },
+        "hubSubnet4AddressSpace": {
+            "type": "string",
+            "metadata": {
+                "description": "Address space of the fourth additional subnet.  Enter 0.0.0.0/0 not to create this subnet."
+            },
+            "defaultValue": "0.0.0.0/0"
+        }
+    },
+    "variables": {
+        "deploymentName": "[deployment().Name]",
+        "templateLocationURI": "[concat(parameters('assetLocationURI'), 'Templates/')]",
+        "hub-deploymentName": "[concat(variables('deploymentName'), '-Network-Hub')]",
+        "subnet_DC_fullName": "[concat(parameters('hubSubnetDcName'),'-',replace(parameters('hubSubnetDcAddressSpace'),'/','-'))]",
+        "subnet_JH_fullName": "[concat(parameters('hubSubnetJumpHostsName'),'-',replace(parameters('hubSubnetJumpHostsAddressSpace'),'/','-'))]",
+        "subnet_1_fullName": "[concat(parameters('hubSubnet1Name'),'-',replace(parameters('hubSubnet1AddressSpace'),'/','-'))]",
+        "subnet_2_fullName": "[concat(parameters('hubSubnet2Name'),'-',replace(parameters('hubSubnet2AddressSpace'),'/','-'))]",
+        "subnet_3_fullName": "[concat(parameters('hubSubnet3Name'),'-',replace(parameters('hubSubnet3AddressSpace'),'/','-'))]",
+        "subnet_4_fullName": "[concat(parameters('hubSubnet4Name'),'-',replace(parameters('hubSubnet4AddressSpace'),'/','-'))]",
+        "nsg_DC_name": "[concat(variables('subnet_DC_fullName'),'-NSG')]",
+        "nsg_JH_name": "[concat(variables('subnet_JH_fullName'),'-NSG')]",
+        "nsg_1_name": "[concat(variables('subnet_1_fullName'),'-NSG')]",
+        "nsg_2_name": "[concat(variables('subnet_2_fullName'),'-NSG')]",
+        "nsg_3_name": "[concat(variables('subnet_3_fullName'),'-NSG')]",
+        "nsg_4_name": "[concat(variables('subnet_4_fullName'),'-NSG')]"
+
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "name": "[variables('hub-deploymentName')]",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('templateLocationURI'), 'HubSpoke-VNet-Hub.json')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "virtualNetwork_name": {"value": "[parameters('hubVnetName')]"},
+                    "virtualNetwork_addressSpace": {"value": "[parameters('hubVnetAddressSpace')]"},
+                    "subnet_gateway_addressSpace": {"value": "[parameters('hubSubnetGatewayAddressSpace')]"},
+                    "subnet_firewall_addressSpace": {"value": "[parameters('hubSubnetFirewallAddressSpace')]"},
+                    "subnet_bastion_addressSpace": {"value": "[parameters('hubSubnetBastionAddressSpace')]"},
+                    "subnet_DC_name": {"value": "[variables('subnet_DC_fullName')]"},
+                    "subnet_DC_addressSpace": {"value": "[parameters('hubSubnetDcAddressSpace')]"},
+                    "nsg_DC_name": {"value": "[variables('nsg_DC_name')]"},
+                    "subnet_JH_name": {"value": "[variables('subnet_JH_fullName')]"},
+                    "subnet_JH_addressSpace": {"value": "[parameters('hubSubnetJumpHostsAddressSpace')]"},
+                    "nsg_JH_name": {"value": "[variables('nsg_JH_name')]"},
+                    "subnet_1_name": {"value": "[variables('subnet_1_fullName')]"},
+                    "subnet_1_addressSpace": {"value": "[parameters('hubSubnet1AddressSpace')]"},
+                    "nsg_1_name": {"value": "[variables('nsg_1_name')]"},
+                    "subnet_2_name": {"value": "[variables('subnet_2_fullName')]"},
+                    "subnet_2_addressSpace": {"value": "[parameters('hubSubnet2AddressSpace')]"},
+                    "nsg_2_name": {"value": "[variables('nsg_2_name')]"},
+                    "subnet_3_name": {"value": "[variables('subnet_3_fullName')]"},
+                    "subnet_3_addressSpace": {"value": "[parameters('hubSubnet3AddressSpace')]"},
+                    "nsg_3_name": {"value": "[variables('nsg_3_name')]"},
+                    "subnet_4_name": {"value": "[variables('subnet_4_fullName')]"},
+                    "subnet_4_addressSpace": {"value": "[parameters('hubSubnet4AddressSpace')]"},
+                    "nsg_4_name": {"value": "[variables('nsg_4_name')]"}
+                }
+            }
+        }
+    ],
     "outputs": {}
 }
