@@ -1,0 +1,263 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "virtualNetwork_name": {
+            "type": "String",
+            "defaultValue": "VNet-01"
+        },
+        "virtualNetwork_addressSpace": {
+            "type": "string",
+            "defaultValue": "192.168.10.0/23"
+        },
+        "subnet_gateway_addressSpace": {
+            "type": "string",
+            "defaultValue": "192.168.10.0/26"
+        },
+        "subnet_firewall_addressSpace": {
+            "type": "string",
+            "defaultValue": "0.0.0.0/0"
+        },
+        "subnet_bastion_addressSpace": {
+            "type": "string",
+            "defaultValue": "0.0.0.0/0"
+        },
+        "subnet_DC_name": {
+            "type": "string",
+            "defaultValue": "DCs"
+        },
+        "subnet_DC_addressSpace": {
+            "type": "string",
+            "defaultValue": "192.168.10.192/27"
+        },
+        "nsg_DC_name": {
+            "type": "string"
+        },
+        "subnet_JH_name": {
+            "type": "string"
+        },
+        "subnet_JH_addressSpace": {
+            "type": "string",
+            "defaultValue": "0.0.0.0/0"
+        },
+        "nsg_JH_name": {
+            "type": "string"
+        },
+        "subnet_1_name": {
+            "type": "string"
+        },
+        "subnet_1_addressSpace": {
+            "type": "string",
+            "defaultValue": "0.0.0.0/0"
+        },
+        "nsg_1_name": {
+            "type": "string"
+        },
+        "subnet_2_name": {
+            "type": "string"
+        },
+        "subnet_2_addressSpace": {
+            "type": "string",
+            "defaultValue": "0.0.0.0/0"
+        },
+        "nsg_2_name": {
+            "type": "string"
+        },
+        "subnet_3_name": {
+            "type": "string"
+        },
+        "subnet_3_addressSpace": {
+            "type": "string",
+            "defaultValue": "0.0.0.0/0"
+        },
+        "nsg_3_name": {
+            "type": "string"
+        },
+        "subnet_4_name": {
+            "type": "string"
+        },
+        "subnet_4_addressSpace": {
+            "type": "string",
+            "defaultValue": "0.0.0.0/0"
+        },
+        "nsg_4_name": {
+            "type": "string"
+        }
+    },
+    "variables": {
+        "location": "[resourceGroup().location]",
+        "subnet_DC_fullName": "[concat(parameters('subnet_DC_name'),'-',replace(parameters('subnet_DC_addressSpace'),'/','-'))]",
+        "subnet_JH_fullName": "[concat(parameters('subnet_JH_name'),'-',replace(parameters('subnet_JH_addressSpace'),'/','-'))]",
+        "subnet_1_fullName": "[concat(parameters('subnet_1_name'),'-',replace(parameters('subnet_1_addressSpace'),'/','-'))]",
+        "subnet_2_fullName": "[concat(parameters('subnet_2_name'),'-',replace(parameters('subnet_2_addressSpace'),'/','-'))]",
+        "subnet_3_fullName": "[concat(parameters('subnet_3_name'),'-',replace(parameters('subnet_3_addressSpace'),'/','-'))]",
+        "subnet_4_fullName": "[concat(parameters('subnet_4_name'),'-',replace(parameters('subnet_4_addressSpace'),'/','-'))]",
+        "nsg_DC_name": "[concat(variables('subnet_DC_fullName'),'-NSG')]",
+        "nsg_JH_name": "[concat(variables('subnet_JH_fullName'),'-NSG')]",
+        "nsg_1_name": "[concat(variables('subnet_1_fullName'),'-NSG')]",
+        "nsg_2_name": "[concat(variables('subnet_2_fullName'),'-NSG')]",
+        "nsg_3_name": "[concat(variables('subnet_3_fullName'),'-NSG')]",
+        "nsg_4_name": "[concat(variables('subnet_4_fullName'),'-NSG')]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Network/virtualNetworks",
+            "apiVersion": "2020-05-01",
+            "name": "[parameters('virtualNetwork_name')]",
+            "location": "[variables('location')]",
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "[parameters('virtualNetwork_addressSpace')]"
+                    ]
+                },
+                "subnets": [],
+                "virtualNetworkPeerings": [],
+                "enableDdosProtection": false,
+                "enableVmProtection": false
+            }
+        },
+        {
+            "type": "Microsoft.Network/virtualNetworks/subnets",
+            "apiVersion": "2020-05-01",
+            "name": "[concat(parameters('virtualNetwork_name'),'/GatewaySubnet')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetwork_name'))]"
+            ],
+            "properties": {
+                "addressPrefix": "[parameters('subnet_gateway_addressSpace')]",
+                "serviceEndpoints": [],
+                "delegations": [],
+                "privateEndpointNetworkPolicies": "Enabled",
+                "privateLinkServiceNetworkPolicies": "Enabled"
+            }
+        },
+        {
+            "condition": "[not(equals(parameters('subnet_firewall_addressSpace'), '0.0.0.0/0'))]",
+            "type": "Microsoft.Network/virtualNetworks/subnets",
+            "apiVersion": "2020-05-01",
+            "name": "[concat(parameters('virtualNetwork_name'),'/AzureFirewallSubnet')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetwork_name'),'GatewaySubnet')]"
+            ],
+            "properties": {
+                "addressPrefix": "[parameters('subnet_firewall_addressSpace')]",
+                "serviceEndpoints": [],
+                "delegations": [],
+                "privateEndpointNetworkPolicies": "Enabled",
+                "privateLinkServiceNetworkPolicies": "Enabled"
+            }
+        },
+        {
+            "condition": "[not(equals(parameters('subnet_bastion_addressSpace'), '0.0.0.0/0'))]",
+            "type": "Microsoft.Network/virtualNetworks/subnets",
+            "apiVersion": "2020-05-01",
+            "name": "[concat(parameters('virtualNetwork_name'),'/AzureBastionSubnet')]",
+            "dependsOn": [
+                "[if(equals(parameters('subnet_firewall_addressSpace'), '0.0.0.0/0'), resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetwork_name'),'GatewaySubnet'), resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetwork_name'),'AzureFirewallSubnet'))]"
+            ],
+            "properties": {
+                "addressPrefix": "[parameters('subnet_bastion_addressSpace')]",
+                "serviceEndpoints": [],
+                "delegations": [],
+                "privateEndpointNetworkPolicies": "Enabled",
+                "privateLinkServiceNetworkPolicies": "Enabled"
+            }
+        },
+        {
+            "type": "Microsoft.Network/virtualNetworks/subnets",
+            "apiVersion": "2020-05-01",
+            "name": "[concat(parameters('virtualNetwork_name'),'/',parameters('subnet_DC_name'))]",
+            "dependsOn": [
+                "[if(equals(parameters('subnet_bastion_addressSpace'), '0.0.0.0/0'), if(equals(parameters('subnet_firewall_addressSpace'), '0.0.0.0/0'), resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetwork_name'),'GatewaySubnet'),resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetwork_name'),'AzureFirewallSubnet')),resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetwork_name'),'AzureBastionSubnet'))                ]"
+            ],
+            "properties": {
+                "addressPrefix": "[parameters('subnet_DC_addressSpace')]",
+                "serviceEndpoints": [],
+                "delegations": [],
+                "privateEndpointNetworkPolicies": "Enabled",
+                "privateLinkServiceNetworkPolicies": "Enabled"
+            }
+        },
+        {
+            "condition": "[not(equals(parameters('subnet_JH_addressSpace'), '0.0.0.0/0'))]",
+            "type": "Microsoft.Network/virtualNetworks/subnets",
+            "apiVersion": "2020-05-01",
+            "name": "[concat(parameters('virtualNetwork_name'),'/',parameters('subnet_JH_name'))]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetwork_name'), parameters('subnet_DC_name'))]"
+            ],
+            "properties": {
+                "addressPrefix": "[parameters('subnet_JH_addressSpace')]",
+                "serviceEndpoints": [],
+                "delegations": [],
+                "privateEndpointNetworkPolicies": "Enabled",
+                "privateLinkServiceNetworkPolicies": "Enabled"
+            }
+        },
+        {
+            "condition": "[not(equals(parameters('subnet_1_addressSpace'), '0.0.0.0/0'))]",
+            "type": "Microsoft.Network/virtualNetworks/subnets",
+            "apiVersion": "2020-05-01",
+            "name": "[concat(parameters('virtualNetwork_name'),'/',parameters('subnet_1_name'))]",
+            "dependsOn": [
+                "[if(equals(parameters('subnet_JH_addressSpace'), '0.0.0.0/0'), resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetwork_name'), parameters('subnet_DC_name')), resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetwork_name'), parameters('subnet_JH_name')))]"
+            ],
+            "properties": {
+                "addressPrefix": "[parameters('subnet_1_addressSpace')]",
+                "serviceEndpoints": [],
+                "delegations": [],
+                "privateEndpointNetworkPolicies": "Enabled",
+                "privateLinkServiceNetworkPolicies": "Enabled"
+            }
+        },
+        {
+            "condition": "[and(not(equals(parameters('subnet_1_addressSpace'), '0.0.0.0/0')), not(equals(parameters('subnet_2_addressSpace'), '0.0.0.0/0')))]",
+            "type": "Microsoft.Network/virtualNetworks/subnets",
+            "apiVersion": "2020-05-01",
+            "name": "[concat(parameters('virtualNetwork_name'),'/',parameters('subnet_2_name'))]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetwork_name'), parameters('subnet_1_name'))]"
+            ],
+            "properties": {
+                "addressPrefix": "[parameters('subnet_2_addressSpace')]",
+                "serviceEndpoints": [],
+                "delegations": [],
+                "privateEndpointNetworkPolicies": "Enabled",
+                "privateLinkServiceNetworkPolicies": "Enabled"
+            }
+        },
+        {
+            "condition": "[and(not(equals(parameters('subnet_1_addressSpace'), '0.0.0.0/0')), not(equals(parameters('subnet_2_addressSpace'), '0.0.0.0/0')), not(equals(parameters('subnet_3_addressSpace'), '0.0.0.0/0')))]",
+            "type": "Microsoft.Network/virtualNetworks/subnets",
+            "apiVersion": "2020-05-01",
+            "name": "[concat(parameters('virtualNetwork_name'),'/',parameters('subnet_3_name'))]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetwork_name'), parameters('subnet_2_name'))]"
+            ],
+            "properties": {
+                "addressPrefix": "[parameters('subnet_3_addressSpace')]",
+                "serviceEndpoints": [],
+                "delegations": [],
+                "privateEndpointNetworkPolicies": "Enabled",
+                "privateLinkServiceNetworkPolicies": "Enabled"
+            }
+        },
+        {
+            "condition": "[and(not(equals(parameters('subnet_1_addressSpace'), '0.0.0.0/0')), not(equals(parameters('subnet_2_addressSpace'), '0.0.0.0/0')), not(equals(parameters('subnet_3_addressSpace'), '0.0.0.0/0')), not(equals(parameters('subnet_4_addressSpace'), '0.0.0.0/0')))]",
+            "type": "Microsoft.Network/virtualNetworks/subnets",
+            "apiVersion": "2020-05-01",
+            "name": "[concat(parameters('virtualNetwork_name'),'/',parameters('subnet_4_name'))]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetwork_name'), parameters('subnet_3_name'))]"
+            ],
+            "properties": {
+                "addressPrefix": "[parameters('subnet_4_addressSpace')]",
+                "serviceEndpoints": [],
+                "delegations": [],
+                "privateEndpointNetworkPolicies": "Enabled",
+                "privateLinkServiceNetworkPolicies": "Enabled"
+            }
+        }
+    ]
+}

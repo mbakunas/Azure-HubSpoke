@@ -1,0 +1,75 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "virtualNetwork_name": {
+            "value": "VNet-01"
+        },
+        "virtualNetwork_addressSpace": {
+            "value": "10.1.0.0/23"
+        },
+        "subnet_gateway_addressSpace": {
+            "value": "10.1.0.0/26"
+        },
+        "subnet_firewall_addressSpace": {
+            "value": "10.1.0.64/26"
+        },
+        "subnet_bastion_addressSpace": {
+            "value": "10.1.0.128/26"
+        },
+        "subnet_DC_name": {
+            "value": "DCs-10.1.0.192-27"
+        },
+        "subnet_DC_addressSpace": {
+            "value": "10.1.0.192/27"
+        },
+        "nsg_DC_name": {
+            "value": "DCs-10.1.0.192-27-NSG"
+        },
+        "subnet_JH_name": {
+            "value": "JumpHosts-10.1.0.224-27"
+        },
+        "subnet_JH_addressSpace": {
+            "value": "10.1.0.224/27"
+        },
+        "nsg_JH_name": {
+            "value": "JumpHosts-10.1.0.224-27-NSG"
+        },
+        "subnet_1_name": {
+            "value": "Subnet1-10.1.1.0-27"
+        },
+        "subnet_1_addressSpace": {
+            "value": "10.1.1.0/27"
+        },
+        "nsg_1_name": {
+            "value": "Subnet1-10.1.1.0-27-NSG"
+        },
+        "subnet_2_name": {
+            "value": "Subnet2-10.1.1.32-27"
+        },
+        "subnet_2_addressSpace": {
+            "value": "10.1.1.32/27"
+        },
+        "nsg_2_name": {
+            "value": "Subnet2-10.1.1.32-27-NSG"
+        },
+        "subnet_3_name": {
+            "value": "Subnet3-10.1.1.64-27"
+        },
+        "subnet_3_addressSpace": {
+            "value": "10.1.1.64/27"
+        },
+        "nsg_3_name": {
+            "value": "Subnet3-10.1.1.64-27-NSG"
+        },
+        "subnet_4_name": {
+            "value": "Subnet4-10.1.1.96-27"
+        },
+        "subnet_4_addressSpace": {
+            "value": "10.1.1.96/27"
+        },
+        "nsg_4_name": {
+            "value": "Subnet4-10.1.1.96-27-NSG"
+        }
+    }
+}

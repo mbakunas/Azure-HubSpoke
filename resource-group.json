@@ -1,0 +1,89 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "resourceGroupName": {
+            "type": "string"
+        },
+        "principalId": {
+            "type": "string"
+        }
+    },
+    "variables": {
+        "roleDefinitionId": "b24988ac-6180-42a0-ab88-20f7382dd24c",
+        "roleAssignmentName": "[guid(parameters('principalId'), variables('roleDefinitionId'), parameters('resourceGroupName'))]",
+        "resouceLock-DeploymentName": "[concat(deployment().name, '-ApplyLock')]",
+        "roleAssignment-DeploymentName": "[concat(deployment().name, '-RoleAssignment')]",
+        "location": "[deployment().location]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Resources/resourceGroups",
+            "apiVersion": "2020-10-01",
+            "name": "[parameters('resourceGroupName')]",
+            "location": "[deployment().location]",
+            "tags": {}
+        },
+        {
+            "name": "[variables('resouceLock-DeploymentName')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "resourceGroup": "[parameters('resourceGroupName')]",
+            "dependsOn": [
+                "[parameters('resourceGroupName')]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "resources": [
+                        {
+                            "type": "Microsoft.Authorization/locks",
+                            "apiVersion": "2016-09-01",
+                            "name": "DoNotDelete",
+                            "properties": {
+                                "level": "CanNotDelete",
+                                "notes": "Prevents deletion of the resource group"
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "[variables('roleAssignment-DeploymentName')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "resourceGroup": "[parameters('resourceGroupName')]",
+            "dependsOn": [
+                "[parameters('resourceGroupName')]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "resources": [
+                        {
+                            "type": "Microsoft.Authorization/roleAssignments",
+                            "apiVersion": "2020-04-01-preview",
+                            "name": "[guid(variables('roleAssignmentName'))]",
+                            "properties": {
+                                "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', variables('roleDefinitionId'))]",
+                                "principalId": "[parameters('principalId')]",
+                                "scope": "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('resourceGroupName'))]"
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+    ],
+    "outputs": {
+        "Test": {
+            "type": "string",
+            "value": "[variables('location')]"
+        }
+    }
+}
