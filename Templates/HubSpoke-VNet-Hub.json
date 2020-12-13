@@ -85,19 +85,7 @@
         }
     },
     "variables": {
-        "location": "[resourceGroup().location]",
-        "subnet_DC_fullName": "[concat(parameters('subnet_DC_name'),'-',replace(parameters('subnet_DC_addressSpace'),'/','-'))]",
-        "subnet_JH_fullName": "[concat(parameters('subnet_JH_name'),'-',replace(parameters('subnet_JH_addressSpace'),'/','-'))]",
-        "subnet_1_fullName": "[concat(parameters('subnet_1_name'),'-',replace(parameters('subnet_1_addressSpace'),'/','-'))]",
-        "subnet_2_fullName": "[concat(parameters('subnet_2_name'),'-',replace(parameters('subnet_2_addressSpace'),'/','-'))]",
-        "subnet_3_fullName": "[concat(parameters('subnet_3_name'),'-',replace(parameters('subnet_3_addressSpace'),'/','-'))]",
-        "subnet_4_fullName": "[concat(parameters('subnet_4_name'),'-',replace(parameters('subnet_4_addressSpace'),'/','-'))]",
-        "nsg_DC_name": "[concat(variables('subnet_DC_fullName'),'-NSG')]",
-        "nsg_JH_name": "[concat(variables('subnet_JH_fullName'),'-NSG')]",
-        "nsg_1_name": "[concat(variables('subnet_1_fullName'),'-NSG')]",
-        "nsg_2_name": "[concat(variables('subnet_2_fullName'),'-NSG')]",
-        "nsg_3_name": "[concat(variables('subnet_3_fullName'),'-NSG')]",
-        "nsg_4_name": "[concat(variables('subnet_4_fullName'),'-NSG')]"
+        "location": "[resourceGroup().location]"
     },
     "resources": [
         {
