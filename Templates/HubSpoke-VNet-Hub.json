@@ -85,7 +85,7 @@
         }
     },
     "variables": {
-        "location": "[deployment().location]"
+        "location": "[resourceGroup().location]"
     },
     "resources": [
         {
