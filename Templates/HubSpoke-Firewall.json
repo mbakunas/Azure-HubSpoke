@@ -6,6 +6,34 @@
         "vnetName": {
             "type": "string",
             "defaultValue": "VNet-Hub-01"
+        },
+        "firewallName": {
+            "type": "string",
+            "defaultValue": "VNet-Hub-01-Firewall"
+        },
+        "firewallIpName": {
+            "type": "string",
+            "defaultValue": "VNet-Hub-01-Firewall-IP"
+        },
+        "allAzureIpGroupName": {
+            "type": "string",
+            "defaultValue": "All-Azure-Networks"
+        },
+        "netRuleCollName": {
+            "type": "string",
+            "defaultValue": "InfraAllowCollection"
+        },
+        "netRuleCollPriority": {
+            "type": "int",
+            "defaultValue": 1000
+        },
+        "appRuleCollName": {
+            "type": "string",
+            "defaultValue": "InfraAllowCollection"
+        },
+        "appRuleCollPriority": {
+            "type": "int",
+            "defaultValue": 1000
         }
 
     },
@@ -14,12 +42,25 @@
     },
     "resources": [
         {
+            "type": "Microsoft.Network/publicIPAddresses",
+            "name": "[parameters('firewallIpName')]",
+            "apiVersion": "2020-05-01",
+            "location": "[resourceGroup().location]",
+            "sku": {
+                "name": "Standard"
+            },
+            "properties": {
+                "publicIPAddressVersion": "IPv4",
+                "publicIPAllocationMethod": "Static"
+            }
+        },
+        {
             "type": "Microsoft.Network/azureFirewalls",
-            "name": "[concat(parameters('vnetName'),'-Firewall')]",
+            "name": "[parameters('firewallName')]",
             "apiVersion": "2020-05-01" ,
             "location": "[resourceGroup().location]",
             "dependsOn": [
-                "[resourceId('Microsoft.Network/publicIPAddresses',concat(parameters('vnetName'),'-Firewall-IP'))]"
+                "[resourceId('Microsoft.Network/publicIPAddresses',parameters('firewallIpName'))]"
             ],
             "properties": {
                 "sku": {
@@ -29,30 +70,83 @@
                 "threatIntelMode": "Alert",
                 "ipConfigurations": [
                     {
-                        "name": "[concat(parameters('vnetName'),'-Firewall-IP')]",
+                        "name": "[concat(parameters('firewallName'),'-ipconfig')]",
                         "properties": {
                             "publicIPAddress": {
-                                "id": "[resourceId('Microsoft.Network/publicIPAddresses',concat(parameters('vnetName'),'-Firewall-IP'))]"
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses',parameters('firewallIpName'))]"
                             },
                             "subnet": {
                                 "id": "[concat(resourceId('Microsoft.Network/virtualNetworks', parameters('vnetName')),'/subnets/AzureFirewallSubnet')]"
                             }
                         }
                     }
-                ]
-            }
-        },
-        {
-            "type": "Microsoft.Network/publicIPAddresses",
-            "name": "[concat(parameters('vnetName'),'-Firewall-IP')]",
-            "apiVersion": "2020-05-01",
-            "location": "[resourceGroup().location]",
-            "sku": {
-                "name": "Standard"
-            },
-            "properties": {
-                "publicIPAddressVersion": "IPv4",
-                "publicIPAllocationMethod": "Static"
+                ],
+                "networkRuleCollections": [
+                    {
+                        "name": "[parameters('netRuleCollName')]",
+                        "properties": {
+                            "priority": "[parameters('netRuleCollPriority')]",
+                            "action": {
+                                "type": "Allow"
+                            },
+                            "rules": [
+                                {
+                                    "name": "AllowAzureCloud",
+                                    "protocols": [
+                                        "Any"
+                                    ],
+                                    "sourceAddresses": [],
+                                    "destinationAddresses": [
+                                        "AzureCloud"
+                                    ],
+                                    "sourceIpGroups": [
+                                        "[parameters('allAzureIpGroupName')]"
+                                    ],
+                                    "destinationIpGroups": [],
+                                    "destinationFqdns": [],
+                                    "destinationPorts": [
+                                        "*"
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "applicationRuleCollections": [
+                    {
+                        "name": "[parameters('appRuleCollName')]",
+                        "properties": {
+                            "priority": "[parameters('appRuleCollPriority')]",
+                            "action": {
+                                "type": "Allow"
+                            },
+                            "rules": [
+                                {
+                                    "name": "AllowWindowsUpdate",
+                                    "protocols": [
+                                        {
+                                            "protocolType": "Http",
+                                            "port": 80
+                                        },
+                                        {
+                                            "protocolType": "Https",
+                                            "port": 443
+                                        }
+                                    ],
+                                    "fqdnTags": [
+                                        "WindowsUpdate"
+                                    ],
+                                    "targetFqdns": [],
+                                    "sourceAddresses": [],
+                                    "sourceIpGroups": [
+                                        "[parameters('allAzureIpGroupName')]"
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "natRuleCollections": []
             }
         }
 

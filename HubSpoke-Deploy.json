@@ -171,7 +171,13 @@
         "ipgroups-hubSubnet-1-name": "[concat(parameters('hubVnetName'), '-', variables('subnet_1_fullName'))]",
         "ipgroups-hubSubnet-2-name": "[concat(parameters('hubVnetName'), '-', variables('subnet_2_fullName'))]",
         "ipgroups-hubSubnet-3-name": "[concat(parameters('hubVnetName'), '-', variables('subnet_3_fullName'))]",
-        "ipgroups-hubSubnet-4-name": "[concat(parameters('hubVnetName'), '-', variables('subnet_4_fullName'))]"
+        "ipgroups-hubSubnet-4-name": "[concat(parameters('hubVnetName'), '-', variables('subnet_4_fullName'))]",
+        "firewallName": "[concat(parameters('hubVnetName'), '-Firewall')]",
+        "firewallIpName": "[concat(variables('firewallName'), '-IP')]",
+        "firewallNetworkRuleCollectionName": "InfraAllowCollection",
+        "firewallNetworkRuleCollectionPriority": 1000,
+        "firewallApplicationRuleCollectionName": "InfraAllowCollection",
+        "firewallApplicationRuleCollectionPriority": 1000
     },
     "resources": [
         {
@@ -391,7 +397,14 @@
                     "contentVersion": "1.0.0.0"
                 },
                 "parameters": {
-                    "vnetName": {"value": "[parameters('hubVnetName')]"}
+                    "vnetName": {"value": "[parameters('hubVnetName')]"},
+                    "firewallName": {"value": "[variables('firewallName')]"},
+                    "firewallIpName": {"value": "[variables('firewallIpName')]"},
+                    "allAzureIpGroupName": {"value": "[variables('ipGroups-allAzure-name')]"},
+                    "netRuleCollName": {"value": "[variables('firewallNetworkRuleCollectionName')]"},
+                    "netRuleCollPriority": {"value": "[variables('firewallNetworkRuleCollectionPriority')]"},
+                    "appRuleCollName": {"value": "[variables('firewallApplicationRuleCollectionName')]"},
+                    "appRuleCollPriority": {"value": "[variables('firewallApplicationRuleCollectionPriority')]"}
                 }
             }
         }
