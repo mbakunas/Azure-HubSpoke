@@ -1,0 +1,53 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "virtualNetwork_name": {
+            "type": "string",
+            "defaultValue": "SPOKE-PROD-EastUS2-01"
+        },
+        "virtualNetwork_addressSpace": {
+            "type": "string",
+            "defaultValue": "10.2.0.0/16"
+        },
+        "subnet_appGW_name": {
+            "type": "string",
+            "defaultValue": "AppGW-10.2.0.0-24"
+        },
+        "subnet_appGW_addressSpace": {
+            "type": "string",
+            "defaultValue": "10.2.0.0/24"
+        }
+    },
+    "variables": {
+        "location": "[resourceGroup().location]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Network/virtualNetworks",
+            "apiVersion": "2020-05-01",
+            "location": "[variables('location')]",
+            "name": "[parameters('virtualNetwork_name')]",
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "[parameters('virtualNetwork_addressSpace')]"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "[parameters('subnet_appGW_name')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('subnet_appGW_addressSpace')]",
+                            "delegations": [],
+                            "privateEndpointNetworkPolicies": "Enabled",
+                            "privateLinkServiceNetworkPolicies": "Enabled"
+
+                        }
+                    }
+                ]
+            }
+        }
+    ],
+    "outputs": {}
+}
