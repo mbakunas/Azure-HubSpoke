@@ -1,0 +1,92 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "assetLocationURI": {
+            "type": "string",
+            "defaultValue": "https://raw.githubusercontent.com/mbakunas/Azure-Stuff/master/"
+        },
+        "spokeVnetName": {
+            "type": "array",
+            "defaultValue": [
+                "SPOKE-PROD-EastUS2-01",
+                "SPOKE-PROD-EastUS2-02",
+                "SPOKE-PROD-EastUS2-03"
+            ]
+        },
+        "spokeVnetAddressSpace": {
+            "type": "array",
+            "defaultValue": [
+                "10.2.0.0/16",
+                "10.3.0.0/16",
+                "10.4.0.0/16"
+            ]
+        },
+        "spokeSubnetAppGwName": {
+            "type": "string",
+            "defaultValue": "Foo"
+        },
+        "spokeSubnetAppGwAddressSpace": {
+            "type": "array",
+            "defaultValue": [
+                "10.2.0.0/24",
+                "10.3.0.0/24",
+                "10.4.0.0/24"
+            ]
+        }
+    },
+    "variables": {
+        "location": "[resourceGroup().location]",
+        "templateLocationURI": "[concat(parameters('assetLocationURI'), 'Templates/')]",
+        "deploymentName": "[deployment().name]",
+        "deploymentName-Spoke": "[concat(variables('deploymentName'), '-Spoke-')]"
+    },
+    "functions": [
+        {
+            "namespace": "my",
+            "members": {
+                "subnetFullName": {
+                    "parameters": [
+                        {
+                            "name": "name",
+                            "type": "string"
+                        },
+                        {
+                            "name": "addressSpace",
+                            "type": "string"
+                        }
+                    ],
+                    "output": {
+                        "type": "string",
+                        "value": "[concat(parameters('name'),'-',replace(parameters('addressSpace'),'/','-'))]"
+                    }
+                }
+            }
+        }
+    ],
+    "resources": [
+        {
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "name": "[concat(variables('deploymentName-Spoke'),copyIndex(1))]",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('templateLocationURI'), 'Test-Spoke.json')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "virtualNetwork_name": {"value": "[parameters('spokeVnetName')[copyIndex()]]"},
+                    "virtualNetwork_addressSpace": {"value": "[parameters('spokeVnetAddressSpace')[copyIndex()]]"},
+                    "subnet_appGW_name": {"value": "[my.subnetFullName(parameters('spokeSubnetAppGwName'), parameters('spokeVnetAddressSpace')[copyIndex()])]"},
+                    "subnet_appGW_addressSpace": {"value": "[parameters('spokeSubnetAppGwAddressSpace')[copyIndex()]]"}
+                }
+            },
+            "copy": {
+                "name": "spokeLoop",
+                "count": "[length(parameters('spokeVnetName'))]"
+            }
+        }
+    ],
+    "outputs": {}
+}
