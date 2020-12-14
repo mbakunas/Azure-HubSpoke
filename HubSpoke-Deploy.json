@@ -165,13 +165,13 @@
         "firewallNetworkAddress": "[substring(parameters('hubSubnetFirewallAddressSpace'), 0, indexOf(parameters('hubSubnetFirewallAddressSpace'), '/'))]",
         "firewallPrivateAddress": "[concat(substring(variables('firewallNetworkAddress'), 0, add(lastindexOf(variables('firewallNetworkAddress'), '.'), 1)), string(add(int(last(split(variables('firewallNetworkAddress'), '.'))), 4)))]",
         "ipGroups-allAzure-name": "All-Azure-Networks",
-        "ipGroups-hubVnet-name": "[concat('VNet-', parameters('hubVnetName'))]",
-        "ipgroups-hubSubnet-DCs-name": "[concat('subnet-', parameters('hubVnetName'), '-', parameters('hubSubnetDcName'))]",
-        "ipgroups-hubSubnet-JumpHosts-name": "[concat('subnet-', parameters('hubVnetName'), '-', parameters('hubSubnetJumpHostsName'))]",
-        "ipgroups-hubSubnet-1-name": "[concat('subnet-', parameters('hubVnetName'), '-', parameters('hubSubnet1Name'))]",
-        "ipgroups-hubSubnet-2-name": "[concat('subnet-', parameters('hubVnetName'), '-', parameters('hubSubnet2Name'))]",
-        "ipgroups-hubSubnet-3-name": "[concat('subnet-', parameters('hubVnetName'), '-', parameters('hubSubnet3Name'))]",
-        "ipgroups-hubSubnet-4-name": "[concat('subnet-', parameters('hubVnetName'), '-', parameters('hubSubnet4Name'))]"
+        "ipGroups-hubVnet-name": "[parameters('hubVnetName')]",
+        "ipgroups-hubSubnet-DCs-name": "[concat(parameters('hubVnetName'), '-', variables('subnet_DC_fullName'))]",
+        "ipgroups-hubSubnet-JumpHosts-name": "[concat(parameters('hubVnetName'), '-', variables('subnet_JH_fullName'))]",
+        "ipgroups-hubSubnet-1-name": "[concat(parameters('hubVnetName'), '-', variables('subnet_1_fullName'))]",
+        "ipgroups-hubSubnet-2-name": "[concat(parameters('hubVnetName'), '-', variables('subnet_2_fullName'))]",
+        "ipgroups-hubSubnet-3-name": "[concat(parameters('hubVnetName'), '-', variables('subnet_3_fullName'))]",
+        "ipgroups-hubSubnet-4-name": "[concat(parameters('hubVnetName'), '-', variables('subnet_4_fullName'))]"
     },
     "resources": [
         {
