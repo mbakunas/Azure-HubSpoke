@@ -17,6 +17,14 @@
         "subnet_appGW_addressSpace": {
             "type": "string",
             "defaultValue": "10.2.0.0/24"
+        },
+        "subnet_1_name": {
+            "type": "string",
+            "defaultValue": "Subnet1-10.2.1.0-24"
+        },
+        "subnet_1_addressSpace": {
+            "type": "string",
+            "defaultValue": "10.2.1.0/24"
         }
     },
     "variables": {
@@ -39,6 +47,16 @@
                         "name": "[parameters('subnet_appGW_name')]",
                         "properties": {
                             "addressPrefix": "[parameters('subnet_appGW_addressSpace')]",
+                            "delegations": [],
+                            "privateEndpointNetworkPolicies": "Enabled",
+                            "privateLinkServiceNetworkPolicies": "Enabled"
+
+                        }
+                    },
+                    {
+                        "name": "[parameters('subnet_1_name')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('subnet_1_addressSpace')]",
                             "delegations": [],
                             "privateEndpointNetworkPolicies": "Enabled",
                             "privateLinkServiceNetworkPolicies": "Enabled"
