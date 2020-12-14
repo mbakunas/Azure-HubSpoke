@@ -6,7 +6,7 @@
             "value": "https://raw.githubusercontent.com/mbakunas/Azure-Stuff/master/"
         },
         "hubVnetName": {
-            "value": "VNet-Hub-01"
+            "value": "HUB-EastUS2-01"
         },
         "hubVnetAddressSpace": {
             "value": "10.64.0.0/23"
