@@ -100,7 +100,7 @@
                                         "AzureCloud"
                                     ],
                                     "sourceIpGroups": [
-                                        "[parameters('allAzureIpGroupName')]"
+                                        "[resourceId('Microsoft.Network/ipGroups', parameters('allAzureIpGroupName'))]"
                                     ],
                                     "destinationIpGroups": [],
                                     "destinationFqdns": [],
@@ -139,7 +139,7 @@
                                     "targetFqdns": [],
                                     "sourceAddresses": [],
                                     "sourceIpGroups": [
-                                        "[parameters('allAzureIpGroupName')]"
+                                        "[resourceId('Microsoft.Network/ipGroups', parameters('allAzureIpGroupName'))]"
                                     ]
                                 }
                             ]
