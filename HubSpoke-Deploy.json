@@ -267,7 +267,7 @@
                             "location": "[variables('location')]",
                             "properties": {
                                 "ipAddresses": [
-                                    "[parameters('hubVnetName')]"
+                                    "[parameters('hubVnetAddressSpace')]"
                                 ]
                             }
                         },
@@ -278,7 +278,7 @@
                             "location": "[variables('location')]",
                             "properties": {
                                 "ipAddresses": [
-                                    "[parameters('hubVnetName')]"
+                                    "[parameters('hubVnetAddressSpace')]"
                                 ]
                             }
                         },
