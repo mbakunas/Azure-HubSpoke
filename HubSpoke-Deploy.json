@@ -142,10 +142,12 @@
     },
     "variables": {
         "deploymentName": "[deployment().Name]",
+        "location": "[resourceGroup().location]",
         "templateLocationURI": "[concat(parameters('assetLocationURI'), 'Templates/')]",
         "deploymentName-prodRouteTable": "[concat(variables('deploymentName'), '-Network-ProdRouteTable')]",
         "deploymentName-prodRouteTable-Empty": "[concat(variables('deploymentName'), '-Network-ProdRouteTable-Empty')]",
         "deploymentName-hub": "[concat(variables('deploymentName'), '-Network-Hub')]",
+        "deploymentName-ipGroups": "[concat(variables('deploymentName'), '-Network-IpGroups')]",
         "deploymentName-bastion": "[concat(variables('deploymentName'), '-Network-Bastion')]",
         "deploymentName-firewall": "[concat(variables('deploymentName'), '-Network-Firewall')]",
         "subnet_DC_fullName": "[concat(parameters('hubSubnetDcName'),'-',replace(parameters('hubSubnetDcAddressSpace'),'/','-'))]",
@@ -162,7 +164,14 @@
         "nsg_4_name": "[concat(variables('subnet_4_fullName'),'-NSG')]",
         "firewallNetworkAddress": "[substring(parameters('hubSubnetFirewallAddressSpace'), 0, indexOf(parameters('hubSubnetFirewallAddressSpace'), '/'))]",
         "firewallPrivateAddress": "[concat(substring(variables('firewallNetworkAddress'), 0, add(lastindexOf(variables('firewallNetworkAddress'), '.'), 1)), string(add(int(last(split(variables('firewallNetworkAddress'), '.'))), 4)))]",
-        "routeTableName": "foo"
+        "ipGroups-allAzure-name": "All-Azure-Networks",
+        "ipGroups-hubVnet-name": "[concat('VNet-', parameters('hubVnetName'))]",
+        "ipgroups-hubSubnet-DCs-name": "[concat('subnet-', parameters('hubVnetName'), '-', parameters('hubSubnetDcName'))]",
+        "ipgroups-hubSubnet-JumpHosts-name": "[concat('subnet-', parameters('hubVnetName'), '-', parameters('hubSubnetJumpHostsName'))]",
+        "ipgroups-hubSubnet-1-name": "[concat('subnet-', parameters('hubVnetName'), '-', parameters('hubSubnet1Name'))]",
+        "ipgroups-hubSubnet-2-name": "[concat('subnet-', parameters('hubVnetName'), '-', parameters('hubSubnet2Name'))]",
+        "ipgroups-hubSubnet-3-name": "[concat('subnet-', parameters('hubVnetName'), '-', parameters('hubSubnet3Name'))]",
+        "ipgroups-hubSubnet-4-name": "[concat('subnet-', parameters('hubVnetName'), '-', parameters('hubSubnet4Name'))]"
     },
     "resources": [
         {
@@ -237,6 +246,114 @@
                     "subnet_4_addressSpace": {"value": "[parameters('hubSubnet4AddressSpace')]"},
                     "nsg_4_name": {"value": "[variables('nsg_4_name')]"},
                     "routeTableName": {"value": "[parameters('routeTableName')]"}
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "name": "[variables('deploymentName-ipGroups')]",
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {},
+                    "resources": [
+                        {
+                            "type": "Microsoft.Network/ipGroups",
+                            "apiVersion": "2020-05-01",
+                            "name": "[variables('ipGroups-allAzure-name')]",
+                            "location": "[variables('location')]",
+                            "properties": {
+                                "ipAddresses": [
+                                    "[parameters('hubVnetName')]"
+                                ]
+                            }
+                        },
+                        {
+                            "type": "Microsoft.Network/ipGroups",
+                            "apiVersion": "2020-05-01",
+                            "name": "[variables('ipGroups-hubVnet-name')]",
+                            "location": "[variables('location')]",
+                            "properties": {
+                                "ipAddresses": [
+                                    "[parameters('hubVnetName')]"
+                                ]
+                            }
+                        },
+                        {
+                            "type": "Microsoft.Network/ipGroups",
+                            "apiVersion": "2020-05-01",
+                            "name": "[variables('ipgroups-hubSubnet-DCs-name')]",
+                            "location": "[variables('location')]",
+                            "properties": {
+                                "ipAddresses": [
+                                    "[parameters('hubSubnetDcAddressSpace')]"
+                                ]
+                            }
+                        },
+                        {
+                            "condition": "[not(equals(parameters('hubSubnetJumpHostsAddressSpace'), '0.0.0.0/0'))]",
+                            "type": "Microsoft.Network/ipGroups",
+                            "apiVersion": "2020-05-01",
+                            "name": "[variables('ipgroups-hubSubnet-JumpHosts-name')]",
+                            "location": "[variables('location')]",
+                            "properties": {
+                                "ipAddresses": [
+                                    "[parameters('hubSubnetJumpHostsAddressSpace')]"
+                                ]
+                            }
+                        },
+                        {
+                            "condition": "[not(equals(parameters('hubSubnet1AddressSpace'), '0.0.0.0/0'))]",
+                            "type": "Microsoft.Network/ipGroups",
+                            "apiVersion": "2020-05-01",
+                            "name": "[variables('ipgroups-hubSubnet-1-name')]",
+                            "location": "[variables('location')]",
+                            "properties": {
+                                "ipAddresses": [
+                                    "[parameters('hubSubnet1AddressSpace')]"
+                                ]
+                            }
+                        },
+                        {
+                            "condition": "[and(not(equals(parameters('hubSubnet1AddressSpace'), '0.0.0.0/0')), not(equals(parameters('hubSubnet2AddressSpace'), '0.0.0.0/0')))]",
+                            "type": "Microsoft.Network/ipGroups",
+                            "apiVersion": "2020-05-01",
+                            "name": "[variables('ipgroups-hubSubnet-2-name')]",
+                            "location": "[variables('location')]",
+                            "properties": {
+                                "ipAddresses": [
+                                    "[parameters('hubSubnet2AddressSpace')]"
+                                ]
+                            }
+                        },
+                        {
+                            "condition": "[and(not(equals(parameters('hubSubnet1AddressSpace'), '0.0.0.0/0')), not(equals(parameters('hubSubnet2AddressSpace'), '0.0.0.0/0')), not(equals(parameters('hubSubnet3AddressSpace'), '0.0.0.0/0')))]",
+                            "type": "Microsoft.Network/ipGroups",
+                            "apiVersion": "2020-05-01",
+                            "name": "[variables('ipgroups-hubSubnet-3-name')]",
+                            "location": "[variables('location')]",
+                            "properties": {
+                                "ipAddresses": [
+                                    "[parameters('hubSubnet3AddressSpace')]"
+                                ]
+                            }
+                        },
+                        {
+                            "condition": "[and(not(equals(parameters('hubSubnet1AddressSpace'), '0.0.0.0/0')), not(equals(parameters('hubSubnet2AddressSpace'), '0.0.0.0/0')), not(equals(parameters('hubSubnet3AddressSpace'), '0.0.0.0/0')), not(equals(parameters('hubSubnet4AddressSpace'), '0.0.0.0/0')))]",
+                            "type": "Microsoft.Network/ipGroups",
+                            "apiVersion": "2020-05-01",
+                            "name": "[variables('ipgroups-hubSubnet-4-name')]",
+                            "location": "[variables('location')]",
+                            "properties": {
+                                "ipAddresses": [
+                                    "[parameters('hubSubnet4AddressSpace')]"
+                                ]
+                            }
+                        }
+                    ]
                 }
             }
         },
