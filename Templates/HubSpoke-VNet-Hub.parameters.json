@@ -3,7 +3,7 @@
     "contentVersion": "1.0.0.0",
     "parameters": {
         "virtualNetwork_name": {
-            "value": "VNet-Hub-01"
+            "value": "HUB-EastUS2-01"
         },
         "virtualNetwork_addressSpace": {
             "value": "10.1.0.0/23"
