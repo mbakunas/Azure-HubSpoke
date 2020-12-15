@@ -1,0 +1,85 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "assetLocationURI": {
+      "value": "https://raw.githubusercontent.com/mbakunas/Azure-Stuff/master/"
+    },
+    "spokeVnetName": {
+      "value": [
+        "SPOKE-PROD-EastUS2-02",
+        "SPOKE-PROD-EastUS2-03",
+        "SPOKE-PROD-EastUS2-04"
+      ]
+    },
+    "spokeVnetAddressSpace": {
+      "value": [
+        "10.2.0.0/16",
+        "10.3.0.0/16",
+        "10.4.0.0/16"
+      ]
+    },
+    "spokeSubnetAppGwName": {
+      "value": [
+        "AppGW"
+      ]
+    },
+    "spokeSubnetAppGwAddressSpace": {
+      "value": [
+        "0.0.0.0/0",
+        "10.3.0.0/25",
+        "10.4.0.0/25"
+      ]
+    },
+    "spokeSubnetBastionName": {
+      "value": [
+        "Bastion2",
+        "Bastion3",
+        "Bastion4"
+      ]
+    },
+    "spokeSubnetBastionAddressSpace": {
+      "value": [
+        "10.2.0.128/26",
+        "0.0.0.0/0",
+        "10.4.0.128/26"
+      ]
+    },
+    "spokeSubnet1Name": {
+      "value": [
+        "SubnetA2",
+        "SubnetA3",
+        "SubnetA4"
+      ]
+    },
+    "spokeSubnet1AddressSpace": {
+      "value": [
+        "10.2.1.0/24",
+        "10.3.1.0/24",
+        "10.4.1.0/24"
+      ]
+    },
+    "spokeSubnet2Name": {
+      "value": [
+        "Subnet2"
+      ]
+    },
+    "spokeSubnet2AddressSpace": {
+      "value": [
+        "10.2.2.0/24",
+        "0.0.0.0/0",
+        "10.4.2.0/24"
+      ]
+    },
+    "spokeSubnet3Name": {
+      "value": [
+        "Subnet3"
+      ]
+    },
+    "spokeSubnet3AddressSpace": {
+      "value": [
+        "0.0.0.0/0"
+      ]
+    }
+  }
+}
