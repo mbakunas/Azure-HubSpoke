@@ -10,6 +10,14 @@
             "type": "string",
             "defaultValue": "10.2.0.0/16"
         },
+        "subnet_bastion_name": {
+            "type": "string",
+            "defaultValue": "AppGW-10.2.0.0-24"
+        },
+        "subnet_bastion_addressSpace": {
+            "type": "string",
+            "defaultValue": "10.2.0.0/24"
+        },
         "subnet_appGW_name": {
             "type": "string",
             "defaultValue": "AppGW-10.2.0.0-24"
@@ -25,6 +33,31 @@
         "subnet_1_addressSpace": {
             "type": "string",
             "defaultValue": "10.2.1.0/24"
+        },
+        "nsg_1_name": {
+            "type": "string"
+        },
+        "subnet_2_name": {
+            "type": "string",
+            "defaultValue": "Subnet1-10.2.1.0-24"
+        },
+        "subnet_2_addressSpace": {
+            "type": "string",
+            "defaultValue": "10.2.1.0/24"
+        },
+        "nsg_2_name": {
+            "type": "string"
+        },
+        "subnet_3_name": {
+            "type": "string",
+            "defaultValue": "Subnet1-10.2.1.0-24"
+        },
+        "subnet_3_addressSpace": {
+            "type": "string",
+            "defaultValue": "10.2.1.0/24"
+        },
+        "nsg_3_name": {
+            "type": "string"
         }
     },
     "variables": {
@@ -36,34 +69,126 @@
             "apiVersion": "2020-05-01",
             "location": "[variables('location')]",
             "name": "[parameters('virtualNetwork_name')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_1_name'))]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_2_name'))]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_3_name'))]"
+            ],
             "properties": {
                 "addressSpace": {
                     "addressPrefixes": [
                         "[parameters('virtualNetwork_addressSpace')]"
                     ]
                 },
-                "subnets": [
-                    {
-                        "name": "[parameters('subnet_appGW_name')]",
-                        "properties": {
-                            "addressPrefix": "[parameters('subnet_appGW_addressSpace')]",
-                            "delegations": [],
-                            "privateEndpointNetworkPolicies": "Enabled",
-                            "privateLinkServiceNetworkPolicies": "Enabled"
-
-                        }
-                    },
-                    {
-                        "name": "[parameters('subnet_1_name')]",
-                        "properties": {
-                            "addressPrefix": "[parameters('subnet_1_addressSpace')]",
-                            "delegations": [],
-                            "privateEndpointNetworkPolicies": "Enabled",
-                            "privateLinkServiceNetworkPolicies": "Enabled"
-
-                        }
-                    }
-                ]
+                "subnets": []
+            }
+        },
+        {
+            "condition": "[not(equals(parameters('subnet_appGW_addressSpace'), '0.0.0.0/0'))]",
+            "type": "Microsoft.Network/virtualNetworks/subnets",
+            "apiVersion": "2020-05-01",
+            "name": "[concat(parameters('virtualNetwork_name'), '/',parameters('subnet_appGW_name'))]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetwork_name'))]"
+            ],
+            "properties": {
+                "addressPrefix": "[parameters('subnet_appGW_addressSpace')]",
+                "serviceEndpoints": [],
+                "delegations": [],
+                "privateEndpointNetworkPolicies": "Enabled",
+                "privateLinkServiceNetworkPolicies": "Enabled"
+            }
+        },
+        {
+            "condition": "[not(equals(parameters('subnet_bastion_addressSpace'), '0.0.0.0/0'))]",
+            "type": "Microsoft.Network/virtualNetworks/subnets",
+            "apiVersion": "2020-05-01",
+            "name": "[concat(parameters('virtualNetwork_name'), '/',parameters('subnet_bastion_name'))]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetwork_name'), parameters('subnet_appGw_name'))]"
+            ],
+            "properties": {
+                "addressPrefix": "[parameters('subnet_bastion_addressSpace')]",
+                "serviceEndpoints": [],
+                "delegations": [],
+                "privateEndpointNetworkPolicies": "Enabled",
+                "privateLinkServiceNetworkPolicies": "Enabled"
+            }
+        },
+        {
+            "type": "Microsoft.Network/virtualNetworks/subnets",
+            "apiVersion": "2020-05-01",
+            "name": "[concat(parameters('virtualNetwork_name'), '/',parameters('subnet_1_name'))]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetwork_name'), parameters('subnet_bastion_name'))]"
+            ],
+            "properties": {
+                "addressPrefix": "[parameters('subnet_1_addressSpace')]",
+                "serviceEndpoints": [],
+                "delegations": [],
+                "privateEndpointNetworkPolicies": "Enabled",
+                "privateLinkServiceNetworkPolicies": "Enabled"
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "apiVersion": "2020-05-01",
+            "name": "[parameters('nsg_1_name')]",
+            "location": "[variables('location')]",
+            "properties": {
+                "securityRules": []
+            }
+        },
+        {
+            "condition": "[not(equals(parameters('subnet_2_addressSpace'), '0.0.0.0/0'))]",
+            "type": "Microsoft.Network/virtualNetworks/subnets",
+            "apiVersion": "2020-05-01",
+            "name": "[concat(parameters('virtualNetwork_name'), '/',parameters('subnet_2_name'))]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetwork_name'), parameters('subnet_1_name'))]"
+            ],
+            "properties": {
+                "addressPrefix": "[parameters('subnet_2_addressSpace')]",
+                "serviceEndpoints": [],
+                "delegations": [],
+                "privateEndpointNetworkPolicies": "Enabled",
+                "privateLinkServiceNetworkPolicies": "Enabled"
+            }
+        },
+        {
+            "condition": "[not(equals(parameters('subnet_2_addressSpace'), '0.0.0.0/0'))]",
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "apiVersion": "2020-05-01",
+            "name": "[parameters('nsg_2_name')]",
+            "location": "[variables('location')]",
+            "properties": {
+                "securityRules": []
+            }
+        },
+        {
+            "condition": "[and(not(equals(parameters('subnet_2_addressSpace'), '0.0.0.0/0')), not(equals(parameters('subnet_3_addressSpace'), '0.0.0.0/0')))]",
+            "type": "Microsoft.Network/virtualNetworks/subnets",
+            "apiVersion": "2020-05-01",
+            "name": "[concat(parameters('virtualNetwork_name'), '/',parameters('subnet_3_name'))]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetwork_name'), parameters('subnet_2_name'))]"
+            ],
+            "properties": {
+                "addressPrefix": "[parameters('subnet_3_addressSpace')]",
+                "serviceEndpoints": [],
+                "delegations": [],
+                "privateEndpointNetworkPolicies": "Enabled",
+                "privateLinkServiceNetworkPolicies": "Enabled"
+            }
+        },
+        {
+            "condition": "[and(not(equals(parameters('subnet_2_addressSpace'), '0.0.0.0/0')), not(equals(parameters('subnet_3_addressSpace'), '0.0.0.0/0')))]",
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "apiVersion": "2020-05-01",
+            "name": "[parameters('nsg_3_name')]",
+            "location": "[variables('location')]",
+            "properties": {
+                "securityRules": []
             }
         }
     ],
