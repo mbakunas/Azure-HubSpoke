@@ -7,32 +7,40 @@
             "defaultValue": "https://raw.githubusercontent.com/mbakunas/Azure-Stuff/master/"
         },
         "spokeVnetName": {
-            "type": "array",
-            "defaultValue": [
-                "SPOKE-PROD-EastUS2-01",
-                "SPOKE-PROD-EastUS2-02",
-                "SPOKE-PROD-EastUS2-03"
-            ]
+            "type": "array"
         },
         "spokeVnetAddressSpace": {
-            "type": "array",
-            "defaultValue": [
-                "10.2.0.0/16",
-                "10.3.0.0/16",
-                "10.4.0.0/16"
-            ]
+            "type": "array"
         },
         "spokeSubnetAppGwName": {
-            "type": "string",
-            "defaultValue": "Foo"
+            "type": "array"
         },
         "spokeSubnetAppGwAddressSpace": {
-            "type": "array",
-            "defaultValue": [
-                "10.2.0.0/24",
-                "10.3.0.0/24",
-                "10.4.0.0/24"
-            ]
+            "type": "array"
+        },
+        "spokeSubnetBastionName": {
+            "type": "array"
+        },
+        "spokeSubnetBastionAddressSpace": {
+            "type": "array"
+        },
+        "spokeSubnet1Name": {
+            "type": "array"
+        },
+        "spokeSubnet1AddressSpace": {
+            "type": "array"
+        },
+        "spokeSubnet2Name": {
+            "type": "array"
+        },
+        "spokeSubnet2AddressSpace": {
+            "type": "array"
+        },
+        "spokeSubnet3Name": {
+            "type": "array"
+        },
+        "spokeSubnet3AddressSpace": {
+            "type": "array"
         }
     },
     "variables": {
@@ -60,6 +68,18 @@
                         "type": "string",
                         "value": "[concat(parameters('name'),'-',replace(parameters('addressSpace'),'/','-'))]"
                     }
+                },
+                "nsgName": {
+                    "parameters": [
+                        {
+                            "name": "subnetName",
+                            "type": "string"
+                        }
+                    ],
+                    "output": {
+                        "value": "[concat(parameters('subnetName'), '-NSG')]",
+                        "type": "string"
+                    }
                 }
             }
         }
@@ -78,9 +98,20 @@
                 "parameters": {
                     "virtualNetwork_name": {"value": "[parameters('spokeVnetName')[copyIndex()]]"},
                     "virtualNetwork_addressSpace": {"value": "[parameters('spokeVnetAddressSpace')[copyIndex()]]"},
-                    "subnet_appGW_name": {"value": "[my.subnetFullName(parameters('spokeSubnetAppGwName'), parameters('spokeVnetAddressSpace')[copyIndex()])]"},
-                    "subnet_appGW_addressSpace": {"value": "[parameters('spokeSubnetAppGwAddressSpace')[copyIndex()]]"}
-                }
+                    "subnet_bastion_name": {"value": "[my.subnetFullName(if(equals(length(parameters('spokeSubnetBastionName')), 1), parameters('spokeSubnetBastionName')[0], parameters('spokeSubnetBastionName')[copyIndex()]), parameters('spokeSubnetBastionAddressSpace')[copyIndex()])]"},
+                    "subnet_bastion_addressSpace": {"value": "[if(or(equals(parameters('spokeSubnetBastionAddressSpace')[0], '0.0.0.0/0'), equals(parameters('spokeSubnetBastionAddressSpace')[copyIndex()], '0.0.0.0/0')),'0.0.0.0/0',parameters('spokeSubnetBastionAddressSpace')[copyIndex()])]"},
+                    "subnet_appGW_name": {"value": "[my.subnetFullName(if(equals(length(parameters('spokeSubnetAppGwName')), 1), parameters('spokeSubnetAppGwName')[0], parameters('spokeSubnetAppGwName')[copyIndex()]), parameters('spokeSubnetAppGwAddressSpace')[copyIndex()])]"},
+                    "subnet_appGW_addressSpace": {"value": "[if(or(equals(parameters('spokeSubnetAppGwAddressSpace')[0], '0.0.0.0/0'), equals(parameters('spokeSubnetAppGwAddressSpace')[copyIndex()], '0.0.0.0/0')),'0.0.0.0/0',parameters('spokeSubnetAppGwAddressSpace')[copyIndex()])]"},
+                    "subnet_1_name": {"value": "[my.subnetFullName(if(equals(length(parameters('spokeSubnet1Name')), 1), parameters('spokeSubnet1Name')[0], parameters('spokeSubnet1Name')[copyIndex()]), parameters('spokeSubnet1AddressSpace')[copyIndex()])]"},
+                    "subnet_1_addressSpace": {"value": "[parameters('spokeSubnet1AddressSpace')[copyIndex()]]"},
+                    "nsg_1_name": {"value": "[my.nsgName(my.subnetFullName(if(equals(length(parameters('spokeSubnet1Name')), 1), parameters('spokeSubnet1Name')[0], parameters('spokeSubnet1Name')[copyIndex()]), parameters('spokeSubnet1AddressSpace')[copyIndex()]))]"},
+                    "subnet_2_name": {"value": "[my.subnetFullName(if(equals(length(parameters('spokeSubnet2Name')), 1), parameters('spokeSubnet2Name')[0], parameters('spokeSubnet2Name')[copyIndex()]), parameters('spokeSubnet2AddressSpace')[copyIndex()])]"},
+                    "subnet_2_addressSpace": {"value": "[if(or(equals(parameters('spokeSubnet2AddressSpace')[0], '0.0.0.0/0'), equals(parameters('spokeSubnet2AddressSpace')[copyIndex()], '0.0.0.0/0')),'0.0.0.0/0',parameters('spokeSubnet2AddressSpace')[copyIndex()])]"},
+                    "nsg_2_name": {"value": "[if(or(equals(parameters('spokeSubnet2AddressSpace')[0], '0.0.0.0/0'), equals(parameters('spokeSubnet2AddressSpace')[copyIndex()], '0.0.0.0/0')), 'SkipNSG', my.nsgName(my.subnetFullName(if(equals(length(parameters('spokeSubnet2Name')), 1), parameters('spokeSubnet2Name')[0], parameters('spokeSubnet2Name')[copyIndex()]), parameters('spokeSubnet2AddressSpace')[copyIndex()])))]"},
+                    "subnet_3_name": {"value": "[my.subnetFullName(if(equals(length(parameters('spokeSubnet3Name')), 1), parameters('spokeSubnet3Name')[0], parameters('spokeSubnet3Name')[copyIndex()]), parameters('spokeSubnet3AddressSpace')[copyIndex()])]"},
+                    "subnet_3_addressSpace": {"value": "[if(or(equals(parameters('spokeSubnet2AddressSpace')[0], '0.0.0.0/0'), equals(parameters('spokeSubnet2AddressSpace')[copyIndex()], '0.0.0.0/0'),equals(parameters('spokeSubnet3AddressSpace')[0], '0.0.0.0/0'), equals(parameters('spokeSubnet3AddressSpace')[copyIndex()], '0.0.0.0/0')), '0.0.0.0/0', parameters('spokeSubnet3AddressSpace')[copyIndex()])]"},
+                    "nsg_3_name": {"value": "[if(or(equals(parameters('spokeSubnet2AddressSpace')[0], '0.0.0.0/0'), equals(parameters('spokeSubnet2AddressSpace')[copyIndex()], '0.0.0.0/0'), equals(parameters('spokeSubnet3AddressSpace')[0], '0.0.0.0/0'), equals(parameters('spokeSubnet3AddressSpace')[copyIndex()], '0.0.0.0/0')), 'SkipNSG', my.nsgName(my.subnetFullName(if(equals(length(parameters('spokeSubnet3Name')), 1), parameters('spokeSubnet3Name')[0], parameters('spokeSubnet3Name')[copyIndex()]), parameters('spokeSubnet3AddressSpace')[copyIndex()])))]"}
+                }   
             },
             "copy": {
                 "name": "spokeLoop",
