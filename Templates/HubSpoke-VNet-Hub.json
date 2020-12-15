@@ -357,5 +357,11 @@
                 "securityRules": []
             }
         }
-    ]
+    ],
+    "outputs": {
+        "VNetId": {
+            "type": "string",
+            "value": "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetwork_name'))]"
+        }
+    }
 }
