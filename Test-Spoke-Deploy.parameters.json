@@ -45,9 +45,9 @@
         },
         "spokeSubnet1Name": {
             "value": [
-                "Subnet1-2",
-                "Subnet1-3",
-                "Subnet1-4"
+                "SubnetA2",
+                "SubnetA3",
+                "SubnetA4"
             ]
         },
         "spokeSubnet1AddressSpace": {
