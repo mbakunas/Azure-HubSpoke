@@ -7,9 +7,9 @@
         },
         "spokeVnetName": {
             "value": [
-                "SPOKE-PROD-EastUS2-02",
-                "SPOKE-PROD-EastUS2-03",
-                "SPOKE-PROD-EastUS2-04"
+                "SPOKE-PROD-EastUS2-01",
+                "SPOKE-TEST-EastUS2-01",
+                "SPOKE-DEV-EastUS2-01"
             ]
         },
         "spokeVnetAddressSpace": {
@@ -17,6 +17,13 @@
                 "10.2.0.0/16",
                 "10.3.0.0/16",
                 "10.4.0.0/16"
+            ]
+        },
+        "spokeDeploySubscriptionResourceGroup": {
+            "value": [
+                "",
+                "c64ca001-2cce-46de-837e-03f5564fc802/HubSpoke-02",
+                "16936380-29b0-4326-8f6b-db86da154736/HubSpoke-03"
             ]
         },
         "spokeSubnetAppGwName": {

@@ -12,6 +12,10 @@
         "spokeVnetAddressSpace": {
             "type": "array"
         },
+        "spokeDeploySubscriptionResourceGroup": {
+            "type": "array",
+            "defaultValue": []
+        },
         "spokeSubnetAppGwName": {
             "type": "array"
         },
@@ -86,6 +90,8 @@
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
             "name": "[concat(variables('deploymentName-Spoke'),copyIndex(1))]",
+            "subscriptionId": "[if(equals(length(parameters('spokeDeploySubscriptionResourceGroup')), 0), subscription().subscriptionId, if(equals(parameters('spokeDeploySubscriptionResourceGroup')[copyIndex()], ''), subscription().subscriptionId, split(parameters('spokeDeploySubscriptionResourceGroup')[copyIndex()], '/')[0]))]",
+            "resourceGroup": "[if(equals(length(parameters('spokeDeploySubscriptionResourceGroup')), 0), resourceGroup().name, if(equals(parameters('spokeDeploySubscriptionResourceGroup')[copyIndex()], ''), resourceGroup().name, split(parameters('spokeDeploySubscriptionResourceGroup')[copyIndex()], '/')[1]))]",
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
