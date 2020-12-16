@@ -92,6 +92,7 @@
     },
     "resources": [
         {
+            "comments": "VNet",
             "type": "Microsoft.Network/virtualNetworks",
             "apiVersion": "2020-05-01",
             "name": "[parameters('virtualNetwork_name')]",
@@ -117,6 +118,7 @@
             }
         },
         {
+            "comments": "Gateway subnet",
             "type": "Microsoft.Network/virtualNetworks/subnets",
             "apiVersion": "2020-05-01",
             "name": "[concat(parameters('virtualNetwork_name'),'/GatewaySubnet')]",
@@ -132,6 +134,7 @@
             }
         },
         {
+            "comments": "Azure Firewall subnet",
             "condition": "[not(equals(parameters('subnet_firewall_addressSpace'), '0.0.0.0/0'))]",
             "type": "Microsoft.Network/virtualNetworks/subnets",
             "apiVersion": "2020-05-01",
@@ -148,6 +151,7 @@
             }
         },
         {
+            "comments": "Azure Bastion subnet",
             "condition": "[not(equals(parameters('subnet_bastion_addressSpace'), '0.0.0.0/0'))]",
             "type": "Microsoft.Network/virtualNetworks/subnets",
             "apiVersion": "2020-05-01",
@@ -165,6 +169,7 @@
             }
         },
         {
+            "comments": "DCs subnet",
             "type": "Microsoft.Network/virtualNetworks/subnets",
             "apiVersion": "2020-05-01",
             "name": "[concat(parameters('virtualNetwork_name'),'/',parameters('subnet_DC_name'))]",
@@ -188,6 +193,7 @@
             }
         },
         {
+            "comments": "DCs subnet NSG",
             "type": "Microsoft.Network/networkSecurityGroups",
             "apiVersion": "2020-05-01",
             "name": "[parameters('nsg_DC_name')]",
@@ -197,6 +203,7 @@
             }
         },
         {
+            "comments": "Jump hosts subnet",
             "condition": "[not(equals(parameters('subnet_JH_addressSpace'), '0.0.0.0/0'))]",
             "type": "Microsoft.Network/virtualNetworks/subnets",
             "apiVersion": "2020-05-01",
@@ -219,6 +226,7 @@
             }
         },
         {
+            "comments": "Jump hosts subnet NSG",
             "condition": "[not(equals(parameters('subnet_JH_addressSpace'), '0.0.0.0/0'))]",
             "type": "Microsoft.Network/networkSecurityGroups",
             "apiVersion": "2020-05-01",
@@ -229,6 +237,7 @@
             }
         },
         {
+            "comments": "Subnet 1",
             "condition": "[not(equals(parameters('subnet_1_addressSpace'), '0.0.0.0/0'))]",
             "type": "Microsoft.Network/virtualNetworks/subnets",
             "apiVersion": "2020-05-01",
@@ -252,6 +261,7 @@
             }
         },
         {
+            "comments": "Subnet 1 NSG",
             "condition": "[not(equals(parameters('subnet_1_addressSpace'), '0.0.0.0/0'))]",
             "type": "Microsoft.Network/networkSecurityGroups",
             "apiVersion": "2020-05-01",
@@ -262,6 +272,7 @@
             }
         },
         {
+            "comments": "Subnet 2",
             "condition": "[and(not(equals(parameters('subnet_1_addressSpace'), '0.0.0.0/0')), not(equals(parameters('subnet_2_addressSpace'), '0.0.0.0/0')))]",
             "type": "Microsoft.Network/virtualNetworks/subnets",
             "apiVersion": "2020-05-01",
@@ -284,6 +295,7 @@
             }
         },
         {
+            "comments": "Subnet 2 NSG",
             "condition": "[and(not(equals(parameters('subnet_1_addressSpace'), '0.0.0.0/0')), not(equals(parameters('subnet_2_addressSpace'), '0.0.0.0/0')))]",
             "type": "Microsoft.Network/networkSecurityGroups",
             "apiVersion": "2020-05-01",
@@ -294,6 +306,7 @@
             }
         },
         {
+            "comments": "Subnet 3",
             "condition": "[and(not(equals(parameters('subnet_1_addressSpace'), '0.0.0.0/0')), not(equals(parameters('subnet_2_addressSpace'), '0.0.0.0/0')), not(equals(parameters('subnet_3_addressSpace'), '0.0.0.0/0')))]",
             "type": "Microsoft.Network/virtualNetworks/subnets",
             "apiVersion": "2020-05-01",
@@ -316,6 +329,7 @@
             }
         },
         {
+            "comments": "Subnet 3 NSG",
             "condition": "[and(not(equals(parameters('subnet_1_addressSpace'), '0.0.0.0/0')), not(equals(parameters('subnet_2_addressSpace'), '0.0.0.0/0')), not(equals(parameters('subnet_3_addressSpace'), '0.0.0.0/0')))]",
             "type": "Microsoft.Network/networkSecurityGroups",
             "apiVersion": "2020-05-01",
@@ -326,6 +340,7 @@
             }
         },
         {
+            "comments": "Subnet 4",
             "condition": "[and(not(equals(parameters('subnet_1_addressSpace'), '0.0.0.0/0')), not(equals(parameters('subnet_2_addressSpace'), '0.0.0.0/0')), not(equals(parameters('subnet_3_addressSpace'), '0.0.0.0/0')), not(equals(parameters('subnet_4_addressSpace'), '0.0.0.0/0')))]",
             "type": "Microsoft.Network/virtualNetworks/subnets",
             "apiVersion": "2020-05-01",
@@ -348,6 +363,7 @@
             }
         },
         {
+            "comments": "Subnet 4 NSG",
             "condition": "[and(not(equals(parameters('subnet_1_addressSpace'), '0.0.0.0/0')), not(equals(parameters('subnet_2_addressSpace'), '0.0.0.0/0')), not(equals(parameters('subnet_3_addressSpace'), '0.0.0.0/0')), not(equals(parameters('subnet_4_addressSpace'), '0.0.0.0/0')))]",
             "type": "Microsoft.Network/networkSecurityGroups",
             "apiVersion": "2020-05-01",
