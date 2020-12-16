@@ -181,12 +181,13 @@
         "deploymentName": "[deployment().Name]",
         "location": "[resourceGroup().location]",
         "templateLocationURI": "[concat(parameters('assetLocationURI'), 'Templates/')]",
-        "deploymentName-prodRouteTable": "[concat(variables('deploymentName'), '-Network-ProdRouteTable')]",
-        "deploymentName-prodRouteTable-Empty": "[concat(variables('deploymentName'), '-Network-ProdRouteTable-Empty')]",
+        "deploymentName-routeTable": "[concat(variables('deploymentName'), '-Network-RouteTable-')]",
+        "deploymentName-routeTable-Empty": "[concat(variables('deploymentName'), '-Network-RouteTable-Empty-')]",
         "deploymentName-hub": "[concat(variables('deploymentName'), '-Network-Hub')]",
         "deploymentName-Spoke": "[concat(variables('deploymentName'), '-Spoke-')]",
         "deploymentName-ipGroups": "[concat(variables('deploymentName'), '-Network-IpGroups')]",
-        "deploymentName-bastion": "[concat(variables('deploymentName'), '-Network-Bastion')]",
+        "deploymentName-bastion-hub": "[concat(variables('deploymentName'), '-Network-Bastion-Hub')]",
+        "deploymentName-bastion-spoke": "[concat(variables('deploymentName'), '-Network-Bastion-Spoke-')]",
         "deploymentName-firewall": "[concat(variables('deploymentName'), '-Network-Firewall')]",
         "subnet_DC_fullName": "[concat(parameters('hubSubnetDcName'),'-',replace(parameters('hubSubnetDcAddressSpace'),'/','-'))]",
         "subnet_JH_fullName": "[concat(parameters('hubSubnetJumpHostsName'),'-',replace(parameters('hubSubnetJumpHostsAddressSpace'),'/','-'))]",
@@ -215,7 +216,8 @@
         "firewallNetworkRuleCollectionName": "InfraAllowCollection",
         "firewallNetworkRuleCollectionPriority": 1000,
         "firewallApplicationRuleCollectionName": "InfraAllowCollection",
-        "firewallApplicationRuleCollectionPriority": 1000
+        "firewallApplicationRuleCollectionPriority": 1000,
+        "tmpStrAllIpAddr": "[string(concat(array(parameters('hubVnetAddressSpace')), parameters('spokeVnetAddressSpace')))]"
     },
     "functions": [
         {
@@ -254,11 +256,13 @@
     ],
     "resources": [
         {
-            "comments": "Deploys route table with route to Azure Firewall",
+            "comments": "Route table with default route to Azure Firewall",
             "condition": "[and(not(equals(parameters('hubSubnetFirewallAddressSpace'), '0.0.0.0/0')), equals(parameters('useFirewallForEgress'), 'Yes'))]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
-            "name": "[variables('deploymentName-prodRouteTable')]",
+            "name": "[concat(variables('deploymentName-routeTable'), copyIndex(1))]",
+            "subscriptionId": "[if(equals(length(parameters('spokeDeploySubscriptionResourceGroup')), 0), subscription().subscriptionId, if(equals(parameters('spokeDeploySubscriptionResourceGroup')[copyIndex()], ''), subscription().subscriptionId, split(parameters('spokeDeploySubscriptionResourceGroup')[copyIndex()], '/')[0]))]",
+            "resourceGroup": "[if(equals(length(parameters('spokeDeploySubscriptionResourceGroup')), 0), resourceGroup().name, if(equals(parameters('spokeDeploySubscriptionResourceGroup')[copyIndex()], ''), resourceGroup().name, split(parameters('spokeDeploySubscriptionResourceGroup')[copyIndex()], '/')[1]))]",
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
@@ -269,33 +273,19 @@
                     "routeTables_name": {"value": "[parameters('routeTableName')]"},
                     "routeTables_nextHopIpAddress": {"value": "[variables('firewallPrivateAddress')]"}
                 }
+            },
+            "copy": {
+                "name": "routeTableLoop",
+                "count": "[length(parameters('spokeDeploySubscriptionResourceGroup'))]"
             }
         },
         {
-            "comments": "Deploys route table with no routes",
-            "condition": "[or(equals(parameters('hubSubnetFirewallAddressSpace'), '0.0.0.0/0'), equals(parameters('useFirewallForEgress'), 'No'))]",
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "2020-06-01",
-            "name": "[variables('deploymentName-prodRouteTable-Empty')]",
-            "properties": {
-                "mode": "Incremental",
-                "templateLink": {
-                    "uri": "[concat(variables('templateLocationURI'), 'HubSpoke-RouteTable-Empty.json')]",
-                    "contentVersion": "1.0.0.0"
-                },
-                "parameters": {
-                    "routeTables_name": {"value": "[parameters('routeTableName')]"}
-                }
-            }
-        },
-        {
-            "comments": "Deploys the hub VNet",
+            "comments": "Hub VNet",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
             "name": "[variables('deploymentName-hub')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Resources/deployments', variables('deploymentName-prodRouteTable'))]",
-                "[resourceId('Microsoft.Resources/deployments', variables('deploymentName-prodRouteTable-Empty'))]"
+                "routeTableLoop"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -327,17 +317,21 @@
                     "subnet_4_name": {"value": "[variables('subnet_4_fullName')]"},
                     "subnet_4_addressSpace": {"value": "[parameters('hubSubnet4AddressSpace')]"},
                     "nsg_4_name": {"value": "[variables('nsg_4_name')]"},
+                    "configureRouteTable": {"value": "[and(not(equals(parameters('hubSubnetFirewallAddressSpace'), '0.0.0.0/0')), equals(parameters('useFirewallForEgress'), 'Yes'))]"},
                     "routeTableName": {"value": "[parameters('routeTableName')]"}
                 }
             }
         },
         {
-            "comments": "Deploys the spoke VNet(s)",
+            "comments": "Spoke VNet(s)",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
             "name": "[concat(variables('deploymentName-Spoke'),copyIndex(1))]",
             "subscriptionId": "[if(equals(length(parameters('spokeDeploySubscriptionResourceGroup')), 0), subscription().subscriptionId, if(equals(parameters('spokeDeploySubscriptionResourceGroup')[copyIndex()], ''), subscription().subscriptionId, split(parameters('spokeDeploySubscriptionResourceGroup')[copyIndex()], '/')[0]))]",
             "resourceGroup": "[if(equals(length(parameters('spokeDeploySubscriptionResourceGroup')), 0), resourceGroup().name, if(equals(parameters('spokeDeploySubscriptionResourceGroup')[copyIndex()], ''), resourceGroup().name, split(parameters('spokeDeploySubscriptionResourceGroup')[copyIndex()], '/')[1]))]",
+            "dependsOn": [
+                "routeTableLoop"
+            ],
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
@@ -358,7 +352,9 @@
                     "nsg_2_name": {"value": "[if(and(equals(parameters('spokeSubnet2AddressSpace')[0], '0.0.0.0/0'), equals(length(parameters('spokeSubnet2AddressSpace')), 1)), concat('Skip-Subnet2-', copyIndex(), '-NSG'), if(equals(parameters('spokeSubnet2AddressSpace')[copyIndex()], '0.0.0.0/0'), concat('Skip-Subnet2-', copyIndex(), '-NSG'), my.nsgName(my.subnetFullName(if(equals(length(parameters('spokeSubnet2Name')), 1), parameters('spokeSubnet2Name')[0], parameters('spokeSubnet2Name')[copyIndex()]), parameters('spokeSubnet2AddressSpace')[copyIndex()]))))]"},
                     "subnet_3_name": {"value": "[if(or(and(equals(parameters('spokeSubnet2AddressSpace')[0], '0.0.0.0/0'), equals(length(parameters('spokeSubnet2AddressSpace')), 1)), and(equals(parameters('spokeSubnet3AddressSpace')[0], '0.0.0.0/0'), equals(length(parameters('spokeSubnet3AddressSpace')), 1))), concat('Skip-Subnet3-', copyIndex()), if(or(equals(parameters('spokeSubnet2AddressSpace')[copyIndex()], '0.0.0.0/0'), equals(parameters('spokeSubnet3AddressSpace')[copyIndex()], '0.0.0.0/0')), concat('Skip-Subnet3-', copyIndex()), my.subnetFullName(if(equals(length(parameters('spokeSubnet3Name')), 1), parameters('spokeSubnet3Name')[0], parameters('spokeSubnet3Name')[copyIndex()]), parameters('spokeSubnet3AddressSpace')[copyIndex()])))]"},
                     "subnet_3_addressSpace": {"value": "[if(or(and(equals(parameters('spokeSubnet2AddressSpace')[0], '0.0.0.0/0'), equals(length(parameters('spokeSubnet2AddressSpace')), 1)), and(equals(parameters('spokeSubnet3AddressSpace')[0], '0.0.0.0/0'), equals(length(parameters('spokeSubnet3AddressSpace')), 1))), '0.0.0.0/0', if(equals(parameters('spokeSubnet2AddressSpace')[copyIndex()], '0.0.0.0/0'), '0.0.0.0/0', parameters('spokeSubnet3AddressSpace')[copyIndex()]))]"},
-                    "nsg_3_name": {"value": "[if(or(and(equals(parameters('spokeSubnet2AddressSpace')[0], '0.0.0.0/0'), equals(length(parameters('spokeSubnet2AddressSpace')), 1)), and(equals(parameters('spokeSubnet3AddressSpace')[0], '0.0.0.0/0'), equals(length(parameters('spokeSubnet3AddressSpace')), 1))),  concat('Skip-Subnet3-', copyIndex(), '-NSG'), if(or(equals(parameters('spokeSubnet2AddressSpace')[copyIndex()], '0.0.0.0/0'), equals(parameters('spokeSubnet3AddressSpace')[copyIndex()], '0.0.0.0/0')),  concat('Skip-Subnet3-', copyIndex(), '-NSG'), my.nsgName(my.subnetFullName(if(equals(length(parameters('spokeSubnet3Name')), 1), parameters('spokeSubnet3Name')[0], parameters('spokeSubnet3Name')[copyIndex()]), parameters('spokeSubnet3AddressSpace')[copyIndex()]))))]"}
+                    "nsg_3_name": {"value": "[if(or(and(equals(parameters('spokeSubnet2AddressSpace')[0], '0.0.0.0/0'), equals(length(parameters('spokeSubnet2AddressSpace')), 1)), and(equals(parameters('spokeSubnet3AddressSpace')[0], '0.0.0.0/0'), equals(length(parameters('spokeSubnet3AddressSpace')), 1))),  concat('Skip-Subnet3-', copyIndex(), '-NSG'), if(or(equals(parameters('spokeSubnet2AddressSpace')[copyIndex()], '0.0.0.0/0'), equals(parameters('spokeSubnet3AddressSpace')[copyIndex()], '0.0.0.0/0')),  concat('Skip-Subnet3-', copyIndex(), '-NSG'), my.nsgName(my.subnetFullName(if(equals(length(parameters('spokeSubnet3Name')), 1), parameters('spokeSubnet3Name')[0], parameters('spokeSubnet3Name')[copyIndex()]), parameters('spokeSubnet3AddressSpace')[copyIndex()]))))]"},
+                    "configureRouteTable": {"value": "[and(not(equals(parameters('hubSubnetFirewallAddressSpace'), '0.0.0.0/0')), equals(parameters('useFirewallForEgress'), 'Yes'))]"},
+                    "routeTableName": {"value": "[parameters('routeTableName')]"}
                 }
             },
             "copy": {
@@ -367,7 +363,7 @@
             }
         },
         {
-            "comments": "Deploys the IP Groups representing each subnet",
+            "comments": "IP Groups for each subnet",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
             "name": "[variables('deploymentName-ipGroups')]",
@@ -476,14 +472,14 @@
             }
         },
         {
-            "comments": "Deploys the Azure Bastion to the hub VNet",
+            "comments": "Azure Bastion for the hub VNet",
             "condition": "[not(equals(parameters('hubSubnetBastionAddressSpace'), '0.0.0.0/0'))]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
             "dependsOn": [
                 "[variables('deploymentName-hub')]"
             ],
-            "name": "[variables('deploymentName-bastion')]",
+            "name": "[variables('deploymentName-bastion-hub')]",
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
@@ -496,12 +492,13 @@
             }
         },
         {
-            "comments": "Deploys the Azure Firewall to the hub VNet",
+            "comments": "Azure Firewall (for the hub VNet)",
             "condition": "[not(equals(parameters('hubSubnetFirewallAddressSpace'), '0.0.0.0/0'))]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
             "dependsOn": [
-                "[variables('deploymentName-hub')]"
+                "[variables('deploymentName-hub')]",
+                "[variables('deploymentName-ipGroups')]"
             ],
             "name": "[variables('deploymentName-firewall')]",
             "properties": {
