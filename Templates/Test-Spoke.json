@@ -10,10 +10,6 @@
             "type": "string",
             "defaultValue": "10.2.0.0/16"
         },
-        "subnet_bastion_name": {
-            "type": "string",
-            "defaultValue": "AppGW-10.2.0.0-24"
-        },
         "subnet_bastion_addressSpace": {
             "type": "string",
             "defaultValue": "10.2.0.0/24"
@@ -103,7 +99,7 @@
             "condition": "[not(equals(parameters('subnet_bastion_addressSpace'), '0.0.0.0/0'))]",
             "type": "Microsoft.Network/virtualNetworks/subnets",
             "apiVersion": "2020-05-01",
-            "name": "[concat(parameters('virtualNetwork_name'), '/',parameters('subnet_bastion_name'))]",
+            "name": "[concat(parameters('virtualNetwork_name'), '/AzureBastionSubnet')]",
             "dependsOn": [
                 "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetwork_name'), parameters('subnet_appGw_name'))]"
             ],
@@ -120,7 +116,7 @@
             "apiVersion": "2020-05-01",
             "name": "[concat(parameters('virtualNetwork_name'), '/',parameters('subnet_1_name'))]",
             "dependsOn": [
-                "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetwork_name'), parameters('subnet_bastion_name'))]"
+                "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetwork_name'), 'AzureBastionSubnet')]"
             ],
             "properties": {
                 "addressPrefix": "[parameters('subnet_1_addressSpace')]",
