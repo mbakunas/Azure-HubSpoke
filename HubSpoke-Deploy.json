@@ -138,6 +138,43 @@
                 "description": "Address space of the fourth additional subnet.  Enter 0.0.0.0/0 not to create this subnet."
             },
             "defaultValue": "0.0.0.0/0"
+        },
+        "spokeVnetName": {
+            "type": "array"
+        },
+        "spokeVnetAddressSpace": {
+            "type": "array"
+        },
+        "spokeDeploySubscriptionResourceGroup": {
+            "type": "array",
+            "defaultValue": []
+        },
+        "spokeSubnetAppGwName": {
+            "type": "array"
+        },
+        "spokeSubnetAppGwAddressSpace": {
+            "type": "array"
+        },
+        "spokeSubnetBastionAddressSpace": {
+            "type": "array"
+        },
+        "spokeSubnet1Name": {
+            "type": "array"
+        },
+        "spokeSubnet1AddressSpace": {
+            "type": "array"
+        },
+        "spokeSubnet2Name": {
+            "type": "array"
+        },
+        "spokeSubnet2AddressSpace": {
+            "type": "array"
+        },
+        "spokeSubnet3Name": {
+            "type": "array"
+        },
+        "spokeSubnet3AddressSpace": {
+            "type": "array"
         }
     },
     "variables": {
@@ -147,6 +184,7 @@
         "deploymentName-prodRouteTable": "[concat(variables('deploymentName'), '-Network-ProdRouteTable')]",
         "deploymentName-prodRouteTable-Empty": "[concat(variables('deploymentName'), '-Network-ProdRouteTable-Empty')]",
         "deploymentName-hub": "[concat(variables('deploymentName'), '-Network-Hub')]",
+        "deploymentName-Spoke": "[concat(variables('deploymentName'), '-Spoke-')]",
         "deploymentName-ipGroups": "[concat(variables('deploymentName'), '-Network-IpGroups')]",
         "deploymentName-bastion": "[concat(variables('deploymentName'), '-Network-Bastion')]",
         "deploymentName-firewall": "[concat(variables('deploymentName'), '-Network-Firewall')]",
@@ -179,8 +217,44 @@
         "firewallApplicationRuleCollectionName": "InfraAllowCollection",
         "firewallApplicationRuleCollectionPriority": 1000
     },
+    "functions": [
+        {
+            "namespace": "my",
+            "members": {
+                "subnetFullName": {
+                    "parameters": [
+                        {
+                            "name": "name",
+                            "type": "string"
+                        },
+                        {
+                            "name": "addressSpace",
+                            "type": "string"
+                        }
+                    ],
+                    "output": {
+                        "type": "string",
+                        "value": "[concat(parameters('name'),'-',replace(parameters('addressSpace'),'/','-'))]"
+                    }
+                },
+                "nsgName": {
+                    "parameters": [
+                        {
+                            "name": "subnetName",
+                            "type": "string"
+                        }
+                    ],
+                    "output": {
+                        "value": "[concat(parameters('subnetName'), '-NSG')]",
+                        "type": "string"
+                    }
+                }
+            }
+        }
+    ],
     "resources": [
         {
+            "comments": "Deploys route table with route to Azure Firewall",
             "condition": "[and(not(equals(parameters('hubSubnetFirewallAddressSpace'), '0.0.0.0/0')), equals(parameters('useFirewallForEgress'), 'Yes'))]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
@@ -198,6 +272,7 @@
             }
         },
         {
+            "comments": "Deploys route table with no routes",
             "condition": "[or(equals(parameters('hubSubnetFirewallAddressSpace'), '0.0.0.0/0'), equals(parameters('useFirewallForEgress'), 'No'))]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
@@ -214,6 +289,7 @@
             }
         },
         {
+            "comments": "Deploys the hub VNet",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
             "name": "[variables('deploymentName-hub')]",
@@ -256,6 +332,42 @@
             }
         },
         {
+            "comments": "Deploys the spoke VNet(s)",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "name": "[concat(variables('deploymentName-Spoke'),copyIndex(1))]",
+            "subscriptionId": "[if(equals(length(parameters('spokeDeploySubscriptionResourceGroup')), 0), subscription().subscriptionId, if(equals(parameters('spokeDeploySubscriptionResourceGroup')[copyIndex()], ''), subscription().subscriptionId, split(parameters('spokeDeploySubscriptionResourceGroup')[copyIndex()], '/')[0]))]",
+            "resourceGroup": "[if(equals(length(parameters('spokeDeploySubscriptionResourceGroup')), 0), resourceGroup().name, if(equals(parameters('spokeDeploySubscriptionResourceGroup')[copyIndex()], ''), resourceGroup().name, split(parameters('spokeDeploySubscriptionResourceGroup')[copyIndex()], '/')[1]))]",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('templateLocationURI'), 'HubSpoke-VNet-Spoke.json')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "virtualNetwork_name": {"value": "[parameters('spokeVnetName')[copyIndex()]]"},
+                    "virtualNetwork_addressSpace": {"value": "[parameters('spokeVnetAddressSpace')[copyIndex()]]"},
+                    "subnet_bastion_addressSpace": {"value": "[if(and(equals(parameters('spokeSubnetBastionAddressSpace')[0], '0.0.0.0/0'), equals(length(parameters('spokeSubnetBastionAddressSpace')), 1)), '0.0.0.0/0', parameters('spokeSubnetBastionAddressSpace')[copyIndex()])]"},
+                    "subnet_appGW_name": {"value": "[if(and(equals(parameters('spokeSubnetAppGwAddressSpace')[0], '0.0.0.0/0'), equals(length(parameters('spokeSubnetAppGwAddressSpace')), 1)), concat('Skip-SubnetAppGateway-', copyIndex()), my.subnetFullName(if(equals(length(parameters('spokeSubnetAppGwName')), 1), parameters('spokeSubnetAppGwName')[0], parameters('spokeSubnetAppGwName')[copyIndex()]), parameters('spokeSubnetAppGwAddressSpace')[copyIndex()]))]"},
+                    "subnet_appGW_addressSpace": {"value": "[if(and(equals(parameters('spokeSubnetAppGwAddressSpace')[0], '0.0.0.0/0'), equals(length(parameters('spokeSubnetAppGwAddressSpace')), 1)), '0.0.0.0/0', parameters('spokeSubnetAppGwAddressSpace')[copyIndex()])]"},
+                    "subnet_1_name": {"value": "[my.subnetFullName(if(equals(length(parameters('spokeSubnet1Name')), 1), parameters('spokeSubnet1Name')[0], parameters('spokeSubnet1Name')[copyIndex()]), parameters('spokeSubnet1AddressSpace')[copyIndex()])]"},
+                    "subnet_1_addressSpace": {"value": "[parameters('spokeSubnet1AddressSpace')[copyIndex()]]"},
+                    "nsg_1_name": {"value": "[my.nsgName(my.subnetFullName(if(equals(length(parameters('spokeSubnet1Name')), 1), parameters('spokeSubnet1Name')[0], parameters('spokeSubnet1Name')[copyIndex()]), parameters('spokeSubnet1AddressSpace')[copyIndex()]))]"},
+                    "subnet_2_name": {"value": "[if(and(equals(parameters('spokeSubnet2AddressSpace')[0], '0.0.0.0/0'), equals(length(parameters('spokeSubnet2AddressSpace')), 1)), concat('Skip-Subnet2-', copyIndex()), my.subnetFullName(if(equals(length(parameters('spokeSubnet2Name')), 1), parameters('spokeSubnet2Name')[0], parameters('spokeSubnet2Name')[copyIndex()]), parameters('spokeSubnet2AddressSpace')[copyIndex()]))]"},
+                    "subnet_2_addressSpace": {"value": "[if(and(equals(parameters('spokeSubnet2AddressSpace')[0], '0.0.0.0/0'), equals(length(parameters('spokeSubnet2AddressSpace')), 1)), '0.0.0.0/0', parameters('spokeSubnet2AddressSpace')[copyIndex()])]"},
+                    "nsg_2_name": {"value": "[if(and(equals(parameters('spokeSubnet2AddressSpace')[0], '0.0.0.0/0'), equals(length(parameters('spokeSubnet2AddressSpace')), 1)), concat('Skip-Subnet2-', copyIndex(), '-NSG'), if(equals(parameters('spokeSubnet2AddressSpace')[copyIndex()], '0.0.0.0/0'), concat('Skip-Subnet2-', copyIndex(), '-NSG'), my.nsgName(my.subnetFullName(if(equals(length(parameters('spokeSubnet2Name')), 1), parameters('spokeSubnet2Name')[0], parameters('spokeSubnet2Name')[copyIndex()]), parameters('spokeSubnet2AddressSpace')[copyIndex()]))))]"},
+                    "subnet_3_name": {"value": "[if(or(and(equals(parameters('spokeSubnet2AddressSpace')[0], '0.0.0.0/0'), equals(length(parameters('spokeSubnet2AddressSpace')), 1)), and(equals(parameters('spokeSubnet3AddressSpace')[0], '0.0.0.0/0'), equals(length(parameters('spokeSubnet3AddressSpace')), 1))), concat('Skip-Subnet3-', copyIndex()), if(or(equals(parameters('spokeSubnet2AddressSpace')[copyIndex()], '0.0.0.0/0'), equals(parameters('spokeSubnet3AddressSpace')[copyIndex()], '0.0.0.0/0')), concat('Skip-Subnet3-', copyIndex()), my.subnetFullName(if(equals(length(parameters('spokeSubnet3Name')), 1), parameters('spokeSubnet3Name')[0], parameters('spokeSubnet3Name')[copyIndex()]), parameters('spokeSubnet3AddressSpace')[copyIndex()])))]"},
+                    "subnet_3_addressSpace": {"value": "[if(or(and(equals(parameters('spokeSubnet2AddressSpace')[0], '0.0.0.0/0'), equals(length(parameters('spokeSubnet2AddressSpace')), 1)), and(equals(parameters('spokeSubnet3AddressSpace')[0], '0.0.0.0/0'), equals(length(parameters('spokeSubnet3AddressSpace')), 1))), '0.0.0.0/0', if(equals(parameters('spokeSubnet2AddressSpace')[copyIndex()], '0.0.0.0/0'), '0.0.0.0/0', parameters('spokeSubnet3AddressSpace')[copyIndex()]))]"},
+                    "nsg_3_name": {"value": "[if(or(and(equals(parameters('spokeSubnet2AddressSpace')[0], '0.0.0.0/0'), equals(length(parameters('spokeSubnet2AddressSpace')), 1)), and(equals(parameters('spokeSubnet3AddressSpace')[0], '0.0.0.0/0'), equals(length(parameters('spokeSubnet3AddressSpace')), 1))),  concat('Skip-Subnet3-', copyIndex(), '-NSG'), if(or(equals(parameters('spokeSubnet2AddressSpace')[copyIndex()], '0.0.0.0/0'), equals(parameters('spokeSubnet3AddressSpace')[copyIndex()], '0.0.0.0/0')),  concat('Skip-Subnet3-', copyIndex(), '-NSG'), my.nsgName(my.subnetFullName(if(equals(length(parameters('spokeSubnet3Name')), 1), parameters('spokeSubnet3Name')[0], parameters('spokeSubnet3Name')[copyIndex()]), parameters('spokeSubnet3AddressSpace')[copyIndex()]))))]"}
+                }
+            },
+            "copy": {
+                "name": "spokeLoop",
+                "count": "[length(parameters('spokeVnetName'))]"
+            }
+        },
+        {
+            "comments": "Deploys the IP Groups representing each subnet",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
             "name": "[variables('deploymentName-ipGroups')]",
@@ -364,6 +476,7 @@
             }
         },
         {
+            "comments": "Deploys the Azure Bastion to the hub VNet",
             "condition": "[not(equals(parameters('hubSubnetBastionAddressSpace'), '0.0.0.0/0'))]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
@@ -383,6 +496,7 @@
             }
         },
         {
+            "comments": "Deploys the Azure Firewall to the hub VNet",
             "condition": "[not(equals(parameters('hubSubnetFirewallAddressSpace'), '0.0.0.0/0'))]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
