@@ -18,9 +18,6 @@
         "spokeSubnetAppGwAddressSpace": {
             "type": "array"
         },
-        "spokeSubnetBastionName": {
-            "type": "array"
-        },
         "spokeSubnetBastionAddressSpace": {
             "type": "array"
         },
