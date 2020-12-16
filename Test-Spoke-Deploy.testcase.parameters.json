@@ -31,13 +31,6 @@
         "10.4.0.0/25"
       ]
     },
-    "spokeSubnetBastionName": {
-      "value": [
-        "Bastion2",
-        "Bastion3",
-        "Bastion4"
-      ]
-    },
     "spokeSubnetBastionAddressSpace": {
       "value": [
         "10.2.0.128/26",
