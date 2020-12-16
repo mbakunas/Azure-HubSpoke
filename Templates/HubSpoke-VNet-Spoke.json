@@ -54,10 +54,18 @@
         },
         "nsg_3_name": {
             "type": "string"
+        },
+        "configureRouteTable": {
+            "type": "bool",
+            "defaultValue": false
+        },
+        "routeTableName": {
+            "type": "string"
         }
     },
     "variables": {
-        "location": "[resourceGroup().location]"
+        "location": "[resourceGroup().location]",
+        "tmpRouteTableNameJSON": "[json(concat('{\"id\": \"', parameters('routeTableName'), '\"}'))]"
     },
     "resources": [
         {
@@ -132,7 +140,8 @@
                 "privateLinkServiceNetworkPolicies": "Enabled",
                 "networkSecurityGroup": {
                     "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_1_name'))]"
-                }
+                },
+                "routeTable": "[if(parameters('configureRouteTable'), variables('tmpRouteTableNameJSON'), json('null'))]"
             }
         },
         {
@@ -162,7 +171,8 @@
                 "privateLinkServiceNetworkPolicies": "Enabled",
                 "networkSecurityGroup": {
                     "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_2_name'))]"
-                }
+                },
+                "routeTable": "[if(parameters('configureRouteTable'), variables('tmpRouteTableNameJSON'), json('null'))]"
             }
         },
         {
@@ -193,7 +203,8 @@
                 "privateLinkServiceNetworkPolicies": "Enabled",
                 "networkSecurityGroup": {
                     "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_3_name'))]"
-                }
+                },
+                "routeTable": "[if(parameters('configureRouteTable'), variables('tmpRouteTableNameJSON'), json('null'))]"
             }
         },
         {
