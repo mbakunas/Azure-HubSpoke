@@ -61,6 +61,7 @@
     },
     "resources": [
         {
+            "comments": "VNet",
             "type": "Microsoft.Network/virtualNetworks",
             "apiVersion": "2020-05-01",
             "location": "[variables('location')]",
@@ -80,6 +81,7 @@
             }
         },
         {
+            "comments": "Bastion subnet",
             "condition": "[not(equals(parameters('subnet_bastion_addressSpace'), '0.0.0.0/0'))]",
             "type": "Microsoft.Network/virtualNetworks/subnets",
             "apiVersion": "2020-05-01",
@@ -96,11 +98,13 @@
             }
         },
         {
+            "comments": "App GW subnet",
             "condition": "[not(equals(parameters('subnet_appGW_addressSpace'), '0.0.0.0/0'))]",
             "type": "Microsoft.Network/virtualNetworks/subnets",
             "apiVersion": "2020-05-01",
             "name": "[concat(parameters('virtualNetwork_name'), '/',parameters('subnet_appGW_name'))]",
             "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetwork_name'))]",
                 "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetwork_name'), 'AzureBastionSubnet')]"
             ],
             "properties": {
@@ -112,10 +116,12 @@
             }
         },
         {
+            "comments": "Subnet 1",
             "type": "Microsoft.Network/virtualNetworks/subnets",
             "apiVersion": "2020-05-01",
             "name": "[concat(parameters('virtualNetwork_name'), '/',parameters('subnet_1_name'))]",
             "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetwork_name'))]",
                 "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetwork_name'), parameters('subnet_appGw_name'))]"
             ],
             "properties": {
@@ -130,6 +136,7 @@
             }
         },
         {
+            "comments": "Subnet 1 NSG",
             "type": "Microsoft.Network/networkSecurityGroups",
             "apiVersion": "2020-05-01",
             "name": "[parameters('nsg_1_name')]",
@@ -139,6 +146,7 @@
             }
         },
         {
+            "comments": "Subnet 2",
             "condition": "[not(equals(parameters('subnet_2_addressSpace'), '0.0.0.0/0'))]",
             "type": "Microsoft.Network/virtualNetworks/subnets",
             "apiVersion": "2020-05-01",
@@ -158,6 +166,7 @@
             }
         },
         {
+            "comments": "Subnet 2 NSG",
             "condition": "[not(equals(parameters('subnet_2_addressSpace'), '0.0.0.0/0'))]",
             "type": "Microsoft.Network/networkSecurityGroups",
             "apiVersion": "2020-05-01",
@@ -168,6 +177,7 @@
             }
         },
         {
+            "comments": "Subnet 3",
             "condition": "[and(not(equals(parameters('subnet_2_addressSpace'), '0.0.0.0/0')), not(equals(parameters('subnet_3_addressSpace'), '0.0.0.0/0')))]",
             "type": "Microsoft.Network/virtualNetworks/subnets",
             "apiVersion": "2020-05-01",
@@ -187,6 +197,7 @@
             }
         },
         {
+            "comments": "Subnet 3 NSG",
             "condition": "[and(not(equals(parameters('subnet_2_addressSpace'), '0.0.0.0/0')), not(equals(parameters('subnet_3_addressSpace'), '0.0.0.0/0')))]",
             "type": "Microsoft.Network/networkSecurityGroups",
             "apiVersion": "2020-05-01",
