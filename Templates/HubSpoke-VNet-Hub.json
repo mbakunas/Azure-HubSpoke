@@ -83,12 +83,17 @@
         "nsg_4_name": {
             "type": "string"
         },
+        "configureRouteTable": {
+            "type": "bool",
+            "defaultValue": false
+        },
         "routeTableName": {
             "type": "string"
         }
     },
     "variables": {
-        "location": "[resourceGroup().location]"
+        "location": "[resourceGroup().location]",
+        "routeTableIdJSON": "[json(concat('{\"id\": \"', resourceId('Microsoft.Network/routeTables', parameters('routeTableName')), '\"}'))]"
     },
     "resources": [
         {
@@ -183,9 +188,7 @@
                 "networkSecurityGroup": {
                     "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_DC_name'))]"
                 },
-                "routeTable": {
-                    "id": "[resourceId('Microsoft.Network/routeTables', parameters('routeTableName'))]"
-                },
+                "routeTable": "[if(parameters('configureRouteTable'), variables('routeTableIdJSON'), json('null'))]",
                 "serviceEndpoints": [],
                 "delegations": [],
                 "privateEndpointNetworkPolicies": "Enabled",
@@ -216,9 +219,7 @@
                 "networkSecurityGroup": {
                     "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_JH_name'))]"
                 },
-                "routeTable": {
-                    "id": "[resourceId('Microsoft.Network/routeTables', parameters('routeTableName'))]"
-                },
+                "routeTable": "[if(parameters('configureRouteTable'), variables('routeTableIdJSON'), json('null'))]",
                 "serviceEndpoints": [],
                 "delegations": [],
                 "privateEndpointNetworkPolicies": "Enabled",
@@ -251,9 +252,7 @@
                 "networkSecurityGroup": {
                     "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_1_name'))]"
                 },
-                "routeTable": {
-                    "id": "[resourceId('Microsoft.Network/routeTables', parameters('routeTableName'))]"
-                },
+                "routeTable": "[if(parameters('configureRouteTable'), variables('routeTableIdJSON'), json('null'))]",
                 "serviceEndpoints": [],
                 "delegations": [],
                 "privateEndpointNetworkPolicies": "Enabled",
@@ -285,9 +284,7 @@
                 "networkSecurityGroup": {
                     "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_2_name'))]"
                 },
-                "routeTable": {
-                    "id": "[resourceId('Microsoft.Network/routeTables', parameters('routeTableName'))]"
-                },
+                "routeTable": "[if(parameters('configureRouteTable'), variables('routeTableIdJSON'), json('null'))]",
                 "serviceEndpoints": [],
                 "delegations": [],
                 "privateEndpointNetworkPolicies": "Enabled",
@@ -319,9 +316,7 @@
                 "networkSecurityGroup": {
                     "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_3_name'))]"
                 },
-                "routeTable": {
-                    "id": "[resourceId('Microsoft.Network/routeTables', parameters('routeTableName'))]"
-                },
+                "routeTable": "[if(parameters('configureRouteTable'), variables('routeTableIdJSON'), json('null'))]",
                 "serviceEndpoints": [],
                 "delegations": [],
                 "privateEndpointNetworkPolicies": "Enabled",
@@ -353,9 +348,7 @@
                 "networkSecurityGroup": {
                     "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_4_name'))]"
                 },
-                "routeTable": {
-                    "id": "[resourceId('Microsoft.Network/routeTables', parameters('routeTableName'))]"
-                },
+                "routeTable": "[if(parameters('configureRouteTable'), variables('routeTableIdJSON'), json('null'))]",
                 "serviceEndpoints": [],
                 "delegations": [],
                 "privateEndpointNetworkPolicies": "Enabled",
