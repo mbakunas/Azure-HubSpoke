@@ -95,7 +95,7 @@
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
-                    "uri": "[concat(variables('templateLocationURI'), 'Test-Spoke.json')]",
+                    "uri": "[concat(variables('templateLocationURI'), 'HubSpoke-VNet-Spoke.json')]",
                     "contentVersion": "1.0.0.0"
                 },
                 "parameters": {
