@@ -212,6 +212,8 @@
         "ipgroups-hubSubnet-2-name": "[concat(parameters('hubVnetName'), '-', variables('subnet_2_fullName'))]",
         "ipgroups-hubSubnet-3-name": "[concat(parameters('hubVnetName'), '-', variables('subnet_3_fullName'))]",
         "ipgroups-hubSubnet-4-name": "[concat(parameters('hubVnetName'), '-', variables('subnet_4_fullName'))]",
+        "bastionName": "[concat(parameters('hubVnetName'), '-Bastion')]",
+        "bastionIpName": "[concat(variables('bastionName'), '-IP')]",
         "firewallName": "[concat(parameters('hubVnetName'), '-Firewall')]",
         "firewallIpName": "[concat(variables('firewallName'), '-IP')]",
         "firewallNetworkRuleCollectionName": "InfraAllowCollection",
@@ -488,7 +490,9 @@
                     "contentVersion": "1.0.0.0"
                 },
                 "parameters": {
-                    "vnetName": {"value": "[parameters('hubVnetName')]"}
+                    "vnetName": {"value": "[parameters('hubVnetName')]"},
+                    "bastionName": {"value": "[variables('bastionName')]"},
+                    "bastionIpName": {"value": "[variables('bastionIpName')]"}
                 }
             }
         },

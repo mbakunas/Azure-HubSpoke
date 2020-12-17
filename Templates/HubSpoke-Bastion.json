@@ -6,6 +6,14 @@
         "vnetName": {
             "type": "string",
             "defaultValue": "VNet-Hub-01"
+        },
+        "bastionName": {
+            "type": "string",
+            "defaultValue": "VNet-Hub-01-Bastion"
+        },
+        "bastionIpName": {
+            "type": "string",
+            "defaultValue": "VNet-Hub-01-Bastion-IP"
         }
     },
     "variables": {
@@ -14,11 +22,11 @@
     "resources": [
         {
             "type": "Microsoft.Network/bastionHosts",
-            "name": "[concat(parameters('vnetName'),'-Bastion')]",
+            "name": "[parameters('bastionName')]",
             "apiVersion": "2020-03-01",
             "location": "[resourceGroup().location]",
             "dependsOn": [
-                "[resourceId('Microsoft.Network/publicIPAddresses', concat(parameters('vnetName'),'-Bastion-IP'))]"
+                "[resourceId('Microsoft.Network/publicIPAddresses', parameters('bastionIpName'))]"
             ],
             "properties": {
                 "ipConfigurations":[
@@ -27,7 +35,7 @@
                         "properties": {
                             "privateIPAllocationMethod": "Dynamic",
                             "publicIpAddress": {
-                                "id": "[resourceId('Microsoft.Network/publicIPAddresses', concat(parameters('vnetName'),'-Bastion-IP'))]"
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses', parameters('bastionIpName'))]"
                             },
                             "subnet": {
                                 "id": "[concat(resourceId('Microsoft.Network/virtualNetworks', parameters('vnetName')), '/subnets/', variables('bastionSubnetName'))]"
@@ -39,7 +47,7 @@
         },
         {
             "type": "Microsoft.Network/publicIPAddresses",
-            "name": "[concat(parameters('vnetName'),'-Bastion-IP')]",
+            "name": "[parameters('bastionIpName')]",
             "apiVersion": "2020-03-01",
             "location": "[resourceGroup().location]",
             "sku": {
