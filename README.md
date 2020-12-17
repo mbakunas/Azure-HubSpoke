@@ -1,4 +1,4 @@
-# A set of ARM templates that deploys a simple hub-spoke VNet environment.
+# A set of ARM templates that deploys a hub-spoke VNet environment.
 
 This solution must be deployed to an existing resource group in an existing subscription.  The remote resource group must exist and be in the same region as the resource group being deployed to.  Also, the the user deploying the solution must have at least contributor access to the remote resource group or the deployment will fail (technically the deployment will not pass validation).
 
