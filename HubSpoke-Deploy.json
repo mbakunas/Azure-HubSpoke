@@ -188,6 +188,8 @@
         "deploymentName-bastion-hub": "[concat(variables('deploymentName'), '-Network-Bastion-Hub')]",
         "deploymentName-bastion-spoke": "[concat(variables('deploymentName'), '-Network-Bastion-Spoke-')]",
         "deploymentName-firewall": "[concat(variables('deploymentName'), '-Network-Firewall')]",
+        "deploymentName-peer-outbound": "[concat(variables('deploymentName'), '-Network-Peer-Outbound-')]",
+        "deploymentName-peer-inbound": "[concat(variables('deploymentName'), '-Network-Peer-Inbound-')]",
         "subnet_DC_fullName": "[concat(parameters('hubSubnetDcName'),'-',replace(parameters('hubSubnetDcAddressSpace'),'/','-'))]",
         "subnet_JH_fullName": "[concat(parameters('hubSubnetJumpHostsName'),'-',replace(parameters('hubSubnetJumpHostsAddressSpace'),'/','-'))]",
         "subnet_1_fullName": "[concat(parameters('hubSubnet1Name'),'-',replace(parameters('hubSubnet1AddressSpace'),'/','-'))]",
@@ -325,7 +327,7 @@
             "comments": "Spoke VNet(s)",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
-            "name": "[concat(variables('deploymentName-Spoke'),copyIndex(1))]",
+            "name": "[concat(variables('deploymentName-Spoke'), copyIndex(1))]",
             "subscriptionId": "[if(equals(length(parameters('spokeDeploySubscriptionResourceGroup')), 0), subscription().subscriptionId, if(equals(parameters('spokeDeploySubscriptionResourceGroup')[copyIndex()], ''), subscription().subscriptionId, split(parameters('spokeDeploySubscriptionResourceGroup')[copyIndex()], '/')[0]))]",
             "resourceGroup": "[if(equals(length(parameters('spokeDeploySubscriptionResourceGroup')), 0), resourceGroup().name, if(equals(parameters('spokeDeploySubscriptionResourceGroup')[copyIndex()], ''), resourceGroup().name, split(parameters('spokeDeploySubscriptionResourceGroup')[copyIndex()], '/')[1]))]",
             "dependsOn": [
@@ -516,6 +518,98 @@
                     "appRuleCollName": {"value": "[variables('firewallApplicationRuleCollectionName')]"},
                     "appRuleCollPriority": {"value": "[variables('firewallApplicationRuleCollectionPriority')]"}
                 }
+            }
+        },
+        {
+            "comments": "Hub to spoke VNet peer(s)",
+            "name": "[concat(variables('deploymentName-peer-outbound'), copyIndex(1))]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "dependsOn": [
+                "[variables('deploymentName-hub')]",
+                "spokeLoop"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {},
+                    "resources":[
+                        {
+                            "type": "Microsoft.Network/virtualNetworks/virtualNetworkPeerings",
+                            "apiVersion": "2020-05-01",
+                            "name": "[concat(parameters('hubVnetName'), '/', parameters('spokeVnetName')[copyIndex()])]",
+                            "properties": {
+                                "remoteVirtualNetwork": {
+                                    "id": "[reference(concat(variables('deploymentName-Spoke'), copyIndex(1))).outputs.vNetId.value]"
+                                },
+                                "allowVirtualNetworkAccess": true,
+                                "allowForwardedTraffic": true,
+                                "allowGatewayTransit": false,
+                                "useRemoteGateways": false,
+                                "remoteAddressSpace": {
+                                    "addressPrefixes": [
+                                        "[parameters('spokeVnetAddressSpace')[copyIndex()]]"
+                                    ]
+                                }
+                            }
+                        }
+                    ]
+                }
+            },
+            "copy": {
+                "name": "outboundPeerLoop",
+                "count": "[length(parameters('spokeVnetAddressSpace'))]",
+                "mode": "Serial",
+                "batchSize": 1
+            }
+        },
+        {
+            "comments": "Spoke to hub Vnet peer(s)",
+            "name": "[concat(variables('deploymentName-peer-inbound'), copyIndex(1))]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "subscriptionId": "[if(equals(length(parameters('spokeDeploySubscriptionResourceGroup')), 0), subscription().subscriptionId, if(equals(parameters('spokeDeploySubscriptionResourceGroup')[copyIndex()], ''), subscription().subscriptionId, split(parameters('spokeDeploySubscriptionResourceGroup')[copyIndex()], '/')[0]))]",
+            "resourceGroup": "[if(equals(length(parameters('spokeDeploySubscriptionResourceGroup')), 0), resourceGroup().name, if(equals(parameters('spokeDeploySubscriptionResourceGroup')[copyIndex()], ''), resourceGroup().name, split(parameters('spokeDeploySubscriptionResourceGroup')[copyIndex()], '/')[1]))]",
+            "dependsOn": [
+                "[variables('deploymentName-hub')]",
+                "spokeLoop"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {},
+                    "resources": [
+                        {
+                            "type": "Microsoft.Network/virtualNetworks/virtualNetworkPeerings",
+                            "apiVersion": "2020-05-01",
+                            "name": "[concat(parameters('spokeVnetName')[copyIndex()], '/', parameters('hubVnetName'))]",
+                            "properties": {
+                                "remoteVirtualNetwork": {
+                                    "id": "[reference(variables('deploymentName-hub')).outputs.vNetId.value]"
+                                },
+                                "allowVirtualNetworkAccess": true,
+                                "allowForwardedTraffic": true,
+                                "allowGatewayTransit": false,
+                                "useRemoteGateways": false,
+                                "remoteAddressSpace": {
+                                    "addressPrefixes": [
+                                        "[parameters('hubVnetAddressSpace')]"
+                                    ]
+                                }
+                            }
+                        }
+                    ]
+                }
+            },
+            "copy": {
+                "name": "inboundPeerLoop",
+                "count": "[length(parameters('spokeVnetAddressSpace'))]",
+                "mode": "Serial",
+                "batchSize": 1
             }
         }
     ],
