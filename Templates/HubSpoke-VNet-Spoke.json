@@ -223,14 +223,6 @@
         "vNetId": {
             "type": "string",
             "value": "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetwork_name'))]"
-        },
-        "subscriptionId": {
-            "type": "string",
-            "value": "[subscription().subscriptionId]"
-        },
-        "resourceGroupName": {
-            "type": "string",
-            "value": "[resourceGroup().name]"
         }
     }
 }
