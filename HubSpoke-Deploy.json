@@ -8,6 +8,23 @@
                 "description": "Publicly accessible location of the child ARM templates."
             }
         },
+        "vnetDdosProtectionLevel": {
+            "type": "string",
+            "metadata": {
+                "description": "description"
+            },
+            "allowedValues": [
+                "Basic",
+                "Standard"
+            ],
+            "defaultValue": "Basic"
+        },
+        "vnetDdosProtectionPlanName": {
+            "type": "string",
+            "metadata": {
+                "description": "description"
+            }
+        },
         "hubVnetName": {
             "type": "string",
             "metadata": {
@@ -226,7 +243,7 @@
         "deploymentName-firewall": "[concat(variables('deploymentName'), '-Network-Firewall')]",
         "deploymentName-peer-outbound": "[concat(variables('deploymentName'), '-Network-Peer-Outbound-')]",
         "deploymentName-peer-inbound": "[concat(variables('deploymentName'), '-Network-Peer-Inbound-')]",
-        "nullAddressSpace": "0.0.0.0/0",
+        "deploymentName-ddosPlan": "[concat(variables('deploymentName'), '-Network-DDOS')]",
         "subnet_DC_fullName": "[concat(parameters('hubSubnetDcName'),'-',replace(parameters('hubSubnetDcAddressSpace'),'/','-'))]",
         "subnet_JH_fullName": "[concat(parameters('hubSubnetJumpHostsName'),'-',replace(parameters('hubSubnetJumpHostsAddressSpace'),'/','-'))]",
         "subnet_1_fullName": "[concat(parameters('hubSubnet1Name'),'-',replace(parameters('hubSubnet1AddressSpace'),'/','-'))]",
@@ -320,6 +337,23 @@
     ],
     "resources": [
         {
+            "comments": "DDOS Protection Plan",
+            "condition": "[equals(parameters('vnetDdosProtectionLevel'), 'Standard')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "name": "[variables('deploymentName-ddosPlan')]",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('templateLocationURI'), 'HubSpoke-DdosPlan.json')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "ddosProtectionPlans_name": {"value": "[parameters('vnetDdosProtectionPlanName')]"}
+                }
+            }
+        },
+        {
             "comments": "Route table with default route to Azure Firewall",
             "condition": "[and(not(equals(parameters('hubSubnetFirewallAddressSpace'), '0.0.0.0/0')), equals(parameters('useFirewallForEgress'), 'Yes'))]",
             "type": "Microsoft.Resources/deployments",
@@ -349,7 +383,8 @@
             "apiVersion": "2020-06-01",
             "name": "[variables('deploymentName-hub')]",
             "dependsOn": [
-                "routeTableLoop"
+                "routeTableLoop",
+                "[variables('deploymentName-ddosPlan')]"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -382,7 +417,8 @@
                     "subnet_4_addressSpace": {"value": "[parameters('hubSubnet4AddressSpace')]"},
                     "nsg_4_name": {"value": "[variables('nsg_4_name')]"},
                     "configureRouteTable": {"value": "[and(not(equals(parameters('hubSubnetFirewallAddressSpace'), '0.0.0.0/0')), equals(parameters('useFirewallForEgress'), 'Yes'))]"},
-                    "routeTableName": {"value": "[parameters('routeTableName')]"}
+                    "routeTableName": {"value": "[parameters('routeTableName')]"},
+                    "ddosPlanId": {"value": "[if(equals(parameters('vnetDdosProtectionLevel'), 'Standard'), reference(variables('deploymentName-ddosPlan')).outputs.ddosPlanId.value, 'Skip')]"}
                 }
             }
         },
@@ -394,7 +430,8 @@
             "subscriptionId": "[if(equals(length(parameters('spokeDeploySubscriptionResourceGroup')), 0), subscription().subscriptionId, if(equals(parameters('spokeDeploySubscriptionResourceGroup')[copyIndex()], ''), subscription().subscriptionId, split(parameters('spokeDeploySubscriptionResourceGroup')[copyIndex()], '/')[0]))]",
             "resourceGroup": "[if(equals(length(parameters('spokeDeploySubscriptionResourceGroup')), 0), resourceGroup().name, if(equals(parameters('spokeDeploySubscriptionResourceGroup')[copyIndex()], ''), resourceGroup().name, split(parameters('spokeDeploySubscriptionResourceGroup')[copyIndex()], '/')[1]))]",
             "dependsOn": [
-                "routeTableLoop"
+                "routeTableLoop",
+                "[variables('deploymentName-ddosPlan')]"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -418,7 +455,8 @@
                     "subnet_3_addressSpace": {"value": "[if(or(and(equals(parameters('spokeSubnet2AddressSpace')[0], '0.0.0.0/0'), equals(length(parameters('spokeSubnet2AddressSpace')), 1)), and(equals(parameters('spokeSubnet3AddressSpace')[0], '0.0.0.0/0'), equals(length(parameters('spokeSubnet3AddressSpace')), 1))), '0.0.0.0/0', if(equals(parameters('spokeSubnet2AddressSpace')[copyIndex()], '0.0.0.0/0'), '0.0.0.0/0', parameters('spokeSubnet3AddressSpace')[copyIndex()]))]"},
                     "nsg_3_name": {"value": "[if(or(and(equals(parameters('spokeSubnet2AddressSpace')[0], '0.0.0.0/0'), equals(length(parameters('spokeSubnet2AddressSpace')), 1)), and(equals(parameters('spokeSubnet3AddressSpace')[0], '0.0.0.0/0'), equals(length(parameters('spokeSubnet3AddressSpace')), 1))),  concat('Skip-Subnet3-', copyIndex(), '-NSG'), if(or(equals(parameters('spokeSubnet2AddressSpace')[copyIndex()], '0.0.0.0/0'), equals(parameters('spokeSubnet3AddressSpace')[copyIndex()], '0.0.0.0/0')),  concat('Skip-Subnet3-', copyIndex(), '-NSG'), my.nsgName(my.subnetFullName(if(equals(length(parameters('spokeSubnet3Name')), 1), parameters('spokeSubnet3Name')[0], parameters('spokeSubnet3Name')[copyIndex()]), parameters('spokeSubnet3AddressSpace')[copyIndex()]))))]"},
                     "configureRouteTable": {"value": "[and(not(equals(parameters('hubSubnetFirewallAddressSpace'), '0.0.0.0/0')), equals(parameters('useFirewallForEgress'), 'Yes'))]"},
-                    "routeTableName": {"value": "[parameters('routeTableName')]"}
+                    "routeTableName": {"value": "[parameters('routeTableName')]"},
+                    "ddosPlanId": {"value": "[if(equals(parameters('vnetDdosProtectionLevel'), 'Standard'), reference(variables('deploymentName-ddosPlan')).outputs.ddosPlanId.value, 'Skip')]"}
                 }
             },
             "copy": {
@@ -445,7 +483,7 @@
                             "location": "[variables('location')]",
                             "properties": {
                                 "ipAddresses": [
-                                    "[parameters('spokeVnetAddressSpace')]"
+                                    "[parameters('hubVnetAddressSpace')]"
                                 ]
                             }
                         },

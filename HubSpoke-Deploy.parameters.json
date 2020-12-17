@@ -8,6 +8,12 @@
         "hubVnetName": {
             "value": "HUB-EastUS2-01"
         },
+        "vnetDdosProtectionLevel": {
+            "value": "Standard"
+        },
+        "vnetDdosProtectionPlanName": {
+            "value": "DDOS-Plan-01"
+        },
         "hubVnetAddressSpace": {
             "value": "10.64.0.0/23"
         },
