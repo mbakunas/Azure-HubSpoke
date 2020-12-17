@@ -89,11 +89,15 @@
         },
         "routeTableName": {
             "type": "string"
+        },
+        "ddosPlanId": {
+            "type": "string"
         }
     },
     "variables": {
         "location": "[resourceGroup().location]",
-        "routeTableIdJSON": "[json(concat('{\"id\": \"', resourceId('Microsoft.Network/routeTables', parameters('routeTableName')), '\"}'))]"
+        "routeTableIdJSON": "[json(concat('{\"id\": \"', resourceId('Microsoft.Network/routeTables', parameters('routeTableName')), '\"}'))]",
+        "ddosPlanIdJSON": "[json(concat('{\"id\": \"', parameters('ddosPlanId'), '\"}'))]"
     },
     "resources": [
         {
@@ -118,8 +122,9 @@
                 },
                 "subnets": [],
                 "virtualNetworkPeerings": [],
-                "enableDdosProtection": false,
-                "enableVmProtection": false
+                "enableDdosProtection": "[if(equals(parameters('ddosPlanId'), 'Skip'), 'false', 'true')]",
+                "enableVmProtection": false,
+                "ddosProtectionPlan": "[if(equals(parameters('ddosPlanId'), 'Skip'), json('null'), variables('ddosPlanIdJSON'))]"
             }
         },
         {
