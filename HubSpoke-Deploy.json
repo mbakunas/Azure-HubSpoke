@@ -226,6 +226,7 @@
         "deploymentName-firewall": "[concat(variables('deploymentName'), '-Network-Firewall')]",
         "deploymentName-peer-outbound": "[concat(variables('deploymentName'), '-Network-Peer-Outbound-')]",
         "deploymentName-peer-inbound": "[concat(variables('deploymentName'), '-Network-Peer-Inbound-')]",
+        "nullAddressSpace": "0.0.0.0/0",
         "subnet_DC_fullName": "[concat(parameters('hubSubnetDcName'),'-',replace(parameters('hubSubnetDcAddressSpace'),'/','-'))]",
         "subnet_JH_fullName": "[concat(parameters('hubSubnetJumpHostsName'),'-',replace(parameters('hubSubnetJumpHostsAddressSpace'),'/','-'))]",
         "subnet_1_fullName": "[concat(parameters('hubSubnet1Name'),'-',replace(parameters('hubSubnet1AddressSpace'),'/','-'))]",
@@ -287,6 +288,30 @@
                     ],
                     "output": {
                         "value": "[concat(parameters('subnetName'), '-NSG')]",
+                        "type": "string"
+                    }
+                },
+                "bastionName": {
+                    "parameters": [
+                        {
+                            "name": "vNetName",
+                            "type": "string"
+                        }
+                    ],
+                    "output": {
+                        "value": "[concat(parameters('vNetName'), '-Bastion')]",
+                        "type": "string"
+                    }
+                },
+                "bastionIpName": {
+                    "parameters": [
+                        {
+                            "name": "bastionName",
+                            "type": "string"
+                        }
+                    ],
+                    "output": {
+                        "value": "[concat(parameters('bastionName'), '-IP')]",
                         "type": "string"
                     }
                 }
@@ -420,7 +445,7 @@
                             "location": "[variables('location')]",
                             "properties": {
                                 "ipAddresses": [
-                                    "[parameters('hubVnetAddressSpace')]"
+                                    "[parameters('spokeVnetAddressSpace')]"
                                 ]
                             }
                         },
@@ -515,10 +540,10 @@
             "condition": "[not(equals(parameters('hubSubnetBastionAddressSpace'), '0.0.0.0/0'))]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
+            "name": "[variables('deploymentName-bastion-hub')]",
             "dependsOn": [
                 "[variables('deploymentName-hub')]"
             ],
-            "name": "[variables('deploymentName-bastion-hub')]",
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
@@ -530,6 +555,34 @@
                     "bastionName": {"value": "[variables('bastionName')]"},
                     "bastionIpName": {"value": "[variables('bastionIpName')]"}
                 }
+            }
+        },
+        {
+            "comments": "Azure Bastion for the spoke VNet(s)",
+            "condition": "[not(equals(parameters('spokeSubnetBastionAddressSpace')[copyIndex()], '0.0.0.0/0'))]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "name": "[concat(variables('deploymentName-bastion-spoke'), copyIndex(1))]",
+            "subscriptionId": "[if(equals(length(parameters('spokeDeploySubscriptionResourceGroup')), 0), subscription().subscriptionId, if(equals(parameters('spokeDeploySubscriptionResourceGroup')[copyIndex()], ''), subscription().subscriptionId, split(parameters('spokeDeploySubscriptionResourceGroup')[copyIndex()], '/')[0]))]",
+            "resourceGroup": "[if(equals(length(parameters('spokeDeploySubscriptionResourceGroup')), 0), resourceGroup().name, if(equals(parameters('spokeDeploySubscriptionResourceGroup')[copyIndex()], ''), resourceGroup().name, split(parameters('spokeDeploySubscriptionResourceGroup')[copyIndex()], '/')[1]))]",
+            "dependsOn": [
+                "spokeLoop"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('templateLocationURI'), 'HubSpoke-Bastion.json')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "vnetName": {"value": "[parameters('spokeVnetName')[copyIndex()]]"},
+                    "bastionName": {"value": "[my.bastionName(parameters('spokeVnetName')[copyIndex()])]"},
+                    "bastionIpName": {"value": "[my.bastionIpName(my.bastionName(parameters('spokeVnetName')[copyIndex()]))]"}
+                }
+            },
+            "copy": {
+                "name": "spokeBastionLoop",
+                "count": "[if(and(equals(length(parameters('spokeSubnetBastionAddressSpace')), 1), equals(parameters('spokeSubnetBastionAddressSpace')[0], '0.0.0.0/0')), 0, length(parameters('spokeVnetName')))]"
             }
         },
         {
