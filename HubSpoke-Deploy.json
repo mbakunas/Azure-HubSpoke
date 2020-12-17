@@ -140,41 +140,77 @@
             "defaultValue": "0.0.0.0/0"
         },
         "spokeVnetName": {
-            "type": "array"
+            "type": "array",
+            "metadata": {
+                "description": "Names of the spoke VNet(s) to deploy."
+            }
         },
         "spokeVnetAddressSpace": {
-            "type": "array"
+            "type": "array",
+            "metadata": {
+                "description": "Address spaces of the spoke VNet(s) to deploy."
+            }
         },
         "spokeDeploySubscriptionResourceGroup": {
             "type": "array",
+            "metadata": {
+                "description": "Subscription IDs and resource groups into which to deploy the spoke VNet(s) separated by a /.  Use \"\" to deploy to the current subscription and resource group."
+            },
             "defaultValue": []
         },
         "spokeSubnetAppGwName": {
-            "type": "array"
+            "type": "array",
+            "metadata": {
+                "description": "Name(s) of the subnets in the spoke(s) for the application gateways.  Enter a single name to name all these subnets the same in each spoke."
+            }
         },
         "spokeSubnetAppGwAddressSpace": {
-            "type": "array"
+            "type": "array",
+            "metadata": {
+                "description": "Address space for the app gateway subnet(s).  Enter \"0.0.0.0/0\" to skip deploying this subnet for a specific spoke.  Enter only \"0.0.0.0/0\" to skip deploying this subnet for all spokes."
+            }
         },
         "spokeSubnetBastionAddressSpace": {
-            "type": "array"
+            "type": "array",
+            "metadata": {
+                "description": "Address space for the bastion subnet(s).  Enter \"0.0.0.0/0\" to skip deploying this subnet for a specific spoke.  Enter only \"0.0.0.0/0\" to skip deploying this subnet for all spokes.  Skipping deployment of the bastion subnet also skips deployment of the Azure Bastion for that spoke."
+            }
         },
         "spokeSubnet1Name": {
-            "type": "array"
+            "type": "array",
+            "metadata": {
+                "description": "Name(s) of the first additional subnet in the spoke(s).  Enter a single name to name all these subnets the same in each spoke."
+            }
         },
         "spokeSubnet1AddressSpace": {
-            "type": "array"
+            "type": "array",
+            "metadata": {
+                "description": "Address space for the first additional subnet."
+            }
         },
         "spokeSubnet2Name": {
-            "type": "array"
+            "type": "array",
+            "metadata": {
+                "description": "Name(s) of the second additional subnet in the spoke(s).  Enter a single name to name all these subnets the same in each spoke."
+            }
         },
         "spokeSubnet2AddressSpace": {
-            "type": "array"
+            "type": "array",
+            "metadata": {
+                "description": "Address space for the second additional subnet.  Enter \"0.0.0.0/0\" to skip deploying this subnet for a specific spoke.  Enter only \"0.0.0.0/0\" to skip deploying this subnet for all spokes.  Skipping deployment of this subnet also skipps deployment of the third additional subnet."
+            }
         },
         "spokeSubnet3Name": {
-            "type": "array"
+            "type": "array",
+            "metadata": {
+                "description": "Name(s) of the second additional subnet in the spoke(s).  Enter a single name to name all these subnets the same in each spoke."
+            }
         },
         "spokeSubnet3AddressSpace": {
-            "type": "array"
+            "type": "array",
+            "metadata": {
+                "description": "Address space for the third additional subnet.  Enter \"0.0.0.0/0\" to skip deploying this subnet for a specific spoke.  Enter only \"0.0.0.0/0\" to skip deploying this subnet for all spokes."
+            }
         }
     },
     "variables": {
