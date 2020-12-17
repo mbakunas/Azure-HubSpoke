@@ -1,4 +1,36 @@
-# Azure-Stuff
+# A set of ARM templates that deploys a simple hub-spoke VNet environment.
+
+This solution must be deployed to an existing resource group in an existing subscription.  The remote resource group must exist and be in the same region as the resource group being deployed to.  Also, the the user deploying the solution must have at least contributor access to the remote resource group or the deployment will fail (technically the deployment will not pass validation).
+
+This solution will only deploy the necessary networking components, not any VMs.
+
+## Hub
+
+The hub virtual that could have the following subnets:
+<ol>
+<li>GatewaySubnet for the ExpressRoute and VNet gateways</li>
+<li>AzureFirewallSubnet for the Azure Firewall</li>
+<li>AzureBastionSubnet for the Azure Bastion</li>
+<li>A subnet for DCs</li>
+<li>A subnet for JumpHosts</li>
+<li>An additional subnet 1</li>
+<li>An additional subnet 2</li>
+<li>An additional subnet 3</li>
+<li>An additional subnet 4</li>
+</ol>
+
+## Spokes
+
+This soltion deploys multiple spokes that could have the following subnuts:
+
+<ol>
+<li>AzureBastionSubnet for the Azure Bastion</li>
+<li>A subnet for the application gateways</li>
+<li>An additional subnet 1</li>
+<li>An additional subnet 2</li>
+<li>An additional subnet 3</li>
+</ol>
+
 
 ## Naming convention used by this solution
 
