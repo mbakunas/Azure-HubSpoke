@@ -315,7 +315,7 @@
             },
             "copy": {
                 "name": "routeTableLoop",
-                "count": "[length(parameters('spokeDeploySubscriptionResourceGroup'))]"
+                "count": "[if(equals(length(parameters('spokeDeploySubscriptionResourceGroup')), 0), 1, length(parameters('spokeDeploySubscriptionResourceGroup')))]"
             }
         },
         {
