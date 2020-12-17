@@ -9,14 +9,14 @@ This solution will only deploy the necessary networking components, not any VMs.
 The hub virtual that could have the following subnets:
 <ol>
 <li>GatewaySubnet for the ExpressRoute and VNet gateways</li>
-<li>AzureFirewallSubnet for the Azure Firewall</li>
-<li>AzureBastionSubnet for the Azure Bastion</li>
+<li>AzureFirewallSubnet for the Azure Firewall (optional)</li>
+<li>AzureBastionSubnet for the Azure Bastion (optional)</li>
 <li>A subnet for DCs</li>
-<li>A subnet for JumpHosts</li>
-<li>An additional subnet 1</li>
-<li>An additional subnet 2</li>
-<li>An additional subnet 3</li>
-<li>An additional subnet 4</li>
+<li>A subnet for JumpHosts (optional)</li>
+<li>An additional subnet 1 (optional)</li>
+<li>An additional subnet 2 (optional)</li>
+<li>An additional subnet 3 (optional)</li>
+<li>An additional subnet 4 (optional)</li>
 </ol>
 
 ## Spokes
@@ -24,11 +24,11 @@ The hub virtual that could have the following subnets:
 This soltion deploys multiple spokes that could have the following subnuts:
 
 <ol>
-<li>AzureBastionSubnet for the Azure Bastion</li>
-<li>A subnet for the application gateways</li>
+<li>AzureBastionSubnet for the Azure Bastion (optional)</li>
+<li>A subnet for the application gateways (optional)</li>
 <li>An additional subnet 1</li>
-<li>An additional subnet 2</li>
-<li>An additional subnet 3</li>
+<li>An additional subnet 2 (optional)</li>
+<li>An additional subnet 3 (optional)</li>
 </ol>
 
 
