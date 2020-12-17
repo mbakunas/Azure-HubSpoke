@@ -154,7 +154,7 @@
         "spokeDeploySubscriptionResourceGroup": {
             "type": "array",
             "metadata": {
-                "description": "Subscription IDs and resource groups into which to deploy the spoke VNet(s) separated by a /.  Use \"\" to deploy to the current subscription and resource group."
+                "description": "Subscription IDs and resource groups into which to deploy the spoke VNet(s) separated by a /.  Use \"\" to deploy to the current subscription and resource group.  The default will deploy all spokes to the current subscription and resource group."
             },
             "defaultValue": []
         },
@@ -185,7 +185,7 @@
         "spokeSubnet1AddressSpace": {
             "type": "array",
             "metadata": {
-                "description": "Address space for the first additional subnet."
+                "description": "Address space for the first additional subnet(s)."
             }
         },
         "spokeSubnet2Name": {
@@ -197,7 +197,7 @@
         "spokeSubnet2AddressSpace": {
             "type": "array",
             "metadata": {
-                "description": "Address space for the second additional subnet.  Enter \"0.0.0.0/0\" to skip deploying this subnet for a specific spoke.  Enter only \"0.0.0.0/0\" to skip deploying this subnet for all spokes.  Skipping deployment of this subnet also skipps deployment of the third additional subnet."
+                "description": "Address space for the second additional subnet(s).  Enter \"0.0.0.0/0\" to skip deploying this subnet for a specific spoke.  Enter only \"0.0.0.0/0\" to skip deploying this subnet for all spokes.  Skipping deployment of this subnet also skipps deployment of the third additional subnet."
             }
         },
         "spokeSubnet3Name": {
@@ -209,7 +209,7 @@
         "spokeSubnet3AddressSpace": {
             "type": "array",
             "metadata": {
-                "description": "Address space for the third additional subnet.  Enter \"0.0.0.0/0\" to skip deploying this subnet for a specific spoke.  Enter only \"0.0.0.0/0\" to skip deploying this subnet for all spokes."
+                "description": "Address space for the third additional subnet(s).  Enter \"0.0.0.0/0\" to skip deploying this subnet for a specific spoke.  Enter only \"0.0.0.0/0\" to skip deploying this subnet for all spokes."
             }
         }
     },
