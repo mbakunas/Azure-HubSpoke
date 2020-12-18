@@ -237,14 +237,12 @@
             "value": "[parameters('nsg_1_name')]"
         },
         "subnet2NsgName": {
-            "condition": "[not(equals(parameters('subnet_2_addressSpace'), '0.0.0.0/0'))]",
             "type": "string",
-            "value": "[parameters('nsg_2_name')]"
+            "value": "[if(not(equals(parameters('subnet_2_addressSpace'), '0.0.0.0/0')), parameters('nsg_2_name'), 'Skipped')]"
         },
         "subnet3NsgName": {
-            "condition": "[not(equals(parameters('subnet_3_addressSpace'), '0.0.0.0/0'))]",
             "type": "string",
-            "value": "[parameters('nsg_3_name')]"
+            "value": "[if(not(equals(parameters('subnet_3_addressSpace'), '0.0.0.0/0')), parameters('nsg_3_name'), 'Skipped')]"
         },
         "vNetNsgs": {
             "type": "array",
