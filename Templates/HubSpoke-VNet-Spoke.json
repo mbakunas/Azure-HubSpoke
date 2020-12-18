@@ -231,6 +231,24 @@
         "vNetId": {
             "type": "string",
             "value": "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetwork_name'))]"
+        },
+        "subnet1NsgName": {
+            "type": "string",
+            "value": "[parameters('nsg_1_name')]"
+        },
+        "subnet2NsgName": {
+            "condition": "[not(equals(parameters('subnet_2_addressSpace'), '0.0.0.0/0'))]",
+            "type": "string",
+            "value": "[parameters('nsg_2_name')]"
+        },
+        "subnet3NsgName": {
+            "condition": "[not(equals(parameters('subnet_3_addressSpace'), '0.0.0.0/0'))]",
+            "type": "string",
+            "value": "[parameters('nsg_3_name')]"
+        },
+        "vNetNsgs": {
+            "type": "array",
+            "value": "[if(and(equals(parameters('subnet_2_addressSpace'), '0.0.0.0/0'), equals(parameters('subnet_3_addressSpace'), '0.0.0.0/0')), createArray(parameters('nsg_1_name')), if(equals(parameters('subnet_3_addressSpace'), '0.0.0.0/0'), createArray(parameters('nsg_1_name'), parameters('nsg_2_name')), createArray(parameters('nsg_1_name'), parameters('nsg_2_name'), parameters('nsg_3_name'))))]"
         }
     }
 }
