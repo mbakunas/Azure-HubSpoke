@@ -1,0 +1,22 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "spokeDeploymentName": {
+            "type": "string"
+        },
+        "numOfVnets": {
+            "type": "int"
+        }
+    },
+    "resources": [],
+    "outputs": {
+        "allSpokeNsg": {
+            "type": "array",
+            "copy": {
+                "count": "[parameters('numOfVnets')]",
+                "input": "[reference(concat(parameters('spokeDeploymentName'), copyIndex(1))).outputs.vNetNsgs.value]"
+            }
+        }
+    }
+}
