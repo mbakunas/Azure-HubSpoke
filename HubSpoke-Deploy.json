@@ -11,18 +11,19 @@
         "vnetDdosProtectionLevel": {
             "type": "string",
             "metadata": {
-                "description": "description"
+                "description": "Level of DDOS protection for all the VNets deployed."
             },
             "allowedValues": [
                 "Basic",
-                "Standard"
+                "Standard - Create New",
+                "Standard - Use Existing"
             ],
             "defaultValue": "Basic"
         },
         "vnetDdosProtectionPlanName": {
             "type": "string",
             "metadata": {
-                "description": "description"
+                "description": "The name of the DDOS Protection Plan to create, or the resource ID of the existing Plan to use."
             }
         },
         "hubVnetName": {
@@ -244,6 +245,7 @@
         "deploymentName-peer-outbound": "[concat(variables('deploymentName'), '-Network-Peer-Outbound-')]",
         "deploymentName-peer-inbound": "[concat(variables('deploymentName'), '-Network-Peer-Inbound-')]",
         "deploymentName-ddosPlan": "[concat(variables('deploymentName'), '-Network-DDOS')]",
+        "deploymentName-buildNsgList": "[concat(variables('deploymentName'), '-Network-BuildNsgLists')]",
         "subnet_DC_fullName": "[concat(parameters('hubSubnetDcName'),'-',replace(parameters('hubSubnetDcAddressSpace'),'/','-'))]",
         "subnet_JH_fullName": "[concat(parameters('hubSubnetJumpHostsName'),'-',replace(parameters('hubSubnetJumpHostsAddressSpace'),'/','-'))]",
         "subnet_1_fullName": "[concat(parameters('hubSubnet1Name'),'-',replace(parameters('hubSubnet1AddressSpace'),'/','-'))]",
@@ -273,8 +275,7 @@
         "firewallNetworkRuleCollectionName": "InfraAllowCollection",
         "firewallNetworkRuleCollectionPriority": 1000,
         "firewallApplicationRuleCollectionName": "InfraAllowCollection",
-        "firewallApplicationRuleCollectionPriority": 1000,
-        "tmpStrAllIpAddr": "[string(concat(array(parameters('hubVnetAddressSpace')), parameters('spokeVnetAddressSpace')))]"
+        "firewallApplicationRuleCollectionPriority": 1000
     },
     "functions": [
         {
@@ -338,7 +339,7 @@
     "resources": [
         {
             "comments": "DDOS Protection Plan",
-            "condition": "[equals(parameters('vnetDdosProtectionLevel'), 'Standard')]",
+            "condition": "[equals(parameters('vnetDdosProtectionLevel'), 'Standard - Create New')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
             "name": "[variables('deploymentName-ddosPlan')]",
@@ -456,7 +457,7 @@
                     "nsg_3_name": {"value": "[if(or(and(equals(parameters('spokeSubnet2AddressSpace')[0], '0.0.0.0/0'), equals(length(parameters('spokeSubnet2AddressSpace')), 1)), and(equals(parameters('spokeSubnet3AddressSpace')[0], '0.0.0.0/0'), equals(length(parameters('spokeSubnet3AddressSpace')), 1))),  concat('Skip-Subnet3-', copyIndex(), '-NSG'), if(or(equals(parameters('spokeSubnet2AddressSpace')[copyIndex()], '0.0.0.0/0'), equals(parameters('spokeSubnet3AddressSpace')[copyIndex()], '0.0.0.0/0')),  concat('Skip-Subnet3-', copyIndex(), '-NSG'), my.nsgName(my.subnetFullName(if(equals(length(parameters('spokeSubnet3Name')), 1), parameters('spokeSubnet3Name')[0], parameters('spokeSubnet3Name')[copyIndex()]), parameters('spokeSubnet3AddressSpace')[copyIndex()]))))]"},
                     "configureRouteTable": {"value": "[and(not(equals(parameters('hubSubnetFirewallAddressSpace'), '0.0.0.0/0')), equals(parameters('useFirewallForEgress'), 'Yes'))]"},
                     "routeTableName": {"value": "[parameters('routeTableName')]"},
-                    "ddosPlanId": {"value": "[if(equals(parameters('vnetDdosProtectionLevel'), 'Standard'), reference(variables('deploymentName-ddosPlan')).outputs.ddosPlanId.value, 'Skip')]"}
+                    "ddosPlanId": {"value": "[if(equals(parameters('vnetDdosProtectionLevel'), 'Standard - Create New'), reference(variables('deploymentName-ddosPlan')).outputs.ddosPlanId.value, if(equals(parameters('vnetDdosProtectionLevel'), 'Standard - Use Existing'), parameters('vnetDdosProtectionPlanName'), 'Skip'))]"}
                 }
             },
             "copy": {

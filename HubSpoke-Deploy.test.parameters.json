@@ -9,7 +9,7 @@
             "value": "HUB-EastUS2-01"
         },
         "vnetDdosProtectionLevel": {
-            "value": "Standard - Create New"
+            "value": "Basic"
         },
         "vnetDdosProtectionPlanName": {
             "value": "DDOS-Plan-01"
@@ -21,7 +21,7 @@
             "value": "10.64.0.0/26"
         },
         "hubSubnetFirewallAddressSpace": {
-            "value": "10.64.0.64/26"
+            "value": "0.0.0.0/0"
         },
         "useFirewallForEgress": {
             "value": "Yes"
@@ -30,7 +30,7 @@
             "value": "RouteTable-01"
         },
         "hubSubnetBastionAddressSpace": {
-            "value": "10.64.0.128/26"
+            "value": "0.0.0.0/0"
         },
         "hubSubnetDcName": {
             "value": "Infra"
@@ -103,9 +103,7 @@
         },
         "spokeSubnetBastionAddressSpace": {
             "value": [
-                "10.2.0.128/26",
-                "10.3.0.128/26",
-                "10.4.0.128/26"
+                "0.0.0.0/0"
             ]
         },
         "spokeSubnet1Name": {
