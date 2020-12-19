@@ -4,7 +4,8 @@ Connect-AzAccount # this is interactive
 $defaultSubscriptionId = 'f0bb6c48-80fd-445c-98cb-c38b5f817d52'
 $defaultResourceGroup = 'HubSpoke-01'
 
-$parametersFile = 'C:\Users\mark\Documents\GitHub\Azure-HubSpoke\HubSpoke-Deploy.test.parameters.json'
+#$parametersFile = 'C:\Users\mark\Documents\GitHub\Azure-HubSpoke\HubSpoke-Deploy.test.parameters.json'
+$parametersFile = 'C:\Users\mark.bakunas\Documents\GitHub\Azure-HubSpoke\HubSpoke-Deploy.test.parameters.json'
 
 
 
@@ -15,10 +16,21 @@ Set-AzContext $context
 
 $dcResourceGroupName = 'DomainControllers01'
 
-
+#
 # load the parameters file and get the VNets
+#
 $params = Get-Content $parametersFile | Out-String | ConvertFrom-Json
-$hubVnet = Get-AzVirtualNetwork -name $params.parameters.hubVnetName.value -ResourceGroupName $defaultResourceGroup
+
+$subRg = [Object[]]::new(($params.parameters.spokeDeploySubscriptionResourceGroup.value).Count)
+
+# get the hub VNet
+$hubVnet = Get-AzVirtualNetwork -name $params.parameters.hubVnetName.value
+
+$spokeVnets = [Object[]]::new(($params.parameters.spokeVnetName.value).Count)
+for ($i = 0; $i -lt ($params.parameters.spokeVnetName.value).Count; $i++)
+{
+    Get-AzVirtualNetwork -name $params.parameters.spokeVnetName.value[$i]
+}
 
 
 
