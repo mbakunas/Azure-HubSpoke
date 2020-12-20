@@ -26,6 +26,18 @@
                 "description": "The name of the DDOS Protection Plan to create, or the resource ID of the existing Plan to use."
             }
         },
+        "vnetNsgSecurityLevel": {
+            "type": "string",
+            "metadata": {
+                "description": "The level of NSG rule security restrictions.  Low = only the default rules.  Medium = inbound restrictions but allowing intra-subnet traffic.  High = microsegmentation."
+            },
+            "allowedValues": [
+                "High",
+                "Medium",
+                "Low"
+            ],
+            "defaultValue": "Low"
+        },
         "hubVnetName": {
             "type": "string",
             "metadata": {
@@ -232,6 +244,7 @@
         }
     },
     "variables": {
+        "settingAllowRdpToDcs": true,
         "deploymentName": "[deployment().Name]",
         "location": "[resourceGroup().location]",
         "templateLocationURI": "[concat(parameters('assetLocationURI'), 'Templates/')]",
@@ -246,6 +259,8 @@
         "deploymentName-peer-inbound": "[concat(variables('deploymentName'), '-Network-Peer-Inbound-')]",
         "deploymentName-ddosPlan": "[concat(variables('deploymentName'), '-Network-DDOS')]",
         "deploymentName-buildNsgList": "[concat(variables('deploymentName'), '-Network-BuildNsgLists')]",
+        "deploymentName-nsgRulesDc": "[concat(variables('deploymentName'), '-Network-NsgRules-DC')]",
+        "deploymentName-nsgRulesJh": "[concat(variables('deploymentName'), '-Network-NsgRules-JumpHosts')]",
         "subnet_DC_fullName": "[concat(parameters('hubSubnetDcName'),'-',replace(parameters('hubSubnetDcAddressSpace'),'/','-'))]",
         "subnet_JH_fullName": "[concat(parameters('hubSubnetJumpHostsName'),'-',replace(parameters('hubSubnetJumpHostsAddressSpace'),'/','-'))]",
         "subnet_1_fullName": "[concat(parameters('hubSubnet1Name'),'-',replace(parameters('hubSubnet1AddressSpace'),'/','-'))]",
@@ -742,6 +757,265 @@
                 "count": "[length(parameters('spokeVnetAddressSpace'))]",
                 "mode": "Serial",
                 "batchSize": 1
+            }
+        },
+        {
+            "comments": "DC subnet NSG rules",
+            "condition": "[not(equals(parameters('vnetNsgSecurityLevel'), 'Low'))]",
+            "name": "[variables('deploymentName-nsgRulesDc')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "dependsOn": [
+                "[variables('deploymentName-hub')]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {},
+                    "resources": [
+                        {
+                            "type": "Microsoft.Network/networkSecurityGroups/securityRules",
+                            "apiVersion": "2020-05-01",
+                            "name": "[concat(variables('nsg_DC_name'), '/AllowIntraSubnetComms')]",
+                            "properties": {
+                                "description": "Allow traffic between servers inside the subnet",
+                                "protocol": "*",
+                                "sourcePortRange": "*",
+                                "destinationPortRange": "*",
+                                "sourceAddressPrefix": "[parameters('hubSubnetDcAddressSpace')]",
+                                "destinationAddressPrefix": "[parameters('hubSubnetDcAddressSpace')]",
+                                "access": "Allow",
+                                "priority": 100,
+                                "direction": "Inbound",
+                                "sourcePortRanges": [],
+                                "destinationPortRanges": [],
+                                "sourceAddressPrefixes": [],
+                                "destinationAddressPrefixes": []
+                            }
+                        },
+                        {
+                            "type": "Microsoft.Network/networkSecurityGroups/securityRules",
+                            "apiVersion": "2020-05-01",
+                            "name": "[concat(variables('nsg_DC_name'), '/AllowAdDsTCP')]",
+                            "properties": {
+                                "description": "Allow AD DS TCP ports",
+                                "protocol": "TCP",
+                                "sourcePortRange": "*",
+                                "sourceAddressPrefix": "VirtualNetwork",
+                                "destinationAddressPrefix": "[parameters('hubSubnetDcAddressSpace')]",
+                                "access": "Allow",
+                                "priority": 110,
+                                "direction": "Inbound",
+                                "sourcePortRanges": [],
+                                "destinationPortRanges": [
+                                    "53",
+                                    "88",
+                                    "135",
+                                    "389",
+                                    "636",
+                                    "445",
+                                    "464",
+                                    "3268",
+                                    "3269",
+                                    "49152-65535"
+                                ],
+                                "sourceAddressPrefixes": [],
+                                "destinationAddressPrefixes": []
+                            }
+                        },
+                        {
+                            "type": "Microsoft.Network/networkSecurityGroups/securityRules",
+                            "apiVersion": "2020-05-01",
+                            "name": "[concat(variables('nsg_DC_name'), '/AllowAdDsUDP')]",
+                            "properties": {
+                                "description": "Allow AD DS UDP ports",
+                                "protocol": "UDP",
+                                "sourcePortRange": "*",
+                                "sourceAddressPrefix": "VirtualNetwork",
+                                "destinationAddressPrefix": "[parameters('hubSubnetDcAddressSpace')]",
+                                "access": "Allow",
+                                "priority": 120,
+                                "direction": "Inbound",
+                                "sourcePortRanges": [],
+                                "destinationPortRanges": [
+                                    "53",
+                                    "88",
+                                    "135",
+                                    "389",
+                                    "636",
+                                    "446",
+                                    "464"
+                                ],
+                                "sourceAddressPrefixes": [],
+                                "destinationAddressPrefixes": []
+                            }
+                        },
+                        {
+                            "condition": "[and(variables('settingAllowRdpToDcs'), not(equals(parameters('hubSubnetBastionAddressSpace'), '0.0.0.0/0')))]",
+                            "type": "Microsoft.Network/networkSecurityGroups/securityRules",
+                            "apiVersion": "2020-05-01",
+                            "name": "[concat(variables('nsg_DC_name'), '/AllowRdpBastion')]",
+                            "properties": {
+                                "description": "Allow RDP from Azure Bastion",
+                                "protocol": "TCP",
+                                "sourcePortRange": "*",
+                                "destinationPortRange": "3389",
+                                "sourceAddressPrefix": "[parameters('hubSubnetBastionAddressSpace')]",
+                                "destinationAddressPrefix": "[parameters('hubSubnetDcAddressSpace')]",
+                                "access": "Allow",
+                                "priority": 150,
+                                "direction": "Inbound",
+                                "sourcePortRanges": [],
+                                "destinationPortRanges": [],
+                                "sourceAddressPrefixes": [],
+                                "destinationAddressPrefixes": []
+                            }
+                        },
+                        {
+                            "condition": "[and(variables('settingAllowRdpToDcs'), not(equals(parameters('hubSubnetJumpHostsAddressSpace'), '0.0.0.0/0')))]",
+                            "type": "Microsoft.Network/networkSecurityGroups/securityRules",
+                            "apiVersion": "2020-05-01",
+                            "name": "[concat(variables('nsg_DC_name'), '/AllowRdpJumpHosts')]",
+                            "properties": {
+                                "description": "Allow RDP from jump hosts",
+                                "protocol": "TCP",
+                                "sourcePortRange": "*",
+                                "destinationPortRange": "3389",
+                                "sourceAddressPrefix": "[parameters('hubSubnetJumpHostsAddressSpace')]",
+                                "destinationAddressPrefix": "[parameters('hubSubnetDcAddressSpace')]",
+                                "access": "Allow",
+                                "priority": 150,
+                                "direction": "Inbound",
+                                "sourcePortRanges": [],
+                                "destinationPortRanges": [],
+                                "sourceAddressPrefixes": [],
+                                "destinationAddressPrefixes": []
+                            }
+                        },
+                        {
+                            "type": "Microsoft.Network/networkSecurityGroups/securityRules",
+                            "apiVersion": "2020-05-01",
+                            "name": "[concat(variables('nsg_DC_name'), '/DenyAllInbound')]",
+                            "properties": {
+                                "protocol": "*",
+                                "sourcePortRange": "*",
+                                "destinationPortRange": "*",
+                                "sourceAddressPrefix": "*",
+                                "destinationAddressPrefix": "*",
+                                "access": "Deny",
+                                "priority": 4096,
+                                "direction": "Inbound",
+                                "sourcePortRanges": [],
+                                "destinationPortRanges": [],
+                                "sourceAddressPrefixes": [],
+                                "destinationAddressPrefixes": []
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "comments": "JumpHosts subnet NSG rules",
+            "condition": "[and(not(equals(parameters('hubSubnetJumpHostsAddressSpace'), '0.0.0.0/0')), not(equals(parameters('vnetNsgSecurityLevel'), 'Low')))]",
+            "name": "[variables('deploymentName-nsgRulesJh')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "dependsOn": [
+                "[variables('deploymentName-hub')]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {},
+                    "resources": [
+                        {
+                            "condition": "[not(equals(parameters('vnetNsgSecurityLevel'), 'High'))]",
+                            "type": "Microsoft.Network/networkSecurityGroups/securityRules",
+                            "apiVersion": "2020-05-01",
+                            "name": "[concat(variables('nsg_JH_name'), '/AllowIntraSubnetComms')]",
+                            "properties": {
+                                "description": "Allow traffic between servers inside the subnet",
+                                "protocol": "*",
+                                "sourcePortRange": "*",
+                                "destinationPortRange": "*",
+                                "sourceAddressPrefix": "[parameters('hubSubnetJumpHostsAddressSpace')]",
+                                "destinationAddressPrefix": "[parameters('hubSubnetJumpHostsAddressSpace')]",
+                                "access": "Allow",
+                                "priority": 100,
+                                "direction": "Inbound",
+                                "sourcePortRanges": [],
+                                "destinationPortRanges": [],
+                                "sourceAddressPrefixes": [],
+                                "destinationAddressPrefixes": []
+                            }
+                        },
+                        {
+                            "condition": "[not(equals(parameters('hubSubnetBastionAddressSpace'), '0.0.0.0/0'))]",
+                            "type": "Microsoft.Network/networkSecurityGroups/securityRules",
+                            "apiVersion": "2020-05-01",
+                            "name": "[concat(variables('nsg_JH_name'), '/AllowRdpBastion')]",
+                            "properties": {
+                                "description": "Allow RDP from Azure Bastion",
+                                "protocol": "*",
+                                "sourcePortRange": "*",
+                                "destinationPortRange": "3389",
+                                "sourceAddressPrefix": "[parameters('hubSubnetBastionAddressSpace')]",
+                                "destinationAddressPrefix": "[parameters('hubSubnetJumpHostsAddressSpace')]",
+                                "access": "Allow",
+                                "priority": 150,
+                                "direction": "Inbound",
+                                "sourcePortRanges": [],
+                                "destinationPortRanges": [],
+                                "sourceAddressPrefixes": [],
+                                "destinationAddressPrefixes": []
+                            }
+                        },
+                        {
+                            "type": "Microsoft.Network/networkSecurityGroups/securityRules",
+                            "apiVersion": "2020-05-01",
+                            "name": "[concat(variables('nsg_JH_name'), '/AllowRdpOnPrem')]",
+                            "properties": {
+                                "description": "Allow RDP from on-premises networks (via the ExpressRoute gateway)",
+                                "protocol": "*",
+                                "sourcePortRange": "*",
+                                "destinationPortRange": "3389",
+                                "sourceAddressPrefix": "[parameters('hubSubnetGatewayAddressSpace')]",
+                                "destinationAddressPrefix": "[parameters('hubSubnetJumpHostsAddressSpace')]",
+                                "access": "Allow",
+                                "priority": 155,
+                                "direction": "Inbound",
+                                "sourcePortRanges": [],
+                                "destinationPortRanges": [],
+                                "sourceAddressPrefixes": [],
+                                "destinationAddressPrefixes": []
+                            }
+                        },
+                        {
+                            "type": "Microsoft.Network/networkSecurityGroups/securityRules",
+                            "apiVersion": "2020-05-01",
+                            "name": "[concat(variables('nsg_JH_name'), '/DenyAllInbound')]",
+                            "properties": {
+                                "protocol": "*",
+                                "sourcePortRange": "*",
+                                "destinationPortRange": "*",
+                                "sourceAddressPrefix": "*",
+                                "destinationAddressPrefix": "*",
+                                "access": "Deny",
+                                "priority": 4096,
+                                "direction": "Inbound",
+                                "sourcePortRanges": [],
+                                "destinationPortRanges": [],
+                                "sourceAddressPrefixes": [],
+                                "destinationAddressPrefixes": []
+                            }
+                        }
+                    ]
+                }
             }
         }
     ],
