@@ -806,7 +806,7 @@
                                 "sourceAddressPrefix": "VirtualNetwork",
                                 "destinationAddressPrefix": "[parameters('hubSubnetDcAddressSpace')]",
                                 "access": "Allow",
-                                "priority": 110,
+                                "priority": 210,
                                 "direction": "Inbound",
                                 "sourcePortRanges": [],
                                 "destinationPortRanges": [
@@ -836,7 +836,7 @@
                                 "sourceAddressPrefix": "VirtualNetwork",
                                 "destinationAddressPrefix": "[parameters('hubSubnetDcAddressSpace')]",
                                 "access": "Allow",
-                                "priority": 120,
+                                "priority": 220,
                                 "direction": "Inbound",
                                 "sourcePortRanges": [],
                                 "destinationPortRanges": [
@@ -848,6 +848,26 @@
                                     "446",
                                     "464"
                                 ],
+                                "sourceAddressPrefixes": [],
+                                "destinationAddressPrefixes": []
+                            }
+                        },
+                        {
+                            "type": "Microsoft.Network/networkSecurityGroups/securityRules",
+                            "apiVersion": "2020-05-01",
+                            "name": "[concat(variables('nsg_DC_name'), '/AllowAdDsICMP')]",
+                            "properties": {
+                                "description": "Allow ICMP",
+                                "protocol": "ICMP",
+                                "sourcePortRange": "*",
+                                "destinationPortRange": "*",
+                                "sourceAddressPrefix": "VirtualNetwork",
+                                "destinationAddressPrefix": "[parameters('hubSubnetDcAddressSpace')]",
+                                "access": "Allow",
+                                "priority": 220,
+                                "direction": "Inbound",
+                                "sourcePortRanges": [],
+                                "destinationPortRanges": [],
                                 "sourceAddressPrefixes": [],
                                 "destinationAddressPrefixes": []
                             }
@@ -865,7 +885,7 @@
                                 "sourceAddressPrefix": "[parameters('hubSubnetBastionAddressSpace')]",
                                 "destinationAddressPrefix": "[parameters('hubSubnetDcAddressSpace')]",
                                 "access": "Allow",
-                                "priority": 150,
+                                "priority": 310,
                                 "direction": "Inbound",
                                 "sourcePortRanges": [],
                                 "destinationPortRanges": [],
@@ -886,7 +906,7 @@
                                 "sourceAddressPrefix": "[parameters('hubSubnetJumpHostsAddressSpace')]",
                                 "destinationAddressPrefix": "[parameters('hubSubnetDcAddressSpace')]",
                                 "access": "Allow",
-                                "priority": 150,
+                                "priority": 320,
                                 "direction": "Inbound",
                                 "sourcePortRanges": [],
                                 "destinationPortRanges": [],
@@ -967,7 +987,7 @@
                                 "sourceAddressPrefix": "[parameters('hubSubnetBastionAddressSpace')]",
                                 "destinationAddressPrefix": "[parameters('hubSubnetJumpHostsAddressSpace')]",
                                 "access": "Allow",
-                                "priority": 150,
+                                "priority": 310,
                                 "direction": "Inbound",
                                 "sourcePortRanges": [],
                                 "destinationPortRanges": [],
@@ -987,7 +1007,7 @@
                                 "sourceAddressPrefix": "[parameters('hubSubnetGatewayAddressSpace')]",
                                 "destinationAddressPrefix": "[parameters('hubSubnetJumpHostsAddressSpace')]",
                                 "access": "Allow",
-                                "priority": 155,
+                                "priority": 330,
                                 "direction": "Inbound",
                                 "sourcePortRanges": [],
                                 "destinationPortRanges": [],
