@@ -97,9 +97,7 @@
     "variables": {
         "location": "[resourceGroup().location]",
         "routeTableIdJSON": "[json(concat('{\"id\": \"', resourceId('Microsoft.Network/routeTables', parameters('routeTableName')), '\"}'))]",
-        "ddosPlanIdJSON": "[json(concat('{\"id\": \"', parameters('ddosPlanId'), '\"}'))]",
-        "subnetAddressSpaceList": "[if(equals(parameters('subnet_1_addressSpace'), '0.0.0.0/0'), '', if(equals(parameters('subnet_2_addressSpace'), '0.0.0.0/0'), parameters('subnet_1_addressSpace'), if(equals(parameters('subnet_3_addressSpace'), '0.0.0.0/0'), concat(parameters('subnet_1_addressSpace'), ',', parameters('subnet_2_addressSpace')), if(equals(parameters('subnet_4_addressSpace'), '0.0.0.0/0'), concat(parameters('subnet_1_addressSpace'), ',', parameters('subnet_2_addressSpace'), ',', parameters('subnet_3_addressSpace')), concat(parameters('subnet_1_addressSpace'), ',', parameters('subnet_2_addressSpace'), ',', parameters('subnet_3_addressSpace'), ',', parameters('subnet_4_addressSpace'))))))]",
-        "subnetNsgNameList": "[if(equals(parameters('subnet_1_addressSpace'), '0.0.0.0/0'), '', if(equals(parameters('subnet_2_addressSpace'), '0.0.0.0/0'), parameters('nsg_1_name'), if(equals(parameters('subnet_3_addressSpace'), '0.0.0.0/0'), concat(parameters('nsg_1_name'), ',', parameters('nsg_2_name')), if(equals(parameters('subnet_4_addressSpace'), '0.0.0.0/0'), concat(parameters('nsg_1_name'), ',', parameters('nsg_2_name'), ',', parameters('nsg_3_name')), concat(parameters('nsg_1_name'), ',', parameters('nsg_2_name'), ',', parameters('nsg_3_name'), ',', parameters('nsg_4_name'))))))]"
+        "ddosPlanIdJSON": "[json(concat('{\"id\": \"', parameters('ddosPlanId'), '\"}'))]"
     },
     "resources": [
         {
@@ -378,14 +376,6 @@
         "vNetId": {
             "type": "string",
             "value": "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetwork_name'))]"
-        },
-        "subnetIpAddressSpaceDeployed": {
-            "type": "array",
-            "value": "[split(variables('subnetAddressSpaceList'), ',')]"
-        },
-        "subnetNsgNameList": {
-            "type": "array",
-            "value": "[split(variables('subnetNsgNameList'), ',')]"
         }
     }
 }
