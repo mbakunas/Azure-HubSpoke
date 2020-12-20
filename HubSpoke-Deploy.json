@@ -440,7 +440,7 @@
                     "nsg_4_name": {"value": "[variables('nsg_4_name')]"},
                     "configureRouteTable": {"value": "[and(not(equals(parameters('hubSubnetFirewallAddressSpace'), '0.0.0.0/0')), equals(parameters('useFirewallForEgress'), 'Yes'))]"},
                     "routeTableName": {"value": "[parameters('routeTableName')]"},
-                    "ddosPlanId": {"value": "[if(equals(parameters('vnetDdosProtectionLevel'), 'Standard'), reference(variables('deploymentName-ddosPlan')).outputs.ddosPlanId.value, 'Skip')]"}
+                    "ddosPlanId": {"value": "[if(equals(parameters('vnetDdosProtectionLevel'), 'Standard - Create New'), reference(variables('deploymentName-ddosPlan')).outputs.ddosPlanId.value, if(equals(parameters('vnetDdosProtectionLevel'), 'Standard - Use Existing'), parameters('vnetDdosProtectionPlanName'), 'Skip'))]"}
                 }
             }
         },
