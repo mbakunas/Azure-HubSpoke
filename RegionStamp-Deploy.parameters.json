@@ -26,9 +26,6 @@
         "hubSubnetFirewallAddressSpace": {
             "value": "0.0.0.0/0"
         },
-        "useFirewallForEgress": {
-            "value": "Yes"
-        },
         "routeTableName": {
             "value": "RouteTable-01"
         },

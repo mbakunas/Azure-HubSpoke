@@ -63,17 +63,6 @@
             },
             "defaultValue": "0.0.0.0/0"
         },
-        "useFirewallForEgress": {
-            "type": "string",
-            "metadata": {
-                "description": "Force all egress Internet traffic through the Azure Firewall."
-            },
-            "allowedValues": [
-                "Yes",
-                "No"
-            ],
-            "defaultValue":"Yes"
-        },
         "routeTableName": {
             "type": "string",
             "metadata": {
