@@ -273,7 +273,11 @@
             "nsgRulesHubSubnet1": "[concat(variables('deploymentName'), '-NsgRules-HubSubnet-1')]",
             "nsgRulesHubSubnet2": "[concat(variables('deploymentName'), '-NsgRules-HubSubnet-2')]",
             "nsgRulesHubSubnet3": "[concat(variables('deploymentName'), '-NsgRules-HubSubnet-3')]",
-            "nsgRulesHubSubnet4": "[concat(variables('deploymentName'), '-NsgRules-HubSubnet-4')]"
+            "nsgRulesHubSubnet4": "[concat(variables('deploymentName'), '-NsgRules-HubSubnet-4')]",
+            "nsgRulesAllSpokeSubnets": "[concat(variables('deploymentName'), '-NsgRules-AllSpokeSubnets-')]",
+            "nsgRulesSpokeSubnet1s": "[concat(variables('deploymentName'), '-NsgRules-SpokeSubnet1-')]",
+            "nsgRulesSpokeSubnet2s": "[concat(variables('deploymentName'), '-NsgRules-SpokeSubnet2-')]",
+            "nsgRulesSpokeSubnet3s": "[concat(variables('deploymentName'), '-NsgRules-SpokeSubnet3-')]"
         },
         "fullHubSubnet2AddressSpace": "[if(equals(parameters('hubSubnet1AddressSpace'), '0.0.0.0/0'), '0.0.0.0/0', parameters('hubSubnet2AddressSpace'))]",
         "fullHubSubnet3AddressSpace": "[if(equals(variables('fullHubSubnet2AddressSpace'), '0.0.0.0/0'), '0.0.0.0/0', parameters('hubSubnet3AddressSpace'))]",
@@ -1041,7 +1045,7 @@
         },
         {
             "comments": "All subnet NSG rules",
-            "condition": "[and(not(equals(parameters('vnetNsgSecurityLevel'), 'Low')), variables('settings').deployResources)]",
+            "condition": "[and(not(equals(parameters('vnetNsgSecurityLevel'), 'Low')), not(equals(variables('allSubnetNsgs')[copyIndex()].addressSpace, '0.0.0.0/0')), variables('settings').deployResources)]",
             "name": "[concat(variables('deploymentNames').nsgRulesAll, copyIndex(1))]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
@@ -1123,7 +1127,7 @@
                 }
             },
             "copy": {
-                "name": "allNsgRules",
+                "name": "allNsgRulesLoop",
                 "count": "[length(variables('allSubnetNsgs'))]"
             }
         },
@@ -1135,7 +1139,7 @@
             "apiVersion": "2020-06-01",
             "dependsOn": [
                 "[variables('deploymentNames').hub]",
-                "allNsgRules"
+                "allNsgRulesLoop"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -1169,7 +1173,7 @@
                 }
             },
             "copy": {
-                "name": "allHubNsgRules",
+                "name": "allHubNsgRulesLoop",
                 "count": "[length(variables('allHubSubnetNsgs'))]"
             }
         },
@@ -1180,7 +1184,8 @@
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
             "dependsOn": [
-                "[variables('deploymentNames').hub]"
+                "[variables('deploymentNames').hub]",
+                "allHubNsgRulesLoop"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -1277,7 +1282,8 @@
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
             "dependsOn": [
-                "[variables('deploymentNames').hub]"
+                "[variables('deploymentNames').hub]",
+                "allHubNsgRulesLoop"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -1317,7 +1323,7 @@
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
             "dependsOn": [
-                "allHubNsgRules"
+                "allHubNsgRulesLoop"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -1336,7 +1342,7 @@
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
             "dependsOn": [
-                "allHubNsgRules"
+                "allHubNsgRulesLoop"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -1355,7 +1361,7 @@
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
             "dependsOn": [
-                "allHubNsgRules"
+                "allHubNsgRulesLoop"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -1374,7 +1380,7 @@
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
             "dependsOn": [
-                "allHubNsgRules"
+                "allHubNsgRulesLoop"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -1384,6 +1390,174 @@
                     "parameters": {},
                     "resources": []
                 }
+            }
+        },
+        {
+            "comments": "All spoke subnet NSG rules",
+            "condition": "[and(not(equals(parameters('vnetNsgSecurityLevel'), 'Low')), not(equals(variables('allSpokeSubnetNsgs')[copyIndex()].addressSpace, '0.0.0.0/0')), variables('settings').deployResources)]",
+            "name": "[concat(variables('deploymentNames').nsgRulesAllSpokeSubnets, copyIndex(1))]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "subscriptionId": "[variables('allSpokeSubnetNsgs')[copyIndex()].subscriptionId]",
+            "resourceGroup": "[variables('allSpokeSubnetNsgs')[copyIndex()].resourceGroup]",
+            "dependsOn": [
+                "spokeLoop",
+                "allNsgRulesLoop"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {},
+                    "resources": [
+                        {
+                            "condition": "[not(equals(variables('allSpokeSubnetNsgs')[copyIndex()].vnetBastionAddressSpace, '0.0.0.0/0'))]",
+                            "type": "Microsoft.Network/networkSecurityGroups/securityRules",
+                            "apiVersion": "2020-05-01",
+                            "name": "[concat(variables('allSpokeSubnetNsgs')[copyIndex()].nsgName, '/AllowRdpBastion')]",
+                            "properties": {
+                                "description": "Allow RDP from Azure Bastion",
+                                "protocol": "*",
+                                "sourcePortRange": "*",
+                                "destinationPortRange": "3389",
+                                "sourceAddressPrefix": "[variables('allSpokeSubnetNsgs')[copyIndex()].vnetBastionAddressSpace]",
+                                "destinationAddressPrefix": "[variables('allSpokeSubnetNsgs')[copyIndex()].addressSpace]",
+                                "access": "Allow",
+                                "priority": 310,
+                                "direction": "Inbound",
+                                "sourcePortRanges": [],
+                                "destinationPortRanges": [],
+                                "sourceAddressPrefixes": [],
+                                "destinationAddressPrefixes": []
+                            }
+                        }
+                    ]
+                }
+            },
+            "copy": {
+                "name": "allSpokeNsgRulesLoop",
+                "count": "[length(variables('allSpokeSubnetNsgs'))]"
+            }
+        },
+        {
+            "comments": "NSG rules for the all spoke subnet 1s",
+            "condition": "[and(not(equals(parameters('vnetNsgSecurityLevel'), 'Low')), not(equals(variables('objAllSpokeSubnet1Nsgs')[copyIndex()].addressSpace, '0.0.0.0/0')), variables('settings').deployResources)]",
+            "name": "[concat(variables('deploymentNames').nsgRulesSpokeSubnet1s, copyIndex(1))]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "subscriptionId": "[variables('objAllSpokeSubnet1Nsgs')[copyIndex()].subscriptionId]",
+            "resourceGroup": "[variables('objAllSpokeSubnet1Nsgs')[copyIndex()].resourceGroup]",
+            "dependsOn": [
+                "allHubNsgRulesLoop"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {},
+                    "resources": [
+                        {
+                            "condition": "[not(equals(variables('objAllSpokeSubnet1Nsgs')[copyIndex()].vnetAppGatewayAddressSpace, '0.0.0.0/0'))]",
+                            "type": "Microsoft.Network/networkSecurityGroups/securityRules",
+                            "apiVersion": "2020-05-01",
+                            "name": "[concat(variables('objAllSpokeSubnet1Nsgs')[copyIndex()].nsgName, '/AllowAppGateway')]",
+                            "properties": {
+                                "description": "Allow http/s from app gateway",
+                                "protocol": "TCP",
+                                "sourcePortRange": "*",
+                                "sourceAddressPrefix": "[variables('objAllSpokeSubnet1Nsgs')[copyIndex()].vnetAppGatewayAddressSpace]",
+                                "destinationAddressPrefix": "[variables('objAllSpokeSubnet1Nsgs')[copyIndex()].addressSpace]",
+                                "access": "Allow",
+                                "priority": 400,
+                                "direction": "Inbound",
+                                "sourcePortRanges": [],
+                                "destinationPortRanges": [
+                                    "80",
+                                    "443"
+                                ],
+                                "sourceAddressPrefixes": [],
+                                "destinationAddressPrefixes": []
+                            }
+                        },
+                        {
+                            "condition": "[not(equals(variables('objAllSpokeSubnet1Nsgs')[copyIndex()].vnetAppGatewayAddressSpace, '0.0.0.0/0'))]",
+                            "type": "Microsoft.Network/networkSecurityGroups/securityRules",
+                            "apiVersion": "2020-05-01",
+                            "name": "[concat(variables('objAllSpokeSubnet1Nsgs')[copyIndex()].nsgName, '/AllowAzureLoadBalancerInBound')]",
+                            "properties": {
+                                "description": "Allow Azure load balancer health probe",
+                                "protocol": "*",
+                                "sourcePortRange": "*",
+                                "destinationPortRange": "*",
+                                "sourceAddressPrefix": "AzureLoadBalancer",
+                                "destinationAddressPrefix": "[variables('objAllSpokeSubnet1Nsgs')[copyIndex()].addressSpace]",
+                                "access": "Allow",
+                                "priority": 4095,
+                                "direction": "Inbound",
+                                "sourcePortRanges": [],
+                                "destinationPortRanges": [],
+                                "sourceAddressPrefixes": [],
+                                "destinationAddressPrefixes": []
+                            }
+                        }
+                    ]
+                }
+            },
+            "copy": {
+                "name": "spokeSubnet1NsgRulesLoop",
+                "count": "[length(variables('objAllSpokeSubnet1Nsgs'))]"
+            }
+        },
+        {
+            "comments": "NSG rules for the all spoke subnet 2s",
+            "condition": "[and(not(equals(parameters('vnetNsgSecurityLevel'), 'Low')), not(equals(variables('objAllSpokeSubnet2Nsgs')[copyIndex()].addressSpace, '0.0.0.0/0')), variables('settings').deployResources)]",
+            "name": "[concat(variables('deploymentNames').nsgRulesSpokeSubnet2s, copyIndex(1))]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "subscriptionId": "[variables('objAllSpokeSubnet2Nsgs')[copyIndex()].subscriptionId]",
+            "resourceGroup": "[variables('objAllSpokeSubnet2Nsgs')[copyIndex()].resourceGroup]",
+            "dependsOn": [
+                "allHubNsgRulesLoop"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {},
+                    "resources": []
+                }
+            },
+            "copy": {
+                "name": "spokeSubnet2NsgRulesLoop",
+                "count": "[length(variables('objAllSpokeSubnet2Nsgs'))]"
+            }
+        },
+        {
+            "comments": "NSG rules for the all spoke subnet 3s",
+            "condition": "[and(not(equals(parameters('vnetNsgSecurityLevel'), 'Low')), not(equals(variables('objAllSpokeSubnet3Nsgs')[copyIndex()].addressSpace, '0.0.0.0/0')), variables('settings').deployResources)]",
+            "name": "[concat(variables('deploymentNames').nsgRulesSpokeSubnet3s, copyIndex(1))]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "subscriptionId": "[variables('objAllSpokeSubnet3Nsgs')[copyIndex()].subscriptionId]",
+            "resourceGroup": "[variables('objAllSpokeSubnet3Nsgs')[copyIndex()].resourceGroup]",
+            "dependsOn": [
+                "allHubNsgRulesLoop"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {},
+                    "resources": []
+                }
+            },
+            "copy": {
+                "name": "spokeSubnet3NsgRulesLoop",
+                "count": "[length(variables('objAllSpokeSubnet3Nsgs'))]"
             }
         }
     ],
