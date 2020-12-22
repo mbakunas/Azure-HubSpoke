@@ -245,6 +245,7 @@
     },
     "variables": {
         "settings": {
+            "deployResources": true,
             "allowRdpToDcs": true,
             "useFirewallForEgress": true
         },
@@ -255,14 +256,14 @@
             "firewallNetworkRuleCollectionName": "InfraAllowCollection",
             "firewallNetworkRuleCollectionPriority": 1000,
             "firewallApplicationRuleCollectionName": "InfraAllowCollection",
-            "firewallApplicationRuleCollectionPriority": 1000,
-            "hubSubnetNames": ["dcSubnet", "jhSubnet", "subnet1", "subnet2", "subnet3", "subnet4"]
+            "firewallApplicationRuleCollectionPriority": 1000
         },
         "names": {
             "bastionSuffix": "Bastion",
             "firewallSuffix": "Firewall",
             "publicIpSuffix": "IP",
-            "ipGroupsSuffix": "IpGroup"
+            "ipGroupsSuffix": "IpGroup",
+            "allAzureIpGroup": "AllAzureNetwork-IpGroup"
         },
         "deploymentName": "[deployment().Name]",
         "deploymentNames": {
@@ -271,11 +272,11 @@
             "hub": "[concat(variables('deploymentName'), '-HubVNet')]",
             "spoke": "[concat(variables('deploymentName'), '-SpokeVNet-')]",
             "ipGroups": "[concat(variables('deploymentName'), '-IpGroups')]",
-            "bastion-hub": "[concat(variables('deploymentName'), '-Bastion-Hub')]",
-            "bastion-spoke": "[concat(variables('deploymentName'), '-Bastion-Spoke-')]",
+            "bastionHhub": "[concat(variables('deploymentName'), '-Bastion-Hub')]",
+            "bastionSpoke": "[concat(variables('deploymentName'), '-Bastion-Spoke-')]",
             "firewall": "[concat(variables('deploymentName'), '-Firewall')]",
-            "peer-outbound": "[concat(variables('deploymentName'), '-Peer-Outbound-')]",
-            "peer-inbound": "[concat(variables('deploymentName'), '-Peer-Inbound-')]",
+            "peerOutbound": "[concat(variables('deploymentName'), '-Peer-Outbound-')]",
+            "peerInbound": "[concat(variables('deploymentName'), '-Peer-Inbound-')]",
             "nsgRulesAll": "[concat(variables('deploymentName'), 'NsgRules-AllSubnets-')]",
             "nsgRulesHubAll": "[concat(variables('deploymentName'), '-NsgRules-AllHubSubnets-')]",
             "nsgRulesDc": "[concat(variables('deploymentName'), '-NsgRules-DC')]",
@@ -286,8 +287,8 @@
             "dnsgRulesHubSubnet4": "[concat(variables('deploymentName'), '-NsgRules-HubSubnet-4')]"
         },
         "fullHubSubnet2AddressSpace": "[if(equals(parameters('hubSubnet1AddressSpace'), '0.0.0.0/0'), '0.0.0.0/0', parameters('hubSubnet2AddressSpace'))]",
-        "fullHubSubnet3AddressSpace": "[if(equals(parameters('hubSubnet2AddressSpace'), '0.0.0.0/0'), '0.0.0.0/0', parameters('hubSubnet3AddressSpace'))]",
-        "fullHubSubnet4AddressSpace": "[if(equals(parameters('hubSubnet3AddressSpace'), '0.0.0.0/0'), '0.0.0.0/0', parameters('hubSubnet4AddressSpace'))]",
+        "fullHubSubnet3AddressSpace": "[if(equals(variables('fullHubSubnet2AddressSpace'), '0.0.0.0/0'), '0.0.0.0/0', parameters('hubSubnet3AddressSpace'))]",
+        "fullHubSubnet4AddressSpace": "[if(equals(variables('fullHubSubnet3AddressSpace'), '0.0.0.0/0'), '0.0.0.0/0', parameters('hubSubnet4AddressSpace'))]",
         "copy": [
             {
                 "name": "fullSpokeDeploySubscriptionResourceGroup",
@@ -422,6 +423,7 @@
                 }
             }
         ],
+        "fullVnetDeploySubscriptionResourceGroup": "[union(concat(array(variables('constants').currentSubRg), variables('fullSpokeDeploySubscriptionResourceGroup')), concat(array(variables('constants').currentSubRg), variables('fullSpokeDeploySubscriptionResourceGroup')))]",
         "objHubVnet": {
             "subscriptionId": "[split(variables('constants').currentSubRg, '/')[0]]",
             "resourceGroup": "[split(variables('constants').currentSubRg, '/')[1]]",
@@ -527,7 +529,7 @@
             "subscriptionId": "[variables('objHubVnet').subnets.subnet4.subscriptionId]",
             "resourceGroup": "[variables('objHubVnet').subnets.subnet4.resourceGroup]"
         },
-        "allHubSubnetNsgs": "[concat(array(variables('hubSubnet1Nsg')), array(variables('hubSubnet2Nsg')), array(variables('hubSubnet3Nsg')), array(variables('hubSubnet4Nsg')))]",
+        "allHubSubnetNsgs": "[concat(array(variables('hubDcSubnetNsg')), array(variables('hubJhSubnetNsg')), array(variables('hubSubnet1Nsg')), array(variables('hubSubnet2Nsg')), array(variables('hubSubnet3Nsg')), array(variables('hubSubnet4Nsg')))]",
         "allSpokeSubnetNsgs": "[concat(variables('objAllSpokeSubnet1Nsgs'), variables('objAllSpokeSubnet2Nsgs'), variables('objAllSpokeSubnet3Nsgs'))]",
         "allSubnetNsgs": "[concat(variables('allHubSubnetNsgs'), variables('allSpokeSubnetNsgs'))]",
         "objAllVnets": "[concat(array(variables('objHubVnet')), variables('objSpokeVnet'))]"
@@ -580,7 +582,7 @@
                         }
                     ],
                     "output": {
-                        "value": "[concat(parameters('vnetName'), '-', parameters('subnetName'), '-', parameters('ipGroupsSuffix'))]",
+                        "value": "[if(equals(parameters('subnetName'), 'NotDeployed'), 'NotDeployed', concat(parameters('vnetName'), '-', parameters('subnetName'), '-', parameters('ipGroupsSuffix')))]",
                         "type": "string"
                     }
                 },
@@ -615,11 +617,440 @@
                         "value": "[concat(parameters('resourceName'), '-', parameters('publicIpSuffix'))]",
                         "type": "string"
                     }
+                },
+                "calcIpAddr": {
+                    "parameters": [
+                        {
+                            "name": "addressSpace",
+                            "type": "string"
+                        },
+                        {
+                            "name": "offset",
+                            "type": "int"
+                        }
+                    ],
+                    "output": {
+                        "value": "[if(equals(parameters('addressSpace'), '0.0.0.0/0'), '0.0.0.0/0', concat(split(substring(parameters('addressSpace'), 0, indexOf(parameters('addressSpace'), '/')), '.')[0], '.', split(substring(parameters('addressSpace'), 0, indexOf(parameters('addressSpace'), '/')), '.')[1], '.', split(substring(parameters('addressSpace'), 0, indexOf(parameters('addressSpace'), '/')), '.')[2], '.', string(add(int(split(substring(parameters('addressSpace'), 0, indexOf(parameters('addressSpace'), '/')), '.')[3]), parameters('offset')))))]",
+                        "type": "string"
+                    }
                 }
             }
         }
     ],
-    "resources": [],
+    "resources": [
+        {
+            "comments": "DDOS Protection Plan",
+            "condition": "[and(equals(parameters('vnetDdosProtectionLevel'), 'Standard - Create New'), variables('settings').deployResources)]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "name": "[variables('deploymentNames').ddosPlan]",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('constants').templateLocationURI, 'HubSpoke-DdosPlan.json')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "ddosProtectionPlans_name": {"value": "[parameters('vnetDdosProtectionPlanName')]"}
+                }
+            }
+        },
+        {
+            "comments": "Route table with default route to Azure Firewall",
+            "condition": "[and(and(not(equals(parameters('hubSubnetFirewallAddressSpace'), '0.0.0.0/0')), variables('settings').useFirewallForEgress), variables('settings').deployResources)]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "name": "[concat(variables('deploymentNames').routeTable, copyIndex(1))]",
+            "subscriptionId": "[split(variables('fullVnetDeploySubscriptionResourceGroup')[copyIndex()], '/')[0]]",
+            "resourceGroup": "[split(variables('fullVnetDeploySubscriptionResourceGroup')[copyIndex()], '/')[1]]",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('constants').templateLocationURI, 'HubSpoke-RouteTable.json')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "routeTables_name": {"value": "[parameters('routeTableName')]"},
+                    "routeTables_nextHopIpAddress": {"value": "[my.calcIpAddr(parameters('hubSubnetFirewallAddressSpace'), 4)]"}
+                }
+            },
+            "copy": {
+                "name": "routeTableLoop",
+                "count": "[length(variables('fullVnetDeploySubscriptionResourceGroup'))]"
+            }
+        },
+        {
+            "comments": "Hub VNet",
+            "condition": "[variables('settings').deployResources]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "name": "[variables('deploymentNames').hub]",
+            "dependsOn": [
+                "routeTableLoop",
+                "[variables('deploymentNames').ddosPlan]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('constants').templateLocationURI, 'HubSpoke-VNet-Hub.json')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "virtualNetwork_name": {"value": "[variables('objHubVnet').name]"},
+                    "virtualNetwork_addressSpace": {"value": "[variables('objHubVnet').addressSpace]"},
+                    "subnet_gateway_addressSpace": {"value": "[variables('objHubVnet').subnets.gatewaySubnet.addressSpace]"},
+                    "subnet_firewall_addressSpace": {"value": "[variables('objHubVnet').subnets.firewallSubnet.addressSpace]"},
+                    "subnet_bastion_addressSpace": {"value": "[variables('objHubVnet').subnets.bastionSubnet.addressSpace]"},
+                    "subnet_DC_name": {"value": "[variables('objHubVnet').subnets.dcSubnet.name]"},
+                    "subnet_DC_addressSpace": {"value": "[variables('objHubVnet').subnets.dcSubnet.addressSpace]"},
+                    "nsg_DC_name": {"value": "[variables('objHubVnet').subnets.dcSubnet.nsgName]"},
+                    "subnet_JH_name": {"value": "[variables('objHubVnet').subnets.jhSubnet.name]"},
+                    "subnet_JH_addressSpace": {"value": "[variables('objHubVnet').subnets.jhSubnet.addressSpace]"},
+                    "nsg_JH_name": {"value": "[variables('objHubVnet').subnets.jhSubnet.nsgName]"},
+                    "subnet_1_name": {"value": "[variables('objHubVnet').subnets.subnet1.name]"},
+                    "subnet_1_addressSpace": {"value": "[variables('objHubVnet').subnets.subnet1.addressSpace]"},
+                    "nsg_1_name": {"value": "[variables('objHubVnet').subnets.subnet1.nsgName]"},
+                    "subnet_2_name": {"value": "[variables('objHubVnet').subnets.subnet2.name]"},
+                    "subnet_2_addressSpace": {"value": "[variables('objHubVnet').subnets.subnet2.addressSpace]"},
+                    "nsg_2_name": {"value": "[variables('objHubVnet').subnets.subnet2.nsgName]"},
+                    "subnet_3_name": {"value": "[variables('objHubVnet').subnets.subnet3.name]"},
+                    "subnet_3_addressSpace": {"value": "[variables('objHubVnet').subnets.subnet3.addressSpace]"},
+                    "nsg_3_name": {"value": "[variables('objHubVnet').subnets.subnet3.nsgName]"},
+                    "subnet_4_name": {"value": "[variables('objHubVnet').subnets.subnet4.name]"},
+                    "subnet_4_addressSpace": {"value": "[variables('objHubVnet').subnets.subnet4.addressSpace]"},
+                    "nsg_4_name": {"value": "[variables('objHubVnet').subnets.subnet4.nsgName]"},
+                    "configureRouteTable": {"value": "[and(not(equals(parameters('hubSubnetFirewallAddressSpace'), '0.0.0.0/0')), equals(variables('settings').useFirewallForEgress, 'Yes'))]"},
+                    "routeTableName": {"value": "[parameters('routeTableName')]"},
+                    "ddosPlanId": {"value": "[if(equals(parameters('vnetDdosProtectionLevel'), 'Standard - Create New'), if(variables('settings').deployResources, reference(variables('deploymentNames').ddosPlan).outputs.ddosPlanId.value, json('null')), if(equals(parameters('vnetDdosProtectionLevel'), 'Standard - Use Existing'), parameters('vnetDdosProtectionPlanName'), 'Skip'))]"}
+                }
+            }
+        },
+        {
+            "comments": "Spoke VNet(s)",
+            "condition": "[variables('settings').deployResources]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "name": "[concat(variables('deploymentNames').spoke, copyIndex(1))]",
+            "subscriptionId": "[variables('objSpokeVnet')[copyIndex()].subscriptionId]",
+            "resourceGroup": "[variables('objSpokeVnet')[copyIndex()].resourceGroup]",
+            "dependsOn": [
+                "routeTableLoop",
+                "[variables('deploymentNames').ddosPlan]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('constants').templateLocationURI, 'HubSpoke-VNet-Spoke.json')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "virtualNetwork_name": {"value": "[variables('objSpokeVnet')[copyIndex()].name]"},
+                    "virtualNetwork_addressSpace": {"value": "[variables('objSpokeVnet')[copyIndex()].addressSpace]"},
+                    "subnet_bastion_addressSpace": {"value": "[variables('objSpokeVnet')[copyIndex()].subnets.bastionSubnet.addressSpace]"},
+                    "subnet_appGW_name": {"value": "[variables('objSpokeVnet')[copyIndex()].subnets.subnetAppGw.name]"},
+                    "subnet_appGW_addressSpace": {"value": "[variables('objSpokeVnet')[copyIndex()].subnets.subnetAppGw.addressSpace]"},
+                    "subnet_1_name": {"value": "[variables('objSpokeVnet')[copyIndex()].subnets.subnet1.name]"},
+                    "subnet_1_addressSpace": {"value": "[variables('objSpokeVnet')[copyIndex()].subnets.subnet1.addressSpace]"},
+                    "nsg_1_name": {"value": "[variables('objSpokeVnet')[copyIndex()].subnets.subnet1.nsgName]"},
+                    "subnet_2_name": {"value": "[variables('objSpokeVnet')[copyIndex()].subnets.subnet2.name]"},
+                    "subnet_2_addressSpace": {"value": "[variables('objSpokeVnet')[copyIndex()].subnets.subnet2.addressSpace]"},
+                    "nsg_2_name": {"value": "[variables('objSpokeVnet')[copyIndex()].subnets.subnet2.nsgName]"},
+                    "subnet_3_name": {"value": "[variables('objSpokeVnet')[copyIndex()].subnets.subnet3.name]"},
+                    "subnet_3_addressSpace": {"value": "[variables('objSpokeVnet')[copyIndex()].subnets.subnet3.addressSpace]"},
+                    "nsg_3_name": {"value": "[variables('objSpokeVnet')[copyIndex()].subnets.subnet3.nsgName]"},
+                    "configureRouteTable": {"value": "[and(not(equals(parameters('hubSubnetFirewallAddressSpace'), '0.0.0.0/0')), equals(variables('settings').useFirewallForEgress, 'Yes'))]"},
+                    "routeTableName": {"value": "[parameters('routeTableName')]"},
+                    "ddosPlanId": {"value": "[if(equals(parameters('vnetDdosProtectionLevel'), 'Standard - Create New'), if(variables('settings').deployResources, reference(variables('deploymentNames').ddosPlan).outputs.ddosPlanId.value, json('null')), if(equals(parameters('vnetDdosProtectionLevel'), 'Standard - Use Existing'), parameters('vnetDdosProtectionPlanName'), 'Skip'))]"}
+                }
+            },
+            "copy": {
+                "name": "spokeLoop",
+                "count": "[length(variables('objSpokeVnet'))]"
+            }
+        },
+        {
+            "comments": "IP Groups for each subnet",
+            "condition": "[variables('settings').deployResources]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "name": "[variables('deploymentNames').ipGroups]",
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {},
+                    "resources": [
+                        {
+                            "type": "Microsoft.Network/ipGroups",
+                            "apiVersion": "2020-05-01",
+                            "name": "[variables('names').allAzureIpGroup]",
+                            "location": "[variables('constants').location]",
+                            "properties": {
+                                "ipAddresses": [
+                                    "[parameters('hubVnetAddressSpace')]"
+                                ]
+                            }
+                        },
+                        {
+                            "type": "Microsoft.Network/ipGroups",
+                            "apiVersion": "2020-05-01",
+                            "name": "[variables('objHubVnet').ipGroupsName]",
+                            "location": "[variables('constants').location]",
+                            "properties": {
+                                "ipAddresses": [
+                                    "[variables('objHubVnet').addressSpace]"
+                                ]
+                            }
+                        },
+                        {
+                            "type": "Microsoft.Network/ipGroups",
+                            "apiVersion": "2020-05-01",
+                            "name": "[variables('objHubVnet').subnets.dcSubnet.ipGroupsName]",
+                            "location": "[variables('constants').location]",
+                            "properties": {
+                                "ipAddresses": [
+                                    "[variables('objHubVnet').subnets.dcSubnet.addressSpace]"
+                                ]
+                            }
+                        },
+                        {
+                            "condition": "[not(equals(variables('objHubVnet').subnets.jhSubnet.addressSpace, '0.0.0.0/0'))]",
+                            "type": "Microsoft.Network/ipGroups",
+                            "apiVersion": "2020-05-01",
+                            "name": "[variables('objHubVnet').subnets.jhSubnet.ipGroupsName]",
+                            "location": "[variables('constants').location]",
+                            "properties": {
+                                "ipAddresses": [
+                                    "[variables('objHubVnet').subnets.jhSubnet.addressSpace]"
+                                ]
+                            }
+                        },
+                        {
+                            "condition": "[not(equals(variables('objHubVnet').subnets.subnet1.addressSpace, '0.0.0.0/0'))]",
+                            "type": "Microsoft.Network/ipGroups",
+                            "apiVersion": "2020-05-01",
+                            "name": "[variables('objHubVnet').subnets.subnet1.ipGroupsName]",
+                            "location": "[variables('constants').location]",
+                            "properties": {
+                                "ipAddresses": [
+                                    "[variables('objHubVnet').subnets.subnet1.addressSpace]"
+                                ]
+                            }
+                        },
+                        {
+                            "condition": "[not(equals(variables('objHubVnet').subnets.subnet2.addressSpace, '0.0.0.0/0'))]",
+                            "type": "Microsoft.Network/ipGroups",
+                            "apiVersion": "2020-05-01",
+                            "name": "[variables('objHubVnet').subnets.subnet2.ipGroupsName]",
+                            "location": "[variables('constants').location]",
+                            "properties": {
+                                "ipAddresses": [
+                                    "[variables('objHubVnet').subnets.subnet2.addressSpace]"
+                                ]
+                            }
+                        },
+                        {
+                            "condition": "[not(equals(variables('objHubVnet').subnets.subnet3.addressSpace, '0.0.0.0/0'))]",
+                            "type": "Microsoft.Network/ipGroups",
+                            "apiVersion": "2020-05-01",
+                            "name": "[variables('objHubVnet').subnets.subnet3.ipGroupsName]",
+                            "location": "[variables('constants').location]",
+                            "properties": {
+                                "ipAddresses": [
+                                    "[variables('objHubVnet').subnets.subnet3.addressSpace]"
+                                ]
+                            }
+                        },
+                        {
+                            "condition": "[not(equals(variables('objHubVnet').subnets.subnet4.addressSpace, '0.0.0.0/0'))]",
+                            "type": "Microsoft.Network/ipGroups",
+                            "apiVersion": "2020-05-01",
+                            "name": "[variables('objHubVnet').subnets.subnet4.ipGroupsName]",
+                            "location": "[variables('constants').location]",
+                            "properties": {
+                                "ipAddresses": [
+                                    "[variables('objHubVnet').subnets.subnet4.addressSpace]"
+                                ]
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "comments": "Azure Bastion for the hub VNet",
+            "condition": "[and(not(equals(variables('objHubVnet').subnets.bastionSubnet.addressSpace, '0.0.0.0/0')), variables('settings').deployResources)]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "name": "[variables('deploymentNames').bastionHhub]",
+            "dependsOn": [
+                "[variables('deploymentNames').hub]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('constants').templateLocationURI, 'HubSpoke-Bastion.json')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "vnetName": {"value": "[variables('objHubVnet').name]"},
+                    "bastionName": {"value": "[my.bastionName(variables('objHubVnet').name, variables('names').bastionSuffix)]"},
+                    "bastionIpName": {"value": "[my.publicIpName(my.bastionName(variables('objHubVnet').name, variables('names').bastionSuffix), variables('names').publicIpSuffix)]"}
+                }
+            }
+        },
+        {
+            "comments": "Azure Bastion for the spoke VNet(s)",
+            "condition": "[and(not(equals(variables('objSpokeVnet')[copyIndex()].subnets.bastionSubnet.addressSpace, '0.0.0.0/0')), variables('settings').deployResources)]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "name": "[concat(variables('deploymentNames').bastionSpoke, copyIndex(1))]",
+            "subscriptionId": "[variables('objSpokeVnet')[copyIndex()].subscriptionId]",
+            "resourceGroup": "[variables('objSpokeVnet')[copyIndex()].resourceGroup]",
+            "dependsOn": [
+                "spokeLoop"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('constants').templateLocationURI, 'HubSpoke-Bastion.json')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "vnetName": {"value": "[variables('objSpokeVnet')[copyIndex()].name]"},
+                    "bastionName": {"value": "[my.bastionName(variables('objSpokeVnet')[copyIndex()].name, variables('names').bastionSuffix)]"},
+                    "bastionIpName": {"value": "[my.publicIpName(my.bastionName(variables('objSpokeVnet')[copyIndex()].name, variables('names').bastionSuffix), variables('names').publicIpSuffix)]"}
+                }
+            },
+            "copy": {
+                "name": "spokeBastionLoop",
+                "count": "[length(variables('objSpokeVnet'))]"
+            }
+        },
+        {
+            "comments": "Azure Firewall (for the hub VNet)",
+            "condition": "[and(not(equals(variables('objHubVnet').subnets.firewallSubnet.addressSpace, '0.0.0.0/0')), variables('settings').deployResources)]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "dependsOn": [
+                "[variables('deploymentNames').hub]",
+                "[variables('deploymentNames').ipGroups]"
+            ],
+            "name": "[variables('deploymentNames').firewall]",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('constants').templateLocationURI, 'HubSpoke-Firewall.json')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "vnetName": {"value": "[variables('objHubVnet').name]"},
+                    "firewallName": {"value": "[concat(variables('objHubVnet').name, '-', variables('names').firewallSuffix)]"},
+                    "firewallIpName": {"value": "[my.publicIpName(concat(variables('objHubVnet').name, '-', variables('names').firewallSuffix), variables('names').publicIpSuffix)]"},
+                    "allAzureIpGroupName": {"value": "[variables('names').allAzureIpGroup]"},
+                    "netRuleCollName": {"value": "[variables('constants').firewallApplicationRuleCollectionName]"},
+                    "netRuleCollPriority": {"value": "[variables('constants').firewallApplicationRuleCollectionPriority]"},
+                    "appRuleCollName": {"value": "[variables('constants').firewallNetworkRuleCollectionName]"},
+                    "appRuleCollPriority": {"value": "[variables('constants').firewallNetworkRuleCollectionPriority]"}
+                }
+            }
+        },
+        {
+            "comments": "Hub to spoke VNet peer(s)",
+            "condition": "[variables('settings').deployResources]",
+            "name": "[concat(variables('deploymentNames').peerOutbound, copyIndex(1))]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "dependsOn": [
+                "[variables('deploymentNames').hub]",
+                "spokeLoop"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {},
+                    "resources":[
+                        {
+                            "type": "Microsoft.Network/virtualNetworks/virtualNetworkPeerings",
+                            "apiVersion": "2020-05-01",
+                            "name": "[concat(variables('objHubVnet').name, '/', variables('objSpokeVnet')[copyIndex()].name)]",
+                            "properties": {
+                                "remoteVirtualNetwork": {
+                                    "id": "[if(variables('settings').deployResources, reference(concat(variables('deploymentNames').spoke, copyIndex(1)), '2020-05-01').outputs.vNetId.value, json('null'))]"
+                                },
+                                "allowVirtualNetworkAccess": true,
+                                "allowForwardedTraffic": true,
+                                "allowGatewayTransit": false,
+                                "useRemoteGateways": false,
+                                "remoteAddressSpace": {
+                                    "addressPrefixes": [
+                                        "[variables('objSpokeVnet')[copyIndex()].addressSpace]"
+                                    ]
+                                }
+                            }
+                        }
+                    ]
+                }
+            },
+            "copy": {
+                "name": "outboundPeerLoop",
+                "count": "[length(variables('objSpokeVnet'))]",
+                "mode": "Serial",
+                "batchSize": 1
+            }
+        },
+        {
+            "comments": "Spoke to hub Vnet peer(s)",
+            "condition": "[variables('settings').deployResources]",
+            "name": "[concat(variables('deploymentNames').peerInbound, copyIndex(1))]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "subscriptionId": "[variables('objSpokeVnet')[copyIndex()].subscriptionId]",
+            "resourceGroup": "[variables('objSpokeVnet')[copyIndex()].resourceGroup]",
+            "dependsOn": [
+                "[variables('deploymentNames').hub]",
+                "spokeLoop"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {},
+                    "resources": [
+                        {
+                            "type": "Microsoft.Network/virtualNetworks/virtualNetworkPeerings",
+                            "apiVersion": "2020-05-01",
+                            "name": "[concat(variables('objSpokeVnet')[copyIndex()].name, '/', variables('objHubVnet').name)]",
+                            "properties": {
+                                "remoteVirtualNetwork": {
+                                    "id": "[if(variables('settings').deployResources, reference(variables('deploymentNames').hub).outputs.vNetId.value, json('null'))]"
+                                },
+                                "allowVirtualNetworkAccess": true,
+                                "allowForwardedTraffic": true,
+                                "allowGatewayTransit": false,
+                                "useRemoteGateways": false,
+                                "remoteAddressSpace": {
+                                    "addressPrefixes": [
+                                        "[variables('objHubVnet').addressSpace]"
+                                    ]
+                                }
+                            }
+                        }
+                    ]
+                }
+            },
+            "copy": {
+                "name": "inboundPeerLoop",
+                "count": "[length(variables('objSpokeVnet'))]",
+                "mode": "Serial",
+                "batchSize": 1
+            }
+        }
+    ],
     "outputs": {
         "objAllVnets": {
             "type": "array",
@@ -628,6 +1059,14 @@
         "allSubnetNsgs": {
             "type": "array",
             "value": "[variables('allSubnetNsgs')]"
+        },
+        "allHubSubnetNsgs": {
+            "type": "array",
+            "value": "[variables('allHubSubnetNsgs')]"
+        },
+        "allSpokeSubnetNsgs": {
+            "type": "array",
+            "value": "[variables('allSpokeSubnetNsgs')]"
         }
     }
 }
