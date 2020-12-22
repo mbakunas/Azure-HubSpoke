@@ -209,7 +209,7 @@
         "spokeSubnet1Name": {
             "type": "array",
             "metadata": {
-                "description": "Name(s) of the first additional subnet in the spoke(s).  Enter a single name to name all these subnets the same in each spoke."
+                "description": "Name(s) of the first additional subnet in the spoke(s).  Enter a single name to name all these subnets the same in each spoke.  The address space of this (these) subnet(s) will be appended to the value entered here."
             }
         },
         "spokeSubnet1AddressSpace": {
@@ -221,7 +221,7 @@
         "spokeSubnet2Name": {
             "type": "array",
             "metadata": {
-                "description": "Name(s) of the second additional subnet in the spoke(s).  Enter a single name to name all these subnets the same in each spoke."
+                "description": "Name(s) of the second additional subnet in the spoke(s).  Enter a single name to name all these subnets the same in each spoke.  The address space of this (these) subnet(s) will be appended to the value entered here."
             }
         },
         "spokeSubnet2AddressSpace": {
@@ -233,7 +233,7 @@
         "spokeSubnet3Name": {
             "type": "array",
             "metadata": {
-                "description": "Name(s) of the second additional subnet in the spoke(s).  Enter a single name to name all these subnets the same in each spoke."
+                "description": "Name(s) of the second additional subnet in the spoke(s).  Enter a single name to name all these subnets the same in each spoke.  The address space of this (these) subnet(s) will be appended to the value entered here."
             }
         },
         "spokeSubnet3AddressSpace": {
@@ -247,6 +247,7 @@
         "settingAllowRdpToDcs": true,
         "deploymentName": "[deployment().Name]",
         "location": "[resourceGroup().location]",
+        "currentSubRg": "[concat(subscription().subscriptionId, '/', resourceGroup().name)]",
         "templateLocationURI": "[concat(parameters('assetLocationURI'), 'Templates/')]",
         "deploymentName-routeTable": "[concat(variables('deploymentName'), '-RouteTable-')]",
         "deploymentName-hub": "[concat(variables('deploymentName'), '-Hub')]",
@@ -260,6 +261,7 @@
         "deploymentName-ddosPlan": "[concat(variables('deploymentName'), '-DDOS')]",
         "deploymentName-nsgRulesDc": "[concat(variables('deploymentName'), '-NsgRules-DC')]",
         "deploymentName-nsgRulesJh": "[concat(variables('deploymentName'), '-NsgRules-JumpHosts')]",
+        "deploymentName-nsgRulesAll": "[concat(variables('deploymentName'), '-NsgRules-AllSubnets-')]",
         "deploymentName-nsgRulesHubAll": "[concat(variables('deploymentName'), '-NsgRules-AllHubSubnets-')]",
         "deploymentName-nsgRulesHubSubnet1": "[concat(variables('deploymentName'), '-NsgRules-HubSubnet-1')]",
         "deploymentName-nsgRulesHubSubnet2": "[concat(variables('deploymentName'), '-NsgRules-HubSubnet-2')]",
@@ -296,7 +298,205 @@
         "firewallApplicationRuleCollectionName": "InfraAllowCollection",
         "firewallApplicationRuleCollectionPriority": 1000,
         "allHubSubnetAddressSpaceList": "[split(if(equals(parameters('hubSubnet1AddressSpace'), '0.0.0.0/0'), '', if(equals(parameters('hubSubnet2AddressSpace'), '0.0.0.0/0'), parameters('hubSubnet1AddressSpace'), if(equals(parameters('hubSubnet3AddressSpace'), '0.0.0.0/0'), concat(parameters('hubSubnet1AddressSpace'), ',', parameters('hubSubnet2AddressSpace')), if(equals(parameters('hubSubnet4AddressSpace'), '0.0.0.0/0'), concat(parameters('hubSubnet1AddressSpace'), ',', parameters('hubSubnet2AddressSpace'), ',', parameters('hubSubnet3AddressSpace')), concat(parameters('hubSubnet1AddressSpace'), ',', parameters('hubSubnet2AddressSpace'), ',', parameters('hubSubnet3AddressSpace'), ',', parameters('hubSubnet4AddressSpace')))))), ',')]",
-        "allHubSubnetNsgNameList": "[split(if(equals(parameters('hubSubnet1AddressSpace'), '0.0.0.0/0'), '', if(equals(parameters('hubSubnet2AddressSpace'), '0.0.0.0/0'), variables('nsg_1_name'), if(equals(parameters('hubSubnet3AddressSpace'), '0.0.0.0/0'), concat(variables('nsg_1_name'), ',', variables('nsg_2_name')), if(equals(parameters('hubSubnet4AddressSpace'), '0.0.0.0/0'), concat(variables('nsg_1_name'), ',', variables('nsg_2_name'), ',', variables('nsg_3_name')), concat(variables('nsg_1_name'), ',', variables('nsg_2_name'), ',', variables('nsg_3_name'), ',', variables('nsg_4_name')))))), ',')]"
+        "allHubSubnetNsgNameList": "[split(if(equals(parameters('hubSubnet1AddressSpace'), '0.0.0.0/0'), '', if(equals(parameters('hubSubnet2AddressSpace'), '0.0.0.0/0'), variables('nsg_1_name'), if(equals(parameters('hubSubnet3AddressSpace'), '0.0.0.0/0'), concat(variables('nsg_1_name'), ',', variables('nsg_2_name')), if(equals(parameters('hubSubnet4AddressSpace'), '0.0.0.0/0'), concat(variables('nsg_1_name'), ',', variables('nsg_2_name'), ',', variables('nsg_3_name')), concat(variables('nsg_1_name'), ',', variables('nsg_2_name'), ',', variables('nsg_3_name'), ',', variables('nsg_4_name')))))), ',')]",
+        "allSpokeSubnetNsgNameList": "[concat(variables('allSpokeSubnet1NsgNameList'), variables('allSpokeSubnet2NsgNameList'), variables('allSpokeSubnet3NsgNameList'))]",
+        "allSpokeSubnetAddressSpaceList": "[concat(parameters('spokeSubnet1AddressSpace'), variables('allSpokeSubnet2AddressSpaceList'), variables('allSpokeSubnet3AddressSpaceList'))]",
+        "allSubnetNsgNameList": "[concat(variables('allHubSubnetNsgNameList'), variables('allSpokeSubnetNsgNameList'))]",
+        "allSubnetAddressSpaceList": "[concat(variables('allHubSubnetAddressSpaceList'), variables('allSpokeSubnetAddressSpaceList'))]",
+        "allSubnetSubRgList": "[concat(variables('allHubSubnetSubRgList'), variables('allSpokeSubnetSubRgList'))]",
+        "fullHubSubnet2AddressSpace": "[if(equals(parameters('hubSubnet1AddressSpace'), '0.0.0.0/0'), '0.0.0.0/0', parameters('hubSubnet2AddressSpace'))]",
+        "fullHubSubnet3AddressSpace": "[if(equals(parameters('hubSubnet2AddressSpace'), '0.0.0.0/0'), '0.0.0.0/0', parameters('hubSubnet3AddressSpace'))]",
+        "fullHubSubnet4AddressSpace": "[if(equals(parameters('hubSubnet3AddressSpace'), '0.0.0.0/0'), '0.0.0.0/0', parameters('hubSubnet4AddressSpace'))]",
+        "copy": [
+            {
+                "name": "fullSpokeDeploySubscriptionResourceGroup",
+                "count": "[length(parameters('spokeVnetName'))]",
+                "input": "[if(equals(length(parameters('spokeDeploySubscriptionResourceGroup')), 0), variables('currentSubRg'), if(equals(parameters('spokeDeploySubscriptionResourceGroup')[copyIndex('fullSpokeDeploySubscriptionResourceGroup')], ''), variables('currentSubRg'), parameters('spokeDeploySubscriptionResourceGroup')[copyIndex('fullSpokeDeploySubscriptionResourceGroup')]))]"
+            },
+            {
+                "name": "fullSpokeSubnetAppGwAddressSpace",
+                "count": "[length(parameters('spokeVnetName'))]",
+                "input": "[if(and(equals(length(parameters('spokeSubnetAppGwAddressSpace')), 1), equals(parameters('spokeSubnetAppGwAddressSpace')[0], '0.0.0.0/0')), '0.0.0.0/0', parameters('spokeSubnetAppGwAddressSpace')[copyIndex('fullSpokeSubnetAppGwAddressSpace')])]"
+            },
+            {
+                "name": "fullSpokeSubnetAppGwName",
+                "count": "[length(parameters('spokeVnetName'))]",
+                "input": "[if(equals(length(parameters('spokeSubnetAppGwName')), 1), parameters('spokeSubnetAppGwName')[0], parameters('spokeSubnetAppGwName')[copyIndex('fullSpokeSubnetAppGwName')])]"
+            },
+            {
+                "name": "fullSpokeSubnetBastionAddressSpace",
+                "count": "[length(parameters('spokeVnetName'))]",
+                "input": "[if(and(equals(length(parameters('spokeSubnetBastionAddressSpace')), 1), equals(parameters('spokeSubnetBastionAddressSpace')[0], '0.0.0.0/0')), '0.0.0.0/0', parameters('spokeSubnetBastionAddressSpace')[copyIndex('fullSpokeSubnetBastionAddressSpace')])]"
+            },
+            {
+                "name": "fullSpokeSubnet1Name",
+                "count": "[length(parameters('spokeVnetName'))]",
+                "input": "[if(equals(length(parameters('spokeSubnet1Name')), 1), parameters('spokeSubnet1Name')[0], parameters('spokeSubnet1Name')[copyIndex('fullSpokeSubnet1Name')])]"
+            },
+            {
+                "name": "fullSpokeSubnet2AddressSpace",
+                "count": "[length(parameters('spokeVnetName'))]",
+                "input": "[if(and(equals(length(parameters('spokeSubnet2AddressSpace')), 1), equals(parameters('spokeSubnet2AddressSpace')[0], '0.0.0.0/0')), '0.0.0.0/0', parameters('spokeSubnet2AddressSpace')[copyIndex('fullSpokeSubnet2AddressSpace')])]"
+            },
+            {
+                "name": "fullSpokeSubnet2Name",
+                "count": "[length(parameters('spokeVnetName'))]",
+                "input": "[if(or(and(equals(length(parameters('spokeSubnet2AddressSpace')), 1), equals(parameters('spokeSubnet2AddressSpace')[0], '0.0.0.0/0')), equals(parameters('spokeSubnet2AddressSpace')[copyIndex('fullSpokeSubnet2Name')], '0.0.0.0/0')), 'NotDeployed',if(equals(length(parameters('spokeSubnet2Name')), 1), parameters('spokeSubnet2Name')[0], parameters('spokeSubnet2Name')[copyIndex('fullSpokeSubnet2Name')]))]"
+            },
+            {
+                "name": "fullSpokeSubnet3AddressSpace",
+                "count": "[length(parameters('spokeVnetName'))]",
+                "input": "[if(or(and(equals(length(parameters('spokeSubnet3AddressSpace')), 1), equals(parameters('spokeSubnet3AddressSpace')[0], '0.0.0.0/0')), equals(variables('fullSpokeSubnet2AddressSpace')[copyIndex('fullSpokeSubnet3AddressSpace')], '0.0.0.0/0')), '0.0.0.0/0', parameters('spokeSubnet3AddressSpace')[copyIndex('fullSpokeSubnet3AddressSpace')])]"
+            },
+            {
+                "name": "fullSpokeSubnet3Name",
+                "count": "[length(parameters('spokeVnetName'))]",
+                "input": "[if(or(and(equals(length(parameters('spokeSubnet3AddressSpace')), 1), equals(parameters('spokeSubnet3AddressSpace')[0], '0.0.0.0/0')), equals(variables('fullSpokeSubnet2AddressSpace')[copyIndex('fullSpokeSubnet3Name')], '0.0.0.0/0')), 'NotDeployed', if(equals(length(parameters('spokeSubnet3Name')), 1), parameters('spokeSubnet3Name')[0], parameters('spokeSubnet3Name')[copyIndex('fullSpokeSubnet3Name')]))]"
+            },
+            {
+                "name": "allHubSubnetSubRgList",
+                "count": "[length(variables('allHubSubnetAddressSpaceList'))]",
+                "input": "[variables('currentSubRg')]"
+            },
+            {
+                "name": "allSpokeSubnetSubRgList",
+                "count": "[length(parameters('spokeVnetName'))]",
+                "input": "[variables('fullSpokeDeploySubscriptionResourceGroup')]"
+            },
+            {
+                "name": "allSpokeSubnet1NsgNameList",
+                "count": "[length(parameters('spokeVnetName'))]",
+                "input": "[my.nsgName(my.subnetFullName(if(equals(length(parameters('spokeSubnet1Name')), 1), parameters('spokeSubnet1Name')[0], parameters('spokeSubnet1Name')[copyIndex('allSpokeSubnet1NsgNameList')]), parameters('spokeSubnet1AddressSpace')[copyIndex('allSpokeSubnet1NsgNameList')]))]"
+            },
+            {
+                "name": "allSpokeSubnet2AddressSpaceList",
+                "count": "[if(and(equals(parameters('spokeSubnet2AddressSpace')[0], '0.0.0.0/0'), equals(length(parameters('spokeSubnet2AddressSpace')), 1)), 0, length(parameters('spokeSubnet2AddressSpace')))]",
+                "input": "[if(and(equals(parameters('spokeSubnet2AddressSpace')[0], '0.0.0.0/0'), equals(length(parameters('spokeSubnet2AddressSpace')), 1)), '0.0.0.0/0', parameters('spokeSubnet2AddressSpace')[copyIndex('allSpokeSubnet2AddressSpaceList')])]"
+            },
+            {
+                "name": "allSpokeSubnet2NsgNameList",
+                "count": "[if(and(equals(parameters('spokeSubnet2AddressSpace')[0], '0.0.0.0/0'), equals(length(parameters('spokeSubnet2AddressSpace')), 1)), 0, length(parameters('spokeSubnet2AddressSpace')))]",
+                "input": "[if(and(equals(parameters('spokeSubnet2AddressSpace')[0], '0.0.0.0/0'), equals(length(parameters('spokeSubnet2AddressSpace')), 1)), 'NotDeployed', if(equals(parameters('spokeSubnet2AddressSpace')[copyIndex('allSpokeSubnet2NsgNameList')], '0.0.0.0/0'), 'NotDeployed', my.nsgName(my.subnetFullName(if(equals(length(parameters('spokeSubnet2Name')), 1), parameters('spokeSubnet2Name')[0], parameters('spokeSubnet2Name')[copyIndex('allSpokeSubnet2NsgNameList')]), parameters('spokeSubnet2AddressSpace')[copyIndex('allSpokeSubnet2NsgNameList')]))))]"
+            },
+            {
+                "name": "allSpokeSubnet3AddressSpaceList",
+                "count": "[if(or(and(equals(parameters('spokeSubnet2AddressSpace')[0], '0.0.0.0/0'), equals(length(parameters('spokeSubnet2AddressSpace')), 1)), and(equals(parameters('spokeSubnet3AddressSpace')[0], '0.0.0.0/0'), equals(length(parameters('spokeSubnet3AddressSpace')), 1))), 0, length(parameters('spokeVnetName')))]",
+                "input": "[if(or(and(equals(parameters('spokeSubnet2AddressSpace')[0], '0.0.0.0/0'), equals(length(parameters('spokeSubnet2AddressSpace')), 1)), and(equals(parameters('spokeSubnet3AddressSpace')[0], '0.0.0.0/0'), equals(length(parameters('spokeSubnet3AddressSpace')), 1))),  '0.0.0.0/0', if(equals(parameters('spokeSubnet2AddressSpace')[copyIndex('allSpokeSubnet3AddressSpaceList')], '0.0.0.0/0'),  '0.0.0.0/0', parameters('spokeSubnet3AddressSpace')[copyIndex('allSpokeSubnet3AddressSpaceList')]))]"
+            },
+            {
+                "name": "allSpokeSubnet3NsgNameList",
+                "count": "[if(or(and(equals(parameters('spokeSubnet2AddressSpace')[0], '0.0.0.0/0'), equals(length(parameters('spokeSubnet2AddressSpace')), 1)), and(equals(parameters('spokeSubnet3AddressSpace')[0], '0.0.0.0/0'), equals(length(parameters('spokeSubnet3AddressSpace')), 1))), 0, length(parameters('spokeVnetName')))]",
+                "input": "[if(or(and(equals(parameters('spokeSubnet2AddressSpace')[0], '0.0.0.0/0'), equals(length(parameters('spokeSubnet2AddressSpace')), 1)), and(equals(parameters('spokeSubnet3AddressSpace')[0], '0.0.0.0/0'), equals(length(parameters('spokeSubnet3AddressSpace')), 1))),  'NotDeployed', if(or(equals(parameters('spokeSubnet2AddressSpace')[copyIndex('allSpokeSubnet3NsgNameList')], '0.0.0.0/0'), equals(parameters('spokeSubnet3AddressSpace')[copyIndex('allSpokeSubnet3NsgNameList')], '0.0.0.0/0')), 'NotDeployed', my.nsgName(my.subnetFullName(if(equals(length(parameters('spokeSubnet3Name')), 1), parameters('spokeSubnet3Name')[0], parameters('spokeSubnet3Name')[copyIndex('allSpokeSubnet3NsgNameList')]), parameters('spokeSubnet3AddressSpace')[copyIndex('allSpokeSubnet3NsgNameList')]))))]"
+            },
+            {
+                "name": "objSpokeVnet",
+                "count": "[length(parameters('spokeVnetName'))]",
+                "input": {
+                    "name": "[parameters('spokeVnetName')[copyIndex('objSpokeVnet')]]",
+                    "addressSpace": "[parameters('spokeVnetAddressSpace')[copyIndex('objSpokeVnet')]]",
+                    "ipGroupsName": "[concat(parameters('spokeVnetName')[copyIndex('objSpokeVnet')], '-IpGroup')]",
+                    "subscriptionId": "[split(variables('fullSpokeDeploySubscriptionResourceGroup')[copyIndex('objSpokeVnet')], '/')[0]]",
+                    "resourceGroup": "[split(variables('fullSpokeDeploySubscriptionResourceGroup')[copyIndex('objSpokeVnet')], '/')[1]]",
+                    "subnets":{
+                        "subnetAppGw": {
+                            "name": "[my.subnetFullName(variables('fullSpokeSubnetAppGwName')[copyIndex('objSpokeVnet')], variables('fullSpokeSubnetAppGwAddressSpace')[copyIndex('objSpokeVnet')])]",
+                            "addressSpace": "[variables('fullSpokeSubnetAppGwAddressSpace')[copyIndex('objSpokeVnet')]]"
+                        },
+                        "subnet1": {
+                            "name": "[my.subnetFullName(variables('fullSpokeSubnet1Name')[copyIndex('objSpokeVnet')], parameters('spokeSubnet1AddressSpace')[copyIndex('objSpokeVnet')])]",
+                            "addressSpace": "[parameters('spokeSubnet1AddressSpace')[copyIndex('objSpokeVnet')]]",
+                            "nsgName": "[my.nsgName(my.subnetFullName(variables('fullSpokeSubnet1Name')[copyIndex('objSpokeVnet')], parameters('spokeSubnet1AddressSpace')[copyIndex('objSpokeVnet')]))]",
+                            "ipGroupsName": "[my.ipGroupsName(parameters('spokeVnetName')[copyIndex('objSpokeVnet')], my.subnetFullName(variables('fullSpokeSubnet1Name')[copyIndex('objSpokeVnet')], parameters('spokeSubnet1AddressSpace')[copyIndex('objSpokeVnet')]))]",
+                            "subscriptionId": "[split(variables('fullSpokeDeploySubscriptionResourceGroup')[copyIndex('objSpokeVnet')], '/')[0]]",
+                            "resourceGroup": "[split(variables('fullSpokeDeploySubscriptionResourceGroup')[copyIndex('objSpokeVnet')], '/')[1]]"
+                        },
+                        "subnet2": {
+                            "name": "[my.subnetFullName(variables('fullSpokeSubnet2Name')[copyIndex('objSpokeVnet')], variables('fullSpokeSubnet2AddressSpace')[copyIndex('objSpokeVnet')])]",
+                            "addressSpace": "[variables('fullSpokeSubnet2AddressSpace')[copyIndex('objSpokeVnet')]]",
+                            "nsgName": "[my.nsgName(my.subnetFullName(variables('fullSpokeSubnet2Name')[copyIndex('objSpokeVnet')], variables('fullSpokeSubnet2AddressSpace')[copyIndex('objSpokeVnet')]))]",
+                            "ipGroupsName": "[my.ipGroupsName(parameters('spokeVnetName')[copyIndex('objSpokeVnet')], my.subnetFullName(variables('fullSpokeSubnet2Name')[copyIndex('objSpokeVnet')], variables('fullSpokeSubnet2AddressSpace')[copyIndex('objSpokeVnet')]))]",
+                            "subscriptionId": "[split(variables('fullSpokeDeploySubscriptionResourceGroup')[copyIndex('objSpokeVnet')], '/')[0]]",
+                            "resourceGroup": "[split(variables('fullSpokeDeploySubscriptionResourceGroup')[copyIndex('objSpokeVnet')], '/')[1]]"
+                        },
+                        "subnet3": {
+                            "name": "[my.subnetFullName(variables('fullSpokeSubnet3Name')[copyIndex('objSpokeVnet')], variables('fullSpokeSubnet3AddressSpace')[copyIndex('objSpokeVnet')])]",
+                            "addressSpace": "[variables('fullSpokeSubnet3AddressSpace')[copyIndex('objSpokeVnet')]]",
+                            "nsgName": "[my.nsgName(my.subnetFullName(variables('fullSpokeSubnet3Name')[copyIndex('objSpokeVnet')], variables('fullSpokeSubnet3AddressSpace')[copyIndex('objSpokeVnet')]))]",
+                            "ipGroupsName": "[my.ipGroupsName(parameters('spokeVnetName')[copyIndex('objSpokeVnet')], my.subnetFullName(variables('fullSpokeSubnet3Name')[copyIndex('objSpokeVnet')], variables('fullSpokeSubnet3AddressSpace')[copyIndex('objSpokeVnet')]))]",
+                            "subscriptionId": "[split(variables('fullSpokeDeploySubscriptionResourceGroup')[copyIndex('objSpokeVnet')], '/')[0]]",
+                            "resourceGroup": "[split(variables('fullSpokeDeploySubscriptionResourceGroup')[copyIndex('objSpokeVnet')], '/')[1]]"
+                        }
+                    }
+                }
+            }
+        ],
+        "objHubVnet": {
+            "name": "[parameters('hubVnetName')]",
+            "subscriptionId": "[split(variables('currentSubRg'), '/')[0]]",
+            "resourceGroup": "[split(variables('currentSubRg'), '/')[0]]",
+            "addressSpace": "[parameters('hubVnetAddressSpace')]",
+            "ipGroupsName": "[concat(parameters('hubVnetName'), '-IpGroup')]",
+            "subnets": {
+                "gatewaySubnet": {
+                    "name": "GatewaySubnet",
+                    "addressSpace": "[parameters('hubSubnetGatewayAddressSpace')]"
+                },
+                "firewallSubnet": {
+                    "name": "AzureFirewallSubnet",
+                    "addressSpace": "[parameters('hubSubnetFirewallAddressSpace')]"
+                },
+                "bastionSubnet": {
+                    "name": "AzureBastionSubnet",
+                    "addressSpace": "[parameters('hubSubnetBastionAddressSpace')]"
+                },
+                "dcSubnet": {
+                    "name": "[my.subnetFullName(parameters('hubSubnetDcName'), parameters('hubSubnetDcAddressSpace'))]",
+                    "addressSpace": "[parameters('hubSubnetDcAddressSpace')]",
+                    "nsgName": "[my.nsgName(my.subnetFullName(parameters('hubSubnetDcName'), parameters('hubSubnetDcAddressSpace')))]",
+                    "ipGroupsName": "[my.ipGroupsName(parameters('hubVnetName'), my.subnetFullName(parameters('hubSubnetDcName'), parameters('hubSubnetDcAddressSpace')))]"
+                },
+                "jhSubnet": {
+                    "name": "[my.subnetFullName(parameters('hubSubnetJumpHostsName'), parameters('hubSubnetJumpHostsAddressSpace'))]",
+                    "addressSpace": "[parameters('hubSubnetJumpHostsAddressSpace')]",
+                    "nsgName": "[my.nsgName(my.subnetFullName(parameters('hubSubnetJumpHostsName'), parameters('hubSubnetJumpHostsAddressSpace')))]",
+                    "subscriptionId": "[split(variables('currentSubRg'), '/')[0]]",
+                    "resourceGroup": "[split(variables('currentSubRg'), '/')[0]]",
+                    "ipGroupsName": "[my.ipGroupsName(parameters('hubVnetName'), my.subnetFullName(parameters('hubSubnetJumpHostsName'), parameters('hubSubnetJumpHostsAddressSpace')))]"
+                },
+                "subnet1": {
+                    "name": "[my.subnetFullName(parameters('hubSubnet1Name'), parameters('hubSubnet1AddressSpace'))]",
+                    "addressSpace": "[parameters('hubSubnet1AddressSpace')]",
+                    "nsgName": "[my.nsgName(my.subnetFullName(parameters('hubSubnet1Name'), parameters('hubSubnet1AddressSpace')))]",
+                    "ipGroupsName": "[my.ipGroupsName(parameters('hubVnetName'), my.subnetFullName(parameters('hubSubnet1Name'), parameters('hubSubnet1AddressSpace')))]",
+                    "subscriptionId": "[split(variables('currentSubRg'), '/')[0]]",
+                    "resourceGroup": "[split(variables('currentSubRg'), '/')[0]]"
+                },
+                "subnet2": {
+                    "name": "[my.subnetFullName(parameters('hubSubnet2Name'), variables('fullHubSubnet2AddressSpace'))]",
+                    "addressSpace": "[variables('fullHubSubnet2AddressSpace')]",
+                    "nsgName": "[my.nsgName(my.subnetFullName(parameters('hubSubnet2Name'), variables('fullHubSubnet2AddressSpace')))]",
+                    "ipGroupsName": "[my.ipGroupsName(parameters('hubVnetName'), my.subnetFullName(parameters('hubSubnet2Name'), variables('fullHubSubnet2AddressSpace')))]",
+                    "subscriptionId": "[split(variables('currentSubRg'), '/')[0]]",
+                    "resourceGroup": "[split(variables('currentSubRg'), '/')[0]]"
+                },
+                "subnet3": {
+                    "name": "[my.subnetFullName(parameters('hubSubnet3Name'), variables('fullHubSubnet3AddressSpace'))]",
+                    "addressSpace": "[variables('fullHubSubnet3AddressSpace')]",
+                    "nsgName": "[my.nsgName(my.subnetFullName(parameters('hubSubnet3Name'), variables('fullHubSubnet3AddressSpace')))]",
+                    "ipGroupsName": "[my.ipGroupsName(parameters('hubVnetName'), my.subnetFullName(parameters('hubSubnet3Name'), variables('fullHubSubnet3AddressSpace')))]",
+                    "subscriptionId": "[split(variables('currentSubRg'), '/')[0]]",
+                    "resourceGroup": "[split(variables('currentSubRg'), '/')[0]]"
+                },
+                "subnet4": {
+                    "name": "[my.subnetFullName(parameters('hubSubnet4Name'), variables('fullHubSubnet4AddressSpace'))]",
+                    "addressSpace": "[variables('fullHubSubnet4AddressSpace')]",
+                    "nsgName": "[my.nsgName(my.subnetFullName(parameters('hubSubnet4Name'), variables('fullHubSubnet4AddressSpace')))]",
+                    "ipGroupsName": "[my.ipGroupsName(parameters('hubVnetName'), my.subnetFullName(parameters('hubSubnet4Name'), variables('fullHubSubnet4AddressSpace')))]",
+                    "subscriptionId": "[split(variables('currentSubRg'), '/')[0]]",
+                    "resourceGroup": "[split(variables('currentSubRg'), '/')[0]]"
+                }
+            }
+        }
     },
     "functions": [
         {
@@ -315,7 +515,7 @@
                     ],
                     "output": {
                         "type": "string",
-                        "value": "[concat(parameters('name'),'-',replace(parameters('addressSpace'),'/','-'))]"
+                        "value": "[if(equals(parameters('addressSpace'), '0.0.0.0/0'), 'NotDeployed', concat(parameters('name'),'-',replace(parameters('addressSpace'),'/','-')))]"
                     }
                 },
                 "nsgName": {
@@ -326,7 +526,23 @@
                         }
                     ],
                     "output": {
-                        "value": "[concat(parameters('subnetName'), '-NSG')]",
+                        "value": "[if(equals(parameters('subnetName'), 'NotDeployed'), 'NotDeployed', concat(parameters('subnetName'), '-NSG'))]",
+                        "type": "string"
+                    }
+                },
+                "ipGroupsName": {
+                    "parameters": [
+                        {
+                            "name": "vnetName",
+                            "type": "string"
+                        },
+                        {
+                            "name": "subnetName",
+                            "type": "string"
+                        }
+                    ],
+                    "output": {
+                        "value": "[concat(parameters('vnetName'), '-', parameters('subnetName'), '-IpGroup')]",
                         "type": "string"
                     }
                 },
@@ -766,6 +982,137 @@
             }
         },
         {
+            "comments": "All subnet NSG rules",
+            "condition": false,
+            "name": "[concat(variables('deploymentName-nsgRulesAll'), copyIndex(1))]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "dependsOn": [
+                "[variables('deploymentName-hub')]",
+                "spokeLoop"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {},
+                    "resources": [
+                        {
+                            "condition": "[not(equals(parameters('vnetNsgSecurityLevel'), 'High'))]",
+                            "type": "Microsoft.Network/networkSecurityGroups/securityRules",
+                            "apiVersion": "2020-05-01",
+                            "name": "[concat(variables('allSubnetNsgNameList')[copyIndex()], '/AllowIntraSubnetComms')]",
+                            "properties": {
+                                "description": "Allow traffic between servers inside the subnet",
+                                "protocol": "*",
+                                "sourcePortRange": "*",
+                                "destinationPortRange": "*",
+                                "sourceAddressPrefix": "[variables('allSubnetAddressSpaceList')[copyIndex()]]",
+                                "destinationAddressPrefix": "[variables('allSubnetAddressSpaceList')[copyIndex()]]",
+                                "access": "Allow",
+                                "priority": 100,
+                                "direction": "Inbound",
+                                "sourcePortRanges": [],
+                                "destinationPortRanges": [],
+                                "sourceAddressPrefixes": [],
+                                "destinationAddressPrefixes": []
+                            }
+                        },
+                        {
+                            "condition": "[not(equals(parameters('hubSubnetJumpHostsAddressSpace'), '0.0.0.0/0'))]",
+                            "type": "Microsoft.Network/networkSecurityGroups/securityRules",
+                            "apiVersion": "2020-05-01",
+                            "name": "[concat(variables('allSubnetNsgNameList')[copyIndex()], '/AllowRdpJumpHosts')]",
+                            "properties": {
+                                "description": "Allow RDP from jump hosts",
+                                "protocol": "TCP",
+                                "sourcePortRange": "*",
+                                "destinationPortRange": "3389",
+                                "sourceAddressPrefix": "[parameters('hubSubnetJumpHostsAddressSpace')]",
+                                "destinationAddressPrefix": "[variables('allSubnetAddressSpaceList')[copyIndex()]]",
+                                "access": "Allow",
+                                "priority": 320,
+                                "direction": "Inbound",
+                                "sourcePortRanges": [],
+                                "destinationPortRanges": [],
+                                "sourceAddressPrefixes": [],
+                                "destinationAddressPrefixes": []
+                            }
+                        },
+                        {
+                            "type": "Microsoft.Network/networkSecurityGroups/securityRules",
+                            "apiVersion": "2020-05-01",
+                            "name": "[concat(variables('allSubnetNsgNameList')[copyIndex()], '/DenyAllInbound')]",
+                            "properties": {
+                                "protocol": "*",
+                                "sourcePortRange": "*",
+                                "destinationPortRange": "*",
+                                "sourceAddressPrefix": "*",
+                                "destinationAddressPrefix": "*",
+                                "access": "Deny",
+                                "priority": 4096,
+                                "direction": "Inbound",
+                                "sourcePortRanges": [],
+                                "destinationPortRanges": [],
+                                "sourceAddressPrefixes": [],
+                                "destinationAddressPrefixes": []
+                            }
+                        }
+                    ]
+                }
+            },
+            "copy": {
+                "name": "allNsgRules",
+                "count": "[length(variables('allSubnetNsgNameList'))]"
+            }
+        },
+        {
+            "comments": "All hub subnet NSG rules",
+            "condition": "[not(equals(parameters('vnetNsgSecurityLevel'), 'Low'))]",
+            "name": "[concat(variables('deploymentName-nsgRulesHubAll'), copyIndex(1))]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "dependsOn": [
+                "[variables('deploymentName-hub')]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {},
+                    "resources": [
+                        {
+                            "condition": "[not(equals(parameters('hubSubnetBastionAddressSpace'), '0.0.0.0/0'))]",
+                            "type": "Microsoft.Network/networkSecurityGroups/securityRules",
+                            "apiVersion": "2020-05-01",
+                            "name": "[concat(variables('allHubSubnetNsgNameList')[copyIndex()], '/AllowRdpBastion')]",
+                            "properties": {
+                                "description": "Allow RDP from Azure Bastion",
+                                "protocol": "*",
+                                "sourcePortRange": "*",
+                                "destinationPortRange": "3389",
+                                "sourceAddressPrefix": "[parameters('hubSubnetBastionAddressSpace')]",
+                                "destinationAddressPrefix": "[variables('allHubSubnetAddressSpaceList')[copyIndex()]]",
+                                "access": "Allow",
+                                "priority": 310,
+                                "direction": "Inbound",
+                                "sourcePortRanges": [],
+                                "destinationPortRanges": [],
+                                "sourceAddressPrefixes": [],
+                                "destinationAddressPrefixes": []
+                            }
+                        }
+                    ]
+                }
+            },
+            "copy": {
+                "name": "allHubNsgRules",
+                "count": "[length(variables('allHubSubnetAddressSpaceList'))]"
+            }
+        },
+        {
             "comments": "Hub DC subnet NSG rules",
             "condition": "[not(equals(parameters('vnetNsgSecurityLevel'), 'Low'))]",
             "name": "[variables('deploymentName-nsgRulesDc')]",
@@ -1045,112 +1392,6 @@
             }
         },
         {
-            "comments": "All hub subnet NSG rules",
-            "condition": "[not(equals(parameters('vnetNsgSecurityLevel'), 'Low'))]",
-            "name": "[concat(variables('deploymentName-nsgRulesHubAll'), copyIndex(1))]",
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "2020-06-01",
-            "dependsOn": [
-                "[variables('deploymentName-hub')]"
-            ],
-            "properties": {
-                "mode": "Incremental",
-                "template": {
-                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
-                    "contentVersion": "1.0.0.0",
-                    "parameters": {},
-                    "resources": [
-                        {
-                            "condition": "[not(equals(parameters('vnetNsgSecurityLevel'), 'High'))]",
-                            "type": "Microsoft.Network/networkSecurityGroups/securityRules",
-                            "apiVersion": "2020-05-01",
-                            "name": "[concat(variables('allHubSubnetNsgNameList')[copyIndex()], '/AllowIntraSubnetComms')]",
-                            "properties": {
-                                "description": "Allow traffic between servers inside the subnet",
-                                "protocol": "*",
-                                "sourcePortRange": "*",
-                                "destinationPortRange": "*",
-                                "sourceAddressPrefix": "[variables('allHubSubnetAddressSpaceList')[copyIndex()]]",
-                                "destinationAddressPrefix": "[variables('allHubSubnetAddressSpaceList')[copyIndex()]]",
-                                "access": "Allow",
-                                "priority": 100,
-                                "direction": "Inbound",
-                                "sourcePortRanges": [],
-                                "destinationPortRanges": [],
-                                "sourceAddressPrefixes": [],
-                                "destinationAddressPrefixes": []
-                            }
-                        },
-                        {
-                            "condition": "[not(equals(parameters('hubSubnetBastionAddressSpace'), '0.0.0.0/0'))]",
-                            "type": "Microsoft.Network/networkSecurityGroups/securityRules",
-                            "apiVersion": "2020-05-01",
-                            "name": "[concat(variables('allHubSubnetNsgNameList')[copyIndex()], '/AllowRdpBastion')]",
-                            "properties": {
-                                "description": "Allow RDP from Azure Bastion",
-                                "protocol": "*",
-                                "sourcePortRange": "*",
-                                "destinationPortRange": "3389",
-                                "sourceAddressPrefix": "[parameters('hubSubnetBastionAddressSpace')]",
-                                "destinationAddressPrefix": "[variables('allHubSubnetAddressSpaceList')[copyIndex()]]",
-                                "access": "Allow",
-                                "priority": 310,
-                                "direction": "Inbound",
-                                "sourcePortRanges": [],
-                                "destinationPortRanges": [],
-                                "sourceAddressPrefixes": [],
-                                "destinationAddressPrefixes": []
-                            }
-                        },
-                        {
-                            "condition": "[not(equals(parameters('hubSubnetJumpHostsAddressSpace'), '0.0.0.0/0'))]",
-                            "type": "Microsoft.Network/networkSecurityGroups/securityRules",
-                            "apiVersion": "2020-05-01",
-                            "name": "[concat(variables('allHubSubnetNsgNameList')[copyIndex()], '/AllowRdpJumpHosts')]",
-                            "properties": {
-                                "description": "Allow RDP from jump hosts",
-                                "protocol": "TCP",
-                                "sourcePortRange": "*",
-                                "destinationPortRange": "3389",
-                                "sourceAddressPrefix": "[parameters('hubSubnetJumpHostsAddressSpace')]",
-                                "destinationAddressPrefix": "[variables('allHubSubnetAddressSpaceList')[copyIndex()]]",
-                                "access": "Allow",
-                                "priority": 320,
-                                "direction": "Inbound",
-                                "sourcePortRanges": [],
-                                "destinationPortRanges": [],
-                                "sourceAddressPrefixes": [],
-                                "destinationAddressPrefixes": []
-                            }
-                        },
-                        {
-                            "type": "Microsoft.Network/networkSecurityGroups/securityRules",
-                            "apiVersion": "2020-05-01",
-                            "name": "[concat(variables('allHubSubnetNsgNameList')[copyIndex()], '/DenyAllInbound')]",
-                            "properties": {
-                                "protocol": "*",
-                                "sourcePortRange": "*",
-                                "destinationPortRange": "*",
-                                "sourceAddressPrefix": "*",
-                                "destinationAddressPrefix": "*",
-                                "access": "Deny",
-                                "priority": 4096,
-                                "direction": "Inbound",
-                                "sourcePortRanges": [],
-                                "destinationPortRanges": [],
-                                "sourceAddressPrefixes": [],
-                                "destinationAddressPrefixes": []
-                            }
-                        }
-                    ]
-                }
-            },
-            "copy": {
-                "name": "allHubNsgRules",
-                "count": "[length(variables('allHubSubnetAddressSpaceList'))]"
-            }
-        },
-        {
             "comments": "Hub subnet 1 NSG rules",
             "condition": "[not(equals(parameters('vnetNsgSecurityLevel'), 'Low'))]",
             "name": "[variables('deploymentName-nsgRulesHubSubnet1')]",
@@ -1227,5 +1468,112 @@
             }
         }
     ],
-    "outputs": {}
+    "outputs": {
+        "fullSpokeDeploySubscriptionResourceGroup": {
+            "type": "array",
+            "value": "[variables('fullSpokeDeploySubscriptionResourceGroup')]"
+        },
+        "fullSpokeSubnetAppGwAddressSpace": {
+            "type": "array",
+            "value": "[variables('fullSpokeSubnetAppGwAddressSpace')]"
+        },
+        "fullSpokeSubnetAppGwName": {
+            "type": "array",
+            "value": "[variables('fullSpokeSubnetAppGwName')]"
+        },
+        "fullSpokeSubnetBastionAddressSpace": {
+            "type": "array",
+            "value": "[variables('fullSpokeSubnetBastionAddressSpace')]"
+        },
+        "fullSpokeSubnet1Name": {
+            "type": "array",
+            "value": "[variables('fullSpokeSubnet1Name')]"
+        },
+        "fullSpokeSubnet2AddressSpace": {
+            "type": "array",
+            "value": "[variables('fullSpokeSubnet2AddressSpace')]"
+        },
+        "fullSpokeSubnet2Name": {
+            "type": "array",
+            "value": "[variables('fullSpokeSubnet2Name')]"
+        },
+        "fullSpokeSubnet3AddressSpace": {
+            "type": "array",
+            "value": "[variables('fullSpokeSubnet3AddressSpace')]"
+        },
+        "fullSpokeSubnet3Name": {
+            "type": "array",
+            "value": "[variables('fullSpokeSubnet3Name')]"
+        },
+        "allSpokeSubnet1NsgNameList": {
+            "type": "array",
+            "value": "[variables('allSpokeSubnet1NsgNameList')]"
+        },
+        "allSpokeSubnet2AddressSpaceList": {
+            "type": "array",
+            "value": "[variables('allSpokeSubnet2AddressSpaceList')]"
+        },
+        "allSpokeSubnet2NsgNameList": {
+            "type": "array",
+            "value": "[variables('allSpokeSubnet2NsgNameList')]"
+        },
+        "allSpokeSubnet3AddressSpaceList": {
+            "type": "array",
+            "value": "[variables('allSpokeSubnet3AddressSpaceList')]"
+        },
+        "allSpokeSubnet3NsgNameList": {
+            "type": "array",
+            "value": "[variables('allSpokeSubnet3NsgNameList')]"
+        },
+        "allSpokeSubnetNsgNameList": {
+            "type": "array",
+            "value": "[variables('allSpokeSubnetNsgNameList')]"
+        },
+        "allSpokeSubnetAddressSpaceList": {
+            "type": "array",
+            "value": "[variables('allSpokeSubnetAddressSpaceList')]"
+        },
+        "allSubnetNsgNameList": {
+            "type": "array",
+            "value": "[variables('allSubnetNsgNameList')]"
+        },
+        "allSubnetAddressSpaceList": {
+            "type": "array",
+            "value": "[variables('allSubnetAddressSpaceList')]"
+        },
+        "allSubnetSubRgList": {
+            "type": "array",
+            "value": "[variables('allSubnetSubRgList')]"
+        },
+        "allSubnetSubRgListCount": {
+            "type": "int",
+            "value": "[length(variables('allSubnetSubRgList'))]"
+        },
+        "objHubVnet": {
+            "type": "object",
+            "value": "[variables('objHubVnet')]"
+        },
+        "objSpokeVnet": {
+            "type": "array",
+            "copy": {
+                "count": "[length(variables('objSpokeVnet'))]",
+                "input": "[variables('objSpokeVnet')[copyIndex()]]"
+            }
+        },
+        "allVnets": {
+            "type": "array",
+            "value": "[concat(array(variables('objHubVnet')), variables('objSpokeVnet'))]"
+        },
+        "hubSubnets": {
+            "type": "object",
+            "value": "[variables('objHubVnet').subnets]"
+        },
+        "spokeSubnets": {
+            "type": "array",
+            "copy": {
+                "count": "[length(variables('objSpokeVnet'))]",
+                "input": "[variables('objSpokeVnet')[copyIndex()].subnets]"
+            }
+        }
+    }
 }
