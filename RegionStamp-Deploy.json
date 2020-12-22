@@ -1562,7 +1562,7 @@
         }
     ],
     "outputs": {
-        "objAllVnets": {
+        "allVnets": {
             "type": "array",
             "value": "[variables('objAllVnets')]"
         },
