@@ -284,7 +284,7 @@
             "nsgRulesHubSubnet1": "[concat(variables('deploymentName'), '-NsgRules-HubSubnet-1')]",
             "nsgRulesHubSubnet2": "[concat(variables('deploymentName'), '-NsgRules-HubSubnet-2')]",
             "nsgRulesHubSubnet3": "[concat(variables('deploymentName'), '-NsgRules-HubSubnet-3')]",
-            "dnsgRulesHubSubnet4": "[concat(variables('deploymentName'), '-NsgRules-HubSubnet-4')]"
+            "nsgRulesHubSubnet4": "[concat(variables('deploymentName'), '-NsgRules-HubSubnet-4')]"
         },
         "fullHubSubnet2AddressSpace": "[if(equals(parameters('hubSubnet1AddressSpace'), '0.0.0.0/0'), '0.0.0.0/0', parameters('hubSubnet2AddressSpace'))]",
         "fullHubSubnet3AddressSpace": "[if(equals(variables('fullHubSubnet2AddressSpace'), '0.0.0.0/0'), '0.0.0.0/0', parameters('hubSubnet3AddressSpace'))]",
@@ -445,7 +445,7 @@
                 },
                 "dcSubnet": {
                     "subscriptionId": "[split(variables('constants').currentSubRg, '/')[0]]",
-                    "resourceGroup": "[split(variables('constants').currentSubRg, '/')[0]]",
+                    "resourceGroup": "[split(variables('constants').currentSubRg, '/')[1]]",
                     "name": "[my.subnetFullName(parameters('hubSubnetDcName'), parameters('hubSubnetDcAddressSpace'))]",
                     "addressSpace": "[parameters('hubSubnetDcAddressSpace')]",
                     "nsgName": "[my.nsgName(my.subnetFullName(parameters('hubSubnetDcName'), parameters('hubSubnetDcAddressSpace')))]",
@@ -453,7 +453,7 @@
                 },
                 "jhSubnet": {
                     "subscriptionId": "[split(variables('constants').currentSubRg, '/')[0]]",
-                    "resourceGroup": "[split(variables('constants').currentSubRg, '/')[0]]",
+                    "resourceGroup": "[split(variables('constants').currentSubRg, '/')[1]]",
                     "name": "[my.subnetFullName(parameters('hubSubnetJumpHostsName'), parameters('hubSubnetJumpHostsAddressSpace'))]",
                     "addressSpace": "[parameters('hubSubnetJumpHostsAddressSpace')]",
                     "nsgName": "[my.nsgName(my.subnetFullName(parameters('hubSubnetJumpHostsName'), parameters('hubSubnetJumpHostsAddressSpace')))]",
@@ -461,7 +461,7 @@
                 },
                 "subnet1": {
                     "subscriptionId": "[split(variables('constants').currentSubRg, '/')[0]]",
-                    "resourceGroup": "[split(variables('constants').currentSubRg, '/')[0]]",
+                    "resourceGroup": "[split(variables('constants').currentSubRg, '/')[1]]",
                     "name": "[my.subnetFullName(parameters('hubSubnet1Name'), parameters('hubSubnet1AddressSpace'))]",
                     "addressSpace": "[parameters('hubSubnet1AddressSpace')]",
                     "nsgName": "[my.nsgName(my.subnetFullName(parameters('hubSubnet1Name'), parameters('hubSubnet1AddressSpace')))]",
@@ -469,7 +469,7 @@
                 },
                 "subnet2": {
                     "subscriptionId": "[split(variables('constants').currentSubRg, '/')[0]]",
-                    "resourceGroup": "[split(variables('constants').currentSubRg, '/')[0]]",
+                    "resourceGroup": "[split(variables('constants').currentSubRg, '/')[1]]",
                     "name": "[my.subnetFullName(parameters('hubSubnet2Name'), variables('fullHubSubnet2AddressSpace'))]",
                     "addressSpace": "[variables('fullHubSubnet2AddressSpace')]",
                     "nsgName": "[my.nsgName(my.subnetFullName(parameters('hubSubnet2Name'), variables('fullHubSubnet2AddressSpace')))]",
@@ -477,7 +477,7 @@
                 },
                 "subnet3": {
                     "subscriptionId": "[split(variables('constants').currentSubRg, '/')[0]]",
-                    "resourceGroup": "[split(variables('constants').currentSubRg, '/')[0]]",
+                    "resourceGroup": "[split(variables('constants').currentSubRg, '/')[1]]",
                     "name": "[my.subnetFullName(parameters('hubSubnet3Name'), variables('fullHubSubnet3AddressSpace'))]",
                     "addressSpace": "[variables('fullHubSubnet3AddressSpace')]",
                     "nsgName": "[my.nsgName(my.subnetFullName(parameters('hubSubnet3Name'), variables('fullHubSubnet3AddressSpace')))]",
@@ -485,7 +485,7 @@
                 },
                 "subnet4": {
                     "subscriptionId": "[split(variables('constants').currentSubRg, '/')[0]]",
-                    "resourceGroup": "[split(variables('constants').currentSubRg, '/')[0]]",
+                    "resourceGroup": "[split(variables('constants').currentSubRg, '/')[1]]",
                     "name": "[my.subnetFullName(parameters('hubSubnet4Name'), variables('fullHubSubnet4AddressSpace'))]",
                     "addressSpace": "[variables('fullHubSubnet4AddressSpace')]",
                     "nsgName": "[my.nsgName(my.subnetFullName(parameters('hubSubnet4Name'), variables('fullHubSubnet4AddressSpace')))]",
@@ -1048,6 +1048,353 @@
                 "count": "[length(variables('objSpokeVnet'))]",
                 "mode": "Serial",
                 "batchSize": 1
+            }
+        },
+        {
+            "comments": "All subnet NSG rules",
+            "condition": "[and(not(equals(parameters('vnetNsgSecurityLevel'), 'Low')), variables('settings').deployResources)]",
+            "name": "[concat(variables('deploymentNames').nsgRulesAll, copyIndex(1))]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "subscriptionId": "[variables('allSubnetNsgs')[copyIndex()].subscriptionId]",
+            "resourceGroup": "[variables('allSubnetNsgs')[copyIndex()].resourceGroup]",
+            "dependsOn": [
+                "[variables('deploymentNames').hub]",
+                "spokeLoop"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {},
+                    "resources": [
+                        {
+                            "condition": "[not(equals(parameters('vnetNsgSecurityLevel'), 'High'))]",
+                            "type": "Microsoft.Network/networkSecurityGroups/securityRules",
+                            "apiVersion": "2020-05-01",
+                            "name": "[concat(variables('allSubnetNsgs')[copyIndex()].nsgName, '/AllowIntraSubnetComms')]",
+                            "properties": {
+                                "description": "Allow traffic between servers inside the subnet",
+                                "protocol": "*",
+                                "sourcePortRange": "*",
+                                "destinationPortRange": "*",
+                                "sourceAddressPrefix": "[variables('allSubnetNsgs')[copyIndex()].addressSpace]",
+                                "destinationAddressPrefix": "[variables('allSubnetNsgs')[copyIndex()].addressSpace]",
+                                "access": "Allow",
+                                "priority": 100,
+                                "direction": "Inbound",
+                                "sourcePortRanges": [],
+                                "destinationPortRanges": [],
+                                "sourceAddressPrefixes": [],
+                                "destinationAddressPrefixes": []
+                            }
+                        },
+                        {
+                            "condition": "[and(not(equals(variables('objHubVnet').subnets.jhSubnet.addressSpace, '0.0.0.0/0')), not(equals(variables('allSubnetNsgs')[copyIndex()].addressSpace, variables('objHubVnet').subnets.jhSubnet.addressSpace)))]",
+                            "type": "Microsoft.Network/networkSecurityGroups/securityRules",
+                            "apiVersion": "2020-05-01",
+                            "name": "[concat(variables('allSubnetNsgs')[copyIndex()].nsgName, '/AllowRdpJumpHosts')]",
+                            "properties": {
+                                "description": "Allow RDP from jump hosts",
+                                "protocol": "TCP",
+                                "sourcePortRange": "*",
+                                "destinationPortRange": "3389",
+                                "sourceAddressPrefix": "[variables('objHubVnet').subnets.jhSubnet.addressSpace]",
+                                "destinationAddressPrefix": "[variables('allSubnetNsgs')[copyIndex()].addressSpace]",
+                                "access": "Allow",
+                                "priority": 320,
+                                "direction": "Inbound",
+                                "sourcePortRanges": [],
+                                "destinationPortRanges": [],
+                                "sourceAddressPrefixes": [],
+                                "destinationAddressPrefixes": []
+                            }
+                        },
+                        {
+                            "type": "Microsoft.Network/networkSecurityGroups/securityRules",
+                            "apiVersion": "2020-05-01",
+                            "name": "[concat(variables('allSubnetNsgs')[copyIndex()].nsgName, '/DenyAllInbound')]",
+                            "properties": {
+                                "protocol": "*",
+                                "sourcePortRange": "*",
+                                "destinationPortRange": "*",
+                                "sourceAddressPrefix": "*",
+                                "destinationAddressPrefix": "*",
+                                "access": "Deny",
+                                "priority": 4096,
+                                "direction": "Inbound",
+                                "sourcePortRanges": [],
+                                "destinationPortRanges": [],
+                                "sourceAddressPrefixes": [],
+                                "destinationAddressPrefixes": []
+                            }
+                        }
+                    ]
+                }
+            },
+            "copy": {
+                "name": "allNsgRules",
+                "count": "[length(variables('allSubnetNsgs'))]"
+            }
+        },
+        {
+            "comments": "All hub subnet NSG rules",
+            "condition": "[and(not(equals(parameters('vnetNsgSecurityLevel'), 'Low')), variables('settings').deployResources)]",
+            "name": "[concat(variables('deploymentNames').nsgRulesHubAll, copyIndex(1))]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "dependsOn": [
+                "[variables('deploymentNames').hub]",
+                "allNsgRules"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {},
+                    "resources": [
+                        {
+                            "condition": "[not(equals(variables('objHubVnet').subnets.bastionSubnet.addressSpace, '0.0.0.0/0'))]",
+                            "type": "Microsoft.Network/networkSecurityGroups/securityRules",
+                            "apiVersion": "2020-05-01",
+                            "name": "[concat(variables('allHubSubnetNsgs')[copyIndex()].nsgName, '/AllowRdpBastion')]",
+                            "properties": {
+                                "description": "Allow RDP from Azure Bastion",
+                                "protocol": "*",
+                                "sourcePortRange": "*",
+                                "destinationPortRange": "3389",
+                                "sourceAddressPrefix": "[variables('objHubVnet').subnets.bastionSubnet.addressSpace]",
+                                "destinationAddressPrefix": "[variables('allHubSubnetNsgs')[copyIndex()].addressSpace]",
+                                "access": "Allow",
+                                "priority": 310,
+                                "direction": "Inbound",
+                                "sourcePortRanges": [],
+                                "destinationPortRanges": [],
+                                "sourceAddressPrefixes": [],
+                                "destinationAddressPrefixes": []
+                            }
+                        }
+                    ]
+                }
+            },
+            "copy": {
+                "name": "allHubNsgRules",
+                "count": "[length(variables('allHubSubnetNsgs'))]"
+            }
+        },
+        {
+            "comments": "Hub DC subnet NSG rules",
+            "condition": "[and(not(equals(parameters('vnetNsgSecurityLevel'), 'Low')), variables('settings').deployResources)]",
+            "name": "[variables('deploymentNames').nsgRulesDc]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "dependsOn": [
+                "[variables('deploymentNames').hub]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {},
+                    "resources": [
+                        {
+                            "type": "Microsoft.Network/networkSecurityGroups/securityRules",
+                            "apiVersion": "2020-05-01",
+                            "name": "[concat(variables('objHubVnet').subnets.dcSubnet.nsgName, '/AllowAdDsTCP')]",
+                            "properties": {
+                                "description": "Allow AD DS TCP ports",
+                                "protocol": "TCP",
+                                "sourcePortRange": "*",
+                                "sourceAddressPrefix": "VirtualNetwork",
+                                "destinationAddressPrefix": "[variables('objHubVnet').subnets.dcSubnet.addressSpace]",
+                                "access": "Allow",
+                                "priority": 210,
+                                "direction": "Inbound",
+                                "sourcePortRanges": [],
+                                "destinationPortRanges": [
+                                    "53",
+                                    "88",
+                                    "135",
+                                    "389",
+                                    "636",
+                                    "445",
+                                    "464",
+                                    "3268",
+                                    "3269",
+                                    "49152-65535"
+                                ],
+                                "sourceAddressPrefixes": [],
+                                "destinationAddressPrefixes": []
+                            }
+                        },
+                        {
+                            "type": "Microsoft.Network/networkSecurityGroups/securityRules",
+                            "apiVersion": "2020-05-01",
+                            "name": "[concat(variables('objHubVnet').subnets.dcSubnet.nsgName, '/AllowAdDsUDP')]",
+                            "properties": {
+                                "description": "Allow AD DS UDP ports",
+                                "protocol": "UDP",
+                                "sourcePortRange": "*",
+                                "sourceAddressPrefix": "VirtualNetwork",
+                                "destinationAddressPrefix": "[variables('objHubVnet').subnets.dcSubnet.addressSpace]",
+                                "access": "Allow",
+                                "priority": 220,
+                                "direction": "Inbound",
+                                "sourcePortRanges": [],
+                                "destinationPortRanges": [
+                                    "53",
+                                    "88",
+                                    "135",
+                                    "389",
+                                    "636",
+                                    "446",
+                                    "464"
+                                ],
+                                "sourceAddressPrefixes": [],
+                                "destinationAddressPrefixes": []
+                            }
+                        },
+                        {
+                            "type": "Microsoft.Network/networkSecurityGroups/securityRules",
+                            "apiVersion": "2020-05-01",
+                            "name": "[concat(variables('objHubVnet').subnets.dcSubnet.nsgName, '/AllowAdDsICMP')]",
+                            "properties": {
+                                "description": "Allow ICMP",
+                                "protocol": "ICMP",
+                                "sourcePortRange": "*",
+                                "destinationPortRange": "*",
+                                "sourceAddressPrefix": "VirtualNetwork",
+                                "destinationAddressPrefix": "[variables('objHubVnet').subnets.dcSubnet.addressSpace]",
+                                "access": "Allow",
+                                "priority": 230,
+                                "direction": "Inbound",
+                                "sourcePortRanges": [],
+                                "destinationPortRanges": [],
+                                "sourceAddressPrefixes": [],
+                                "destinationAddressPrefixes": []
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "comments": "Hub JumpHosts subnet NSG rules",
+            "condition": "[and(and(not(equals(variables('objHubVnet').subnets.jhSubnet.addressSpace, '0.0.0.0/0')), not(equals(parameters('vnetNsgSecurityLevel'), 'Low'))), variables('settings').deployResources)]",
+            "name": "[variables('deploymentNames').nsgRulesJh]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "dependsOn": [
+                "[variables('deploymentNames').hub]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {},
+                    "resources": [
+                        {
+                            "type": "Microsoft.Network/networkSecurityGroups/securityRules",
+                            "apiVersion": "2020-05-01",
+                            "name": "[concat(variables('objHubVnet').subnets.jhSubnet.nsgName, '/AllowRdpOnPrem')]",
+                            "properties": {
+                                "description": "Allow RDP from on-premises networks (via the ExpressRoute gateway)",
+                                "protocol": "*",
+                                "sourcePortRange": "*",
+                                "destinationPortRange": "3389",
+                                "sourceAddressPrefix": "[variables('objHubVnet').subnets.gatewaySubnet.addressSpace]",
+                                "destinationAddressPrefix": "[variables('objHubVnet').subnets.jhSubnet.addressSpace]",
+                                "access": "Allow",
+                                "priority": 330,
+                                "direction": "Inbound",
+                                "sourcePortRanges": [],
+                                "destinationPortRanges": [],
+                                "sourceAddressPrefixes": [],
+                                "destinationAddressPrefixes": []
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "comments": "Hub subnet 1 NSG rules",
+            "condition": "[and(not(equals(parameters('vnetNsgSecurityLevel'), 'Low')), not(equals(variables('objHubVnet').subnets.subnet1.addressSpace, '0.0.0.0/0')), variables('settings').deployResources)]",
+            "name": "[variables('deploymentNames').nsgRulesHubSubnet1]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "dependsOn": [
+                "allHubNsgRules"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {},
+                    "resources": []
+                }
+            }
+        },
+        {
+            "comments": "Hub subnet 2 NSG rules",
+            "condition": "[and(not(equals(parameters('vnetNsgSecurityLevel'), 'Low')), not(equals(variables('objHubVnet').subnets.subnet2.addressSpace, '0.0.0.0/0')), variables('settings').deployResources)]",
+            "name": "[variables('deploymentNames').nsgRulesHubSubnet2]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "dependsOn": [
+                "allHubNsgRules"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {},
+                    "resources": []
+                }
+            }
+        },
+        {
+            "comments": "Hub subnet 3 NSG rules",
+            "condition": "[and(not(equals(parameters('vnetNsgSecurityLevel'), 'Low')), not(equals(variables('objHubVnet').subnets.subnet3.addressSpace, '0.0.0.0/0')), variables('settings').deployResources)]",
+            "name": "[variables('deploymentNames').nsgRulesHubSubnet3]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "dependsOn": [
+                "allHubNsgRules"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {},
+                    "resources": []
+                }
+            }
+        },
+        {
+            "comments": "Hub subnet 4 NSG rules",
+            "condition": "[and(not(equals(parameters('vnetNsgSecurityLevel'), 'Low')), not(equals(variables('objHubVnet').subnets.subnet4.addressSpace, '0.0.0.0/0')), variables('settings').deployResources)]",
+            "name": "[variables('deploymentNames').nsgRulesHubSubnet4]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "dependsOn": [
+                "allHubNsgRules"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {},
+                    "resources": []
+                }
             }
         }
     ],
