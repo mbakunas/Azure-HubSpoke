@@ -6,7 +6,13 @@ This solution will only deploy the necessary networking components, not any VMs.
 
 ![VNet Diagram](/ReadmeFiles/Diagram.png)
 
-## Hub
+## General Instructions
+
+
+
+## Hub VNet
+
+### Subnets
 
 The hub virtual that could have the following subnets:
 <ol>
@@ -21,7 +27,11 @@ The hub virtual that could have the following subnets:
 <li>An additional subnet 4 (optional)</li>
 </ol>
 
-## Spokes
+### Network Security Groups (NSGs)
+
+## Spoke VNet(s)
+
+### Subnets
 
 This soltion deploys multiple spokes that could have the following subnuts:
 
@@ -33,6 +43,7 @@ This soltion deploys multiple spokes that could have the following subnuts:
 <li>An additional subnet 3 (optional)</li>
 </ol>
 
+### Network Security Groups (NSGs)
 
 ## Naming convention used by this solution
 
