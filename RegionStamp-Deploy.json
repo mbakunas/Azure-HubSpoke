@@ -260,7 +260,8 @@
             "routeTable": "[concat(variables('deploymentName'), '-RouteTable-')]",
             "hub": "[concat(variables('deploymentName'), '-HubVNet')]",
             "spoke": "[concat(variables('deploymentName'), '-SpokeVNet-')]",
-            "ipGroups": "[concat(variables('deploymentName'), '-IpGroups')]",
+            "ipGroupsHub": "[concat(variables('deploymentName'), '-IpGroups-Hub')]",
+            "ipGroupsSpoke": "[concat(variables('deploymentName'), '-IpGroups-Spoke-')]",
             "bastionHhub": "[concat(variables('deploymentName'), '-Bastion-Hub')]",
             "bastionSpoke": "[concat(variables('deploymentName'), '-Bastion-Spoke-')]",
             "firewall": "[concat(variables('deploymentName'), '-Firewall')]",
@@ -762,11 +763,11 @@
             }
         },
         {
-            "comments": "IP Groups for each subnet",
+            "comments": "IP Groups for hub VNet and subnets",
             "condition": "[variables('settings').deployResources]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
-            "name": "[variables('deploymentNames').ipGroups]",
+            "name": "[variables('deploymentNames').ipGroupsHub]",
             "properties": {
                 "mode": "Incremental",
                 "template": {
@@ -872,6 +873,75 @@
             }
         },
         {
+            "comments": "IP Groups for spoke VNet and subnets",
+            "condition": "[variables('settings').deployResources]",
+            "name": "[concat(variables('deploymentNames').ipGroupsSpoke, copyIndex(1))]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {},
+                    "resources": [
+                        {
+                            "type": "Microsoft.Network/ipGroups",
+                            "apiVersion": "2020-05-01",
+                            "name": "[variables('objSpokeVnet')[copyIndex()].ipGroupsName]",
+                            "location": "[variables('constants').location]",
+                            "properties": {
+                                "ipAddresses": [
+                                    "[variables('objSpokeVnet')[copyIndex()].addressSpace]"
+                                ]
+                            }
+                        },
+                        {
+                            "type": "Microsoft.Network/ipGroups",
+                            "apiVersion": "2020-05-01",
+                            "name": "[variables('objSpokeVnet')[copyIndex()].subnets.subnet1.ipGroupsName]",
+                            "location": "[variables('constants').location]",
+                            "properties": {
+                                "ipAddresses": [
+                                    "[variables('objSpokeVnet')[copyIndex()].subnets.subnet1.addressSpace]"
+                                ]
+                            }
+                        },
+                        {
+                            "condition": "[not(equals(variables('objSpokeVnet')[copyIndex()].subnets.subnet2.addressSpace, '0.0.0.0/0'))]",
+                            "type": "Microsoft.Network/ipGroups",
+                            "apiVersion": "2020-05-01",
+                            "name": "[variables('objSpokeVnet')[copyIndex()].subnets.subnet2.ipGroupsName]",
+                            "location": "[variables('constants').location]",
+                            "properties": {
+                                "ipAddresses": [
+                                    "[variables('objSpokeVnet')[copyIndex()].subnets.subnet2.addressSpace]"
+                                ]
+                            }
+                        },
+                        {
+                            "condition": "[not(equals(variables('objSpokeVnet')[copyIndex()].subnets.subnet3.addressSpace, '0.0.0.0/0'))]",
+                            "type": "Microsoft.Network/ipGroups",
+                            "apiVersion": "2020-05-01",
+                            "name": "[variables('objSpokeVnet')[copyIndex()].subnets.subnet3.ipGroupsName]",
+                            "location": "[variables('constants').location]",
+                            "properties": {
+                                "ipAddresses": [
+                                    "[variables('objSpokeVnet')[copyIndex()].subnets.subnet3.addressSpace]"
+                                ]
+                            }
+                        }
+
+                    ]
+
+                }
+            },
+            "copy": {
+                "name": "spokeIpGroupsLoop",
+                "count": "[length(variables('objSpokeVnet'))]"
+            }
+        },
+        {
             "comments": "Azure Bastion for the hub VNet",
             "condition": "[and(not(equals(variables('objHubVnet').subnets.bastionSubnet.addressSpace, '0.0.0.0/0')), variables('settings').deployResources)]",
             "type": "Microsoft.Resources/deployments",
@@ -928,7 +998,7 @@
             "apiVersion": "2020-06-01",
             "dependsOn": [
                 "[variables('deploymentNames').hub]",
-                "[variables('deploymentNames').ipGroups]"
+                "[variables('deploymentNames').ipGroupsHub]"
             ],
             "name": "[variables('deploymentNames').firewall]",
             "properties": {
