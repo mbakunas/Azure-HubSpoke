@@ -4,6 +4,8 @@ This solution must be deployed to an existing resource group in an existing subs
 
 This solution will only deploy the necessary networking components, not any VMs.
 
+![VNet Diagram](/ReadmeFiles/Diagram.png)
+
 ## Hub
 
 The hub virtual that could have the following subnets:
