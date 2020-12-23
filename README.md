@@ -8,7 +8,9 @@ This solution will only deploy the necessary networking components, not any VMs.
 
 ## General Instructions
 
+### Subscription and resource groups
 
+Azure deployments must be deployed to an existing resource group in an existing subecription.  The hub VNet will be deployed to this subecription/resource group combination. The spoke VNet(s) can be deployed to any existing subscription/resource group (requires at least contributor access). 
 
 ## Hub VNet
 
