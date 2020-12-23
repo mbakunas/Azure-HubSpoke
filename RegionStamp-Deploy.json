@@ -385,6 +385,7 @@
                 "count": "[length(parameters('spokeVnetName'))]",
                 "input": {
                     "nsgName": "[variables('objSpokeVnet')[copyIndex('objAllSpokeSubnet1Nsgs')].subnets.Subnet1.nsgName]",
+                    "subnetName": "[variables('objSpokeVnet')[copyIndex('objAllSpokeSubnet1Nsgs')].subnets.Subnet1.name]",
                     "addressSpace": "[variables('objSpokeVnet')[copyIndex('objAllSpokeSubnet1Nsgs')].subnets.Subnet1.addressSpace]",
                     "subscriptionId": "[variables('objSpokeVnet')[copyIndex('objAllSpokeSubnet1Nsgs')].subnets.Subnet1.subscriptionId]",
                     "resourceGroup": "[variables('objSpokeVnet')[copyIndex('objAllSpokeSubnet1Nsgs')].subnets.Subnet1.resourceGroup]",
@@ -397,6 +398,7 @@
                 "count": "[length(parameters('spokeVnetName'))]",
                 "input": {
                     "nsgName": "[variables('objSpokeVnet')[copyIndex('objAllSpokeSubnet2Nsgs')].subnets.Subnet2.nsgName]",
+                    "subnetName": "[variables('objSpokeVnet')[copyIndex('objAllSpokeSubnet2Nsgs')].subnets.Subnet2.name]",
                     "addressSpace": "[variables('objSpokeVnet')[copyIndex('objAllSpokeSubnet2Nsgs')].subnets.Subnet2.addressSpace]",
                     "subscriptionId": "[variables('objSpokeVnet')[copyIndex('objAllSpokeSubnet2Nsgs')].subnets.Subnet2.subscriptionId]",
                     "resourceGroup": "[variables('objSpokeVnet')[copyIndex('objAllSpokeSubnet2Nsgs')].subnets.Subnet2.resourceGroup]",
@@ -409,6 +411,7 @@
                 "count": "[length(parameters('spokeVnetName'))]",
                 "input": {
                     "nsgName": "[variables('objSpokeVnet')[copyIndex('objAllSpokeSubnet3Nsgs')].subnets.Subnet3.nsgName]",
+                    "subnetName": "[variables('objSpokeVnet')[copyIndex('objAllSpokeSubnet3Nsgs')].subnets.Subnet3.name]",
                     "addressSpace": "[variables('objSpokeVnet')[copyIndex('objAllSpokeSubnet3Nsgs')].subnets.Subnet3.addressSpace]",
                     "subscriptionId": "[variables('objSpokeVnet')[copyIndex('objAllSpokeSubnet3Nsgs')].subnets.Subnet3.subscriptionId]",
                     "resourceGroup": "[variables('objSpokeVnet')[copyIndex('objAllSpokeSubnet3Nsgs')].subnets.Subnet3.resourceGroup]",
@@ -431,7 +434,8 @@
                 },
                 "firewallSubnet": {
                     "name": "AzureFirewallSubnet",
-                    "addressSpace": "[parameters('hubSubnetFirewallAddressSpace')]"
+                    "addressSpace": "[parameters('hubSubnetFirewallAddressSpace')]",
+                    "firewallPriveateIp": "[my.calcIpAddr(parameters('hubSubnetFirewallAddressSpace'), 4)]"
                 },
                 "bastionSubnet": {
                     "name": "AzureBastionSubnet",
@@ -489,36 +493,42 @@
         },
         "hubDcSubnetNsg": {
             "nsgName": "[variables('objHubVnet').subnets.dcSubnet.nsgName]",
+            "subnetName": "[variables('objHubVnet').subnets.dcSubnet.name]",
             "addressSpace": "[variables('objHubVnet').subnets.dcSubnet.addressSpace]",
             "subscriptionId": "[variables('objHubVnet').subnets.dcSubnet.subscriptionId]",
             "resourceGroup": "[variables('objHubVnet').subnets.dcSubnet.resourceGroup]"
         },
         "hubJhSubnetNsg": {
             "nsgName": "[variables('objHubVnet').subnets.jhSubnet.nsgName]",
+            "subnetName": "[variables('objHubVnet').subnets.jhSubnet.name]",
             "addressSpace": "[variables('objHubVnet').subnets.jhSubnet.addressSpace]",
             "subscriptionId": "[variables('objHubVnet').subnets.jhSubnet.subscriptionId]",
             "resourceGroup": "[variables('objHubVnet').subnets.jhSubnet.resourceGroup]"
         },
         "hubSubnet1Nsg": {
             "nsgName": "[variables('objHubVnet').subnets.subnet1.nsgName]",
+            "subnetName": "[variables('objHubVnet').subnets.subnet1.name]",
             "addressSpace": "[variables('objHubVnet').subnets.subnet1.addressSpace]",
             "subscriptionId": "[variables('objHubVnet').subnets.subnet1.subscriptionId]",
             "resourceGroup": "[variables('objHubVnet').subnets.subnet1.resourceGroup]"
         },
         "hubSubnet2Nsg": {
             "nsgName": "[variables('objHubVnet').subnets.subnet2.nsgName]",
+            "subnetName": "[variables('objHubVnet').subnets.subnet2.name]",
             "addressSpace": "[variables('objHubVnet').subnets.subnet2.addressSpace]",
             "subscriptionId": "[variables('objHubVnet').subnets.subnet2.subscriptionId]",
             "resourceGroup": "[variables('objHubVnet').subnets.subnet2.resourceGroup]"
         },
         "hubSubnet3Nsg": {
             "nsgName": "[variables('objHubVnet').subnets.subnet3.nsgName]",
+            "subnetName": "[variables('objHubVnet').subnets.subnet3.name]",
             "addressSpace": "[variables('objHubVnet').subnets.subnet3.addressSpace]",
             "subscriptionId": "[variables('objHubVnet').subnets.subnet3.subscriptionId]",
             "resourceGroup": "[variables('objHubVnet').subnets.subnet3.resourceGroup]"
         },
         "hubSubnet4Nsg": {
             "nsgName": "[variables('objHubVnet').subnets.subnet4.nsgName]",
+            "subnetName": "[variables('objHubVnet').subnets.subnet4.name]",
             "addressSpace": "[variables('objHubVnet').subnets.subnet4.addressSpace]",
             "subscriptionId": "[variables('objHubVnet').subnets.subnet4.subscriptionId]",
             "resourceGroup": "[variables('objHubVnet').subnets.subnet4.resourceGroup]"
@@ -624,7 +634,7 @@
                         }
                     ],
                     "output": {
-                        "value": "[if(equals(parameters('addressSpace'), '0.0.0.0/0'), '0.0.0.0/0', concat(split(substring(parameters('addressSpace'), 0, indexOf(parameters('addressSpace'), '/')), '.')[0], '.', split(substring(parameters('addressSpace'), 0, indexOf(parameters('addressSpace'), '/')), '.')[1], '.', split(substring(parameters('addressSpace'), 0, indexOf(parameters('addressSpace'), '/')), '.')[2], '.', string(add(int(split(substring(parameters('addressSpace'), 0, indexOf(parameters('addressSpace'), '/')), '.')[3]), parameters('offset')))))]",
+                        "value": "[if(equals(parameters('addressSpace'), '0.0.0.0/0'), '0.0.0.0', concat(split(substring(parameters('addressSpace'), 0, indexOf(parameters('addressSpace'), '/')), '.')[0], '.', split(substring(parameters('addressSpace'), 0, indexOf(parameters('addressSpace'), '/')), '.')[1], '.', split(substring(parameters('addressSpace'), 0, indexOf(parameters('addressSpace'), '/')), '.')[2], '.', string(add(int(split(substring(parameters('addressSpace'), 0, indexOf(parameters('addressSpace'), '/')), '.')[3]), parameters('offset')))))]",
                         "type": "string"
                     }
                 }
@@ -665,7 +675,7 @@
                 },
                 "parameters": {
                     "routeTables_name": {"value": "[parameters('routeTableName')]"},
-                    "routeTables_nextHopIpAddress": {"value": "[my.calcIpAddr(parameters('hubSubnetFirewallAddressSpace'), 4)]"}
+                    "routeTables_nextHopIpAddress": {"value": "[variables('objHubVnet').subnets.firewallSubnet.firewallPriveateIp]"}
                 }
             },
             "copy": {
@@ -1632,21 +1642,17 @@
         }
     ],
     "outputs": {
+        "deployResources": {
+            "type": "string",
+            "value": "[if(variables('settings').deployResources, variables('settings').deployResources, 'deployResources is set to FALSE.  Please change this setting to TRUE to deploy resources.')]"
+        },
         "allVnets": {
             "type": "array",
             "value": "[variables('objAllVnets')]"
         },
-        "allSubnetNsgs": {
+        "allNsgs": {
             "type": "array",
             "value": "[variables('allSubnetNsgs')]"
-        },
-        "allHubSubnetNsgs": {
-            "type": "array",
-            "value": "[variables('allHubSubnetNsgs')]"
-        },
-        "allSpokeSubnetNsgs": {
-            "type": "array",
-            "value": "[variables('allSpokeSubnetNsgs')]"
         }
     }
 }
