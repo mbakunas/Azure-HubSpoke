@@ -234,7 +234,7 @@
     },
     "variables": {
         "settings": {
-            "deployResources": true,
+            "deployResources": false,
             "allowRdpToDcs": true,
             "useFirewallForEgress": true
         },
@@ -435,7 +435,8 @@
                 "firewallSubnet": {
                     "name": "AzureFirewallSubnet",
                     "addressSpace": "[parameters('hubSubnetFirewallAddressSpace')]",
-                    "firewallPriveateIp": "[my.calcIpAddr(parameters('hubSubnetFirewallAddressSpace'), 4)]"
+                    "firewallPriveateIp": "[my.calcIpAddr(parameters('hubSubnetFirewallAddressSpace'), 4)]",
+                    "settings.useFirewallForEgress": "[variables('settings').useFirewallForEgress]"
                 },
                 "bastionSubnet": {
                     "name": "AzureBastionSubnet",
@@ -661,7 +662,7 @@
         },
         {
             "comments": "Route table with default route to Azure Firewall",
-            "condition": "[and(and(not(equals(parameters('hubSubnetFirewallAddressSpace'), '0.0.0.0/0')), variables('settings').useFirewallForEgress), variables('settings').deployResources)]",
+            "condition": "[and(and(not(equals(variables('objHubVnet').subnets.firewallSubnet.addressSpace, '0.0.0.0/0')), variables('settings').useFirewallForEgress), variables('settings').deployResources)]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
             "name": "[concat(variables('deploymentNames').routeTable, copyIndex(1))]",
