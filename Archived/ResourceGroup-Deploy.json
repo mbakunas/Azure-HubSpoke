@@ -1,0 +1,93 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "resourceGroupName": {
+            "type": "string",
+            "defaultValue": "fooGroup"
+        },
+        "vnetName": {
+            "type": "string",
+            "defaultValue": "fooNetwork"
+        },
+        "vnetAddressSpace": {
+            "type": "string",
+            "defaultValue": "10.0.0.0/16"
+        },
+        "subnet1": {
+            "type": "string",
+            "defaultValue": "10.0.0.0/24"
+        },
+        "subnet2": {
+            "type": "string",
+            "defaultValue": "0.0.0.0/0"
+        }
+    },
+    "variables": {
+        "location": "[resourceGroup().location]"
+    },
+    "functions": [],
+    "resources": [
+        {
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "name": "[concat(deployment().name, '-ResourceGroup')]",
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "resources": [
+                        {
+                            "type": "Microsoft.Resources/resourceGroups",
+                            "apiVersion": "2020-10-01",
+                            "name": "[parameters('resourceGroupName')]",
+                            "location": "[variables('location')]"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "name": "[concat(deployment().name, '-VNet')]",
+            "resourceGroup": "[parameters('resourceGroupName')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Resources/deployments', concat(deployment().name, '-ResourceGroup'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "resources": [
+                        {
+                            "type": "Microsoft.Network/virtualNetworks",
+                            "apiVersion": "2020-05-01",
+                            "name": "[parameters('vnetName')]",
+                            "location": "[variables('location')]",
+                            "properties": {
+                                "addressSpace": {
+                                    "addressPrefixes": [
+                                        "[parameters('vnetAddressSpace')]"
+                                    ]
+                                },
+                                "subnets": [
+                                    {
+                                        "name": "subnet1",
+                                        "properties": {
+                                            "addressPrefix": "[parameters('subnet1')]"
+                                        }
+                                    }
+                                ]
+                            }                            
+                        }
+                    ]
+
+                }
+            }
+        }
+    ],
+    "outputs": {}
+}
