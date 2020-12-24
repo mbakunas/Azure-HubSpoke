@@ -3,7 +3,7 @@
     "contentVersion": "1.0.0.0",
     "parameters": {
         "assetLocationURI": {
-            "value": "https://raw.githubusercontent.com/mbakunas/Azure-Stuff/master/"
+            "value": "https://raw.githubusercontent.com/mbakunas/Azure-HubSpoke/master/"
         },
         "hubVnetName": {
             "value": "HUB-EastUS2-01"
