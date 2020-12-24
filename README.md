@@ -4,7 +4,17 @@ This solution must be deployed to an existing resource group in an existing subs
 
 This solution will only deploy the necessary networking components, not any VMs.
 
-## Hub
+![VNet Diagram](/ReadmeFiles/Diagram.png)
+
+## General Instructions
+
+### Subscription and resource groups
+
+Azure deployments must be deployed to an existing resource group in an existing subecription.  The hub VNet will be deployed to this subecription/resource group combination. The spoke VNet(s) can be deployed to any existing subscription/resource group (requires at least contributor access). 
+
+## Hub VNet
+
+### Subnets
 
 The hub virtual that could have the following subnets:
 <ol>
@@ -19,7 +29,11 @@ The hub virtual that could have the following subnets:
 <li>An additional subnet 4 (optional)</li>
 </ol>
 
-## Spokes
+### Network Security Groups (NSGs)
+
+## Spoke VNet(s)
+
+### Subnets
 
 This soltion deploys multiple spokes that could have the following subnuts:
 
@@ -31,6 +45,7 @@ This soltion deploys multiple spokes that could have the following subnuts:
 <li>An additional subnet 3 (optional)</li>
 </ol>
 
+### Network Security Groups (NSGs)
 
 ## Naming convention used by this solution
 
