@@ -234,9 +234,10 @@
     },
     "variables": {
         "settings": {
-            "deployResources": false,
+            "deployResources": true,
             "allowRdpToDcs": true,
-            "useFirewallForEgress": true
+            "useFirewallForEgress": true,
+            "deployExpressRouteGateway": true
         },
         "constants": {
             "location": "[resourceGroup().location]",
@@ -252,7 +253,8 @@
             "firewallSuffix": "Firewall",
             "publicIpSuffix": "IP",
             "ipGroupsSuffix": "IpGroup",
-            "allAzureIpGroup": "AllAzureNetwork-IpGroup"
+            "allAzureIpGroup": "AllAzureNetwork-IpGroup",
+            "expressRouteGatewayName": "[concat(parameters('hubVnetName'), '-GW-1')]"
         },
         "deploymentName": "[deployment().Name]",
         "deploymentNames": {
@@ -278,7 +280,8 @@
             "nsgRulesAllSpokeSubnets": "[concat(variables('deploymentName'), '-NsgRules-AllSpokeSubnets-')]",
             "nsgRulesSpokeSubnet1s": "[concat(variables('deploymentName'), '-NsgRules-SpokeSubnet1-')]",
             "nsgRulesSpokeSubnet2s": "[concat(variables('deploymentName'), '-NsgRules-SpokeSubnet2-')]",
-            "nsgRulesSpokeSubnet3s": "[concat(variables('deploymentName'), '-NsgRules-SpokeSubnet3-')]"
+            "nsgRulesSpokeSubnet3s": "[concat(variables('deploymentName'), '-NsgRules-SpokeSubnet3-')]",
+            "hubErGateway": "[concat(variables('deploymentName'), '-ExpressRouteGateway')]"
         },
         "fullHubSubnet2AddressSpace": "[if(equals(parameters('hubSubnet1AddressSpace'), '0.0.0.0/0'), '0.0.0.0/0', parameters('hubSubnet2AddressSpace'))]",
         "fullHubSubnet3AddressSpace": "[if(equals(variables('fullHubSubnet2AddressSpace'), '0.0.0.0/0'), '0.0.0.0/0', parameters('hubSubnet3AddressSpace'))]",
@@ -774,6 +777,74 @@
             }
         },
         {
+            "comments": "ExpressRoute Gateway",
+            "condition": "[and(variables('settings').deployExpressRouteGateway, variables('settings').deployResources)]",
+            "name": "[variables('deploymentNames').hubErGateway]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "dependsOn": [
+                "[variables('deploymentNames').hub]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {},
+                    "resources": [
+                        {
+                            "type": "Microsoft.Network/virtualNetworkGateways",
+                            "apiVersion": "2020-05-01",
+                            "name": "[variables('names').expressRouteGatewayName]",
+                            "location": "[variables('constants').location]",
+                            "dependsOn": [
+                                "[resourceId('Microsoft.Network/publicIPAddresses', my.publicIpName(variables('names').expressRouteGatewayName, variables('names').publicIpSuffix))]"
+                            ],
+                            "properties": {
+                                "enablePrivateIpAddress": false,
+                                "ipConfigurations": [
+                                    {
+                                        "name": "[concat(variables('names').expressRouteGatewayName, 'ipConfig1')]",
+                                        "properties": {
+                                            "privateIPAllocationMethod": "Dynamic",
+                                            "publicIPAddress": {
+                                                "id": "[resourceId('Microsoft.Network/publicIPAddresses', my.publicIpName(variables('names').expressRouteGatewayName, variables('names').publicIpSuffix))]"
+                                            },
+                                            "subnet": {
+                                                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('objHubVnet').name, variables('objHubVnet').subnets.gatewaySubnet.name)]"
+                                            }
+                                        }
+                                    }
+                                ],
+                                "sku": {
+                                    "name": "Standard",
+                                    "tier": "Standard"
+                                },
+                                "gatewayType": "ExpressRoute",
+                                "vpnType": "PolicyBased",
+                                "enableBgp": false,
+                                "activeActive": false,
+                                "vpnGatewayGeneration": "None"
+                            }
+                        },
+                        {
+                            "type": "Microsoft.Network/publicIPAddresses",
+                            "apiVersion": "2020-05-01",
+                            "name": "[my.publicIpName(variables('names').expressRouteGatewayName, variables('names').publicIpSuffix)]",
+                            "location": "[variables('constants').location]",
+                            "sku": {
+                                "name": "Standard"
+                            },
+                            "properties": {
+                                "publicIPAddressVersion": "IPv4",
+                                "publicIPAllocationMethod": "Static"
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        {
             "comments": "IP Groups for hub VNet and subnets",
             "condition": "[variables('settings').deployResources]",
             "type": "Microsoft.Resources/deployments",
@@ -1038,7 +1109,8 @@
             "apiVersion": "2020-06-01",
             "dependsOn": [
                 "[variables('deploymentNames').hub]",
-                "spokeLoop"
+                "spokeLoop",
+                "[variables('deploymentNames').hubErGateway]"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -1057,7 +1129,7 @@
                                 },
                                 "allowVirtualNetworkAccess": true,
                                 "allowForwardedTraffic": true,
-                                "allowGatewayTransit": false,
+                                "allowGatewayTransit": "[variables('settings').deployExpressRouteGateway]",
                                 "useRemoteGateways": false,
                                 "remoteAddressSpace": {
                                     "addressPrefixes": [
@@ -1086,7 +1158,8 @@
             "resourceGroup": "[variables('objSpokeVnet')[copyIndex()].resourceGroup]",
             "dependsOn": [
                 "[variables('deploymentNames').hub]",
-                "spokeLoop"
+                "spokeLoop",
+                "[variables('deploymentNames').hubErGateway]"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -1106,7 +1179,7 @@
                                 "allowVirtualNetworkAccess": true,
                                 "allowForwardedTraffic": true,
                                 "allowGatewayTransit": false,
-                                "useRemoteGateways": false,
+                                "useRemoteGateways": "[variables('settings').deployExpressRouteGateway]",
                                 "remoteAddressSpace": {
                                     "addressPrefixes": [
                                         "[variables('objHubVnet').addressSpace]"
@@ -1645,7 +1718,7 @@
     "outputs": {
         "deployResources": {
             "type": "string",
-            "value": "[if(variables('settings').deployResources, variables('settings').deployResources, 'deployResources is set to FALSE.  Please change this setting to TRUE to deploy resources.')]"
+            "value": "[if(variables('settings').deployResources, string(variables('settings').deployResources), 'deployResources is set to FALSE.  Please change this setting to TRUE to deploy resources.')]"
         },
         "allVnets": {
             "type": "array",
