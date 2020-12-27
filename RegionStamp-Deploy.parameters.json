@@ -38,6 +38,15 @@
         "hubSubnetDcAddressSpace": {
             "value": "10.64.0.192/27"
         },
+        "dcVmContributorsAadGroupId": {
+            "value": "17ba8236-a5e8-4173-8ce9-c69b17743ac2"
+        },
+        "dcVmContributorsRoleAssignmentID": {
+            "value": [
+                "184540aa-dae3-42cd-a5aa-0f1c34c17d98",
+                "bde41287-27a2-4a80-b587-6ac6d56a303a"
+            ]
+        },
         "hubSubnetJumpHostsName": {
             "value": "JumpHosts"
         },
@@ -87,6 +96,20 @@
                 "",
                 "c64ca001-2cce-46de-837e-03f5564fc802/HubSpoke-02",
                 "16936380-29b0-4326-8f6b-db86da154736/HubSpoke-03"
+            ]
+        },
+        "spokeVmContributorsAadGroupId": {
+            "value": [
+                "1388dcce-1137-4b02-a113-805bf4d866e7",
+                "be209ef2-a50e-4573-85c3-408bd4f2ab96",
+                "080d187d-dd44-4f27-9d22-4ce4f26eaf64"
+            ]
+        },
+        "spokeVmContributorsRoleAssignmentID": {
+            "value": [
+                "504c6e13-74de-4a52-841a-60258bd0e650",
+                "6a05d922-46b7-419c-b38e-238ffd83f2c3",
+                "ba588264-1f4b-4884-abef-ad5630a2d653"
             ]
         },
         "spokeSubnetAppGwName": {
