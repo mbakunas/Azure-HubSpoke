@@ -308,7 +308,8 @@
             "nsgRulesSpokeSubnet2s": "[concat(variables('deploymentName'), '-NsgRules-SpokeSubnet2-')]",
             "nsgRulesSpokeSubnet3s": "[concat(variables('deploymentName'), '-NsgRules-SpokeSubnet3-')]",
             "hubErGateway": "[concat(variables('deploymentName'), '-ExpressRouteGateway')]",
-            "hubRbac": "[concat(variables('deploymentName'), '-HubVNetRBAC')]"
+            "hubRbac": "[concat(variables('deploymentName'), '-HubVNetRBAC')]",
+            "spokeRbac": "[concat(variables('deploymentName'), '-SpokeVNetRBAC-')]"
         },
         "fullHubSubnet2AddressSpace": "[if(equals(parameters('hubSubnet1AddressSpace'), '0.0.0.0/0'), '0.0.0.0/0', parameters('hubSubnet2AddressSpace'))]",
         "fullHubSubnet3AddressSpace": "[if(equals(variables('fullHubSubnet2AddressSpace'), '0.0.0.0/0'), '0.0.0.0/0', parameters('hubSubnet3AddressSpace'))]",
@@ -854,6 +855,43 @@
                         }
                     ]
                 }
+            }
+        },
+        {
+            "comments": "Spoke VNet(s) RBAC assignment",
+            "condition": "[variables('settings').deployResources]",
+            "name": "[concat(variables('deploymentNames').spokeRbac, copyIndex(1))]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "subscriptionId": "[variables('objSpokeVnet')[copyIndex()].subscriptionId]",
+            "resourceGroup": "[variables('objSpokeVnet')[copyIndex()].resourceGroup]",
+            "dependsOn": [
+                "spokeLoop"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {},
+                    "resources": [
+                        {
+                            "comments": "VM Contributor for App Teams",
+                            "type": "Microsoft.Authorization/roleAssignments",
+                            "name": "[variables('objSpokeVnet')[copyIndex()].spokeVmContributorsRoleAssignmentID]",
+                            "apiVersion": "2020-04-01-preview",
+                            "scope": "[concat('Microsoft.Network/virtualNetworks/', variables('objSpokeVnet')[copyIndex()].name)]",
+                            "properties": {
+                                "roleDefinitionId": "[variables('objHubVnet').virtualMachineContributorRoleId]",
+                                "principalId": "[variables('objSpokeVnet')[copyIndex()].spokeVmContributorsAadGroupId]"
+                            }
+                        }
+                    ]
+                }
+            },
+            "copy": {
+                "count": "[length(variables('objSpokeVnet'))]",
+                "name": "spokeRbacLoop"
             }
         },
         {
