@@ -42,7 +42,7 @@
             "value": "JumpHosts"
         },
         "hubSubnetJumpHostsAddressSpace": {
-            "value": "10.0.0.224/27"
+            "value": "0.0.0.0/0"
         },
         "hubSubnet1Name": {
             "value": "Subnet1"
@@ -68,13 +68,25 @@
         "hubSubnet4AddressSpace": {
             "value": "10.0.1.96/27"
         },
-        "dcAdminsAadGroupId": {
+        "dcSubnetVmContAadGroupId": {
             "value": "17ba8236-a5e8-4173-8ce9-c69b17743ac2"
         },
         "dcVmContributorsRoleAssignmentID": {
             "value": [
                 "184540aa-dae3-42cd-a5aa-0f1c34c17d98",
                 "bde41287-27a2-4a80-b587-6ac6d56a303a"
+            ]
+        },
+        "hubSubnetVmContAadGroupId": {
+            "value": "5eb970ea-e71a-4bf9-ba78-0529b3aeb2f3"
+        },
+        "hubSubnetVmContRoleAssignmantId": {
+            "value": [
+                "0702dcd4-0b65-4ebb-8ebd-873e2729904b",
+                "b3f5340d-28be-4029-bc10-56af7e20ac75",
+                "7a1689a7-66d8-4010-9213-c837316f8a30",
+                "d83bc577-1b03-4604-94a1-150ba7198ed0",
+                "6cba977a-462f-4d8c-b291-2dad991f85a0"
             ]
         },
         "spokeVnetName": {
@@ -151,7 +163,7 @@
                 "10.3.3.0/24"
             ]
         },
-        "appTeamsAadGroupId": {
+        "spokeVmContAadGroupId": {
             "value": [
                 "c2ecad99-6ed7-4e11-8acc-0fa0262a2c69"
             ]
