@@ -5,78 +5,103 @@
         "assetLocationURI": {
             "value": "https://raw.githubusercontent.com/mbakunas/Azure-HubSpoke/master/"
         },
-        "hubVnetName": {
-            "value": "HUB-EastUS2-01"
-        },
         "vnetDdosProtectionLevel": {
             "value": "Standard - Create New"
         },
         "vnetDdosProtectionPlanName": {
             "value": "DDOS-Plan-01"
         },
-        "hubVnetAddressSpace": {
-            "value": "10.64.0.0/23"
-        },
-        "hubSubnetGatewayAddressSpace": {
-            "value": "10.64.0.0/26"
-        },
-        "hubSubnetFirewallAddressSpace": {
-            "value": "10.64.0.64/26"
+        "vnetNsgSecurityLevel": {
+            "value": "Medium"
         },
         "routeTableName": {
             "value": "RouteTable-01"
         },
+        "hubVnetName": {
+            "value": "HUB-EastUS2-01"
+        },
+        "hubVnetAddressSpace": {
+            "value": "10.0.0.0/23"
+        },
+        "hubSubnetGatewayAddressSpace": {
+            "value": "10.0.0.0/26"
+        },
+        "hubSubnetFirewallAddressSpace": {
+            "value": "10.0.0.64/26"
+        },
         "hubSubnetBastionAddressSpace": {
-            "value": "10.64.0.128/26"
+            "value": "0.0.0.0/0"
         },
         "hubSubnetDcName": {
             "value": "Infra"
         },
         "hubSubnetDcAddressSpace": {
-            "value": "10.64.0.192/27"
+            "value": "10.0.0.192/27"
         },
         "hubSubnetJumpHostsName": {
             "value": "JumpHosts"
         },
         "hubSubnetJumpHostsAddressSpace": {
-            "value": "10.64.0.224/27"
+            "value": "10.0.0.224/27"
         },
         "hubSubnet1Name": {
             "value": "Subnet1"
         },
         "hubSubnet1AddressSpace": {
-            "value": "10.64.1.0/27"
+            "value": "10.0.1.0/27"
         },
         "hubSubnet2Name": {
             "value": "Subnet2"
         },
         "hubSubnet2AddressSpace": {
-            "value": "10.64.1.32/27"
+            "value": "10.0.1.32/27"
         },
         "hubSubnet3Name": {
             "value": "Subnet3"
         },
         "hubSubnet3AddressSpace": {
-            "value": "10.64.1.64/27"
+            "value": "10.0.1.64/27"
         },
         "hubSubnet4Name": {
             "value": "Subnet4"
         },
         "hubSubnet4AddressSpace": {
-            "value": "10.64.1.96/27"
+            "value": "10.0.1.96/27"
+        },
+        "dcSubnetVmContAadGroupId": {
+            "value": "17ba8236-a5e8-4173-8ce9-c69b17743ac2"
+        },
+        "dcVmContributorsRoleAssignmentID": {
+            "value": [
+                "184540aa-dae3-42cd-a5aa-0f1c34c17d98",
+                "bde41287-27a2-4a80-b587-6ac6d56a303a"
+            ]
+        },
+        "hubSubnetVmContAadGroupId": {
+            "value": "5eb970ea-e71a-4bf9-ba78-0529b3aeb2f3"
+        },
+        "hubSubnetVmContRoleAssignmantId": {
+            "value": [
+                "0702dcd4-0b65-4ebb-8ebd-873e2729904b",
+                "594fd8bf-f554-4272-8b19-9725c7b706b4",
+                "b3f5340d-28be-4029-bc10-56af7e20ac75",
+                "7a1689a7-66d8-4010-9213-c837316f8a30",
+                "d83bc577-1b03-4604-94a1-150ba7198ed0",
+                "6cba977a-462f-4d8c-b291-2dad991f85a0"
+            ]
         },
         "spokeVnetName": {
             "value": [
-                "SPOKE-PROD-EastUS2-01",
-                "SPOKE-TEST-EastUS2-01",
-                "SPOKE-DEV-EastUS2-01"
+                "Spoke-Prod-EastUS2-01",
+                "Spoke-Test-EastUS2-01",
+                "Spoke-Dev-EastUS2-01"
             ]
         },
         "spokeVnetAddressSpace": {
             "value": [
+                "10.1.0.0/16",
                 "10.2.0.0/16",
-                "10.3.0.0/16",
-                "10.4.0.0/16"
+                "10.3.0.0/16"
             ]
         },
         "spokeDeploySubscriptionResourceGroup": {
@@ -86,6 +111,11 @@
                 "16936380-29b0-4326-8f6b-db86da154736/HubSpoke-03"
             ]
         },
+        "spokeSubnetBastionAddressSpace": {
+            "value": [
+                "0.0.0.0/0"
+            ]
+        },
         "spokeSubnetAppGwName": {
             "value": [
                 "AppGW"
@@ -93,16 +123,9 @@
         },
         "spokeSubnetAppGwAddressSpace": {
             "value": [
-                "10.2.0.0/25",
-                "10.3.0.0/25",
-                "10.4.0.0/25"
-            ]
-        },
-        "spokeSubnetBastionAddressSpace": {
-            "value": [
-                "10.2.0.128/26",
-                "10.3.0.128/26",
-                "10.4.0.128/26"
+                "10.1.0.128/25",
+                "10.2.0.128/25",
+                "10.3.0.128/25"
             ]
         },
         "spokeSubnet1Name": {
@@ -112,9 +135,9 @@
         },
         "spokeSubnet1AddressSpace": {
             "value": [
+                "10.1.1.0/24",
                 "10.2.1.0/24",
-                "10.3.1.0/24",
-                "10.4.1.0/24"
+                "10.3.1.0/24"
             ]
         },
         "spokeSubnet2Name": {
@@ -124,9 +147,9 @@
         },
         "spokeSubnet2AddressSpace": {
             "value": [
+                "10.1.2.0/24",
                 "10.2.2.0/24",
-                "10.3.2.0/24",
-                "10.4.2.0/24"
+                "10.3.2.0/24"
             ]
         },
         "spokeSubnet3Name": {
@@ -136,9 +159,21 @@
         },
         "spokeSubnet3AddressSpace": {
             "value": [
+                "10.1.3.0/24",
                 "10.2.3.0/24",
-                "10.3.3.0/24",
-                "10.4.3.0/24"
+                "10.3.3.0/24"
+            ]
+        },
+        "spokeVmContAadGroupId": {
+            "value": [
+                "c2ecad99-6ed7-4e11-8acc-0fa0262a2c69"
+            ]
+        },
+        "spokeVmContributorsRoleAssignmentID": {
+            "value": [
+                "5a29e932-06c6-4e07-8e1b-d5f96c3524cf",
+                "ce7a113f-e760-4b94-a223-a52a1d2113d6",
+                "b2b76710-60c9-4826-b864-272c7c115806"
             ]
         }
     }

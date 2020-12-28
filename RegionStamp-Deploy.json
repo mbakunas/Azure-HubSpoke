@@ -272,10 +272,10 @@
     },
     "variables": {
         "settings": {
-            "deployResources": true,
+            "deployResources": false,
             "allowRdpToDcs": true,
             "useFirewallForEgress": true,
-            "deployExpressRouteGateway": false
+            "deployExpressRouteGateway": true
         },
         "constants": {
             "location": "[resourceGroup().location]",
@@ -321,7 +321,8 @@
             "nsgRulesSpokeSubnet3s": "[concat(variables('deploymentName'), '-NsgRules-SpokeSubnet3-')]",
             "hubErGateway": "[concat(variables('deploymentName'), '-ExpressRouteGateway')]",
             "hubRbac": "[concat(variables('deploymentName'), '-HubVNetRBAC')]",
-            "spokeRbac": "[concat(variables('deploymentName'), '-SpokeVNetRBAC-')]"
+            "spokeRbac": "[concat(variables('deploymentName'), '-SpokeVNetRBAC-')]",
+            "resourceLock": "[concat(variables('deploymentName'), '-ResourceLock-')]"
         },
         "fullHubSubnet2AddressSpace": "[if(equals(parameters('hubSubnet1AddressSpace'), '0.0.0.0/0'), '0.0.0.0/0', parameters('hubSubnet2AddressSpace'))]",
         "fullHubSubnet3AddressSpace": "[if(equals(variables('fullHubSubnet2AddressSpace'), '0.0.0.0/0'), '0.0.0.0/0', parameters('hubSubnet3AddressSpace'))]",
@@ -1277,13 +1278,14 @@
         {
             "comments": "Azure Firewall (for the hub VNet)",
             "condition": "[and(not(equals(variables('objHubVnet').subnets.firewallSubnet.addressSpace, '0.0.0.0/0')), variables('settings').deployResources)]",
+            "name": "[variables('deploymentNames').firewall]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
             "dependsOn": [
                 "[variables('deploymentNames').hub]",
-                "[variables('deploymentNames').ipGroupsHub]"
+                "[variables('deploymentNames').ipGroupsHub]",
+                "spokeIpGroupsLoop"
             ],
-            "name": "[variables('deploymentNames').firewall]",
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
@@ -1493,7 +1495,6 @@
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
             "dependsOn": [
-                "[variables('deploymentNames').hub]",
                 "allNsgRulesLoop"
             ],
             "properties": {
@@ -1539,7 +1540,6 @@
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
             "dependsOn": [
-                "[variables('deploymentNames').hub]",
                 "allHubNsgRulesLoop"
             ],
             "properties": {
@@ -1637,7 +1637,6 @@
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
             "dependsOn": [
-                "[variables('deploymentNames').hub]",
                 "allHubNsgRulesLoop"
             ],
             "properties": {
@@ -1648,7 +1647,7 @@
                     "parameters": {},
                     "resources": [
                         {
-                            "type": "Microsoft.Network/networkSecurityGroups/securityRules",
+                            "type": "Microsoft.Network/networkSecurityGroups/securityRules", 
                             "apiVersion": "2020-05-01",
                             "name": "[concat(variables('objHubVnet').subnets.jhSubnet.nsgName, '/AllowRdpOnPrem')]",
                             "properties": {
@@ -1913,6 +1912,55 @@
             "copy": {
                 "name": "spokeSubnet3NsgRulesLoop",
                 "count": "[length(variables('objAllSpokeSubnet3Nsgs'))]"
+            }
+        },
+        {
+            "comments": "Apply the (Do Not) Delete resource lock to the resource groups to where resources were deployed",
+            "condition": "[variables('settings').deployResources]",
+            "name": "[concat(variables('deploymentNames').resourceLock, copyIndex(1))]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "subscriptionId": "[split(variables('fullVnetDeploySubscriptionResourceGroup')[copyIndex()], '/')[0]]",
+            "resourceGroup": "[split(variables('fullVnetDeploySubscriptionResourceGroup')[copyIndex()], '/')[1]]",
+            "dependsOn": [
+                "[variables('deploymentNames').hubRbac]",
+                "spokeRbacLoop",
+                "[variables('deploymentNames').bastionHhub]",
+                "spokeBastionLoop",
+                "[variables('deploymentNames').firewall]",
+                "outboundPeerLoop",
+                "inboundPeerLoop",
+                "[variables('deploymentNames').nsgRulesDc]",
+                "[variables('deploymentNames').nsgRulesJh]",
+                "[variables('deploymentNames').nsgRulesHubSubnet1]",
+                "[variables('deploymentNames').nsgRulesHubSubnet2]",
+                "[variables('deploymentNames').nsgRulesHubSubnet3]",
+                "[variables('deploymentNames').nsgRulesHubSubnet4]",
+                "spokeSubnet1NsgRulesLoop",
+                "spokeSubnet2NsgRulesLoop",
+                "spokeSubnet3NsgRulesLoop"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "resources": [
+                        {
+                            "type": "Microsoft.Authorization/locks",
+                            "apiVersion": "2016-09-01",
+                            "name": "DoNotDelete",
+                            "properties": {
+                                "level": "CanNotDelete",
+                                "notes": "DO NOT DELETE this resource group or its resouces."
+                            }
+                        }
+                    ]
+                }
+            },
+            "copy": {
+                "name": "resourceLockLoop",
+                "count": "[length(variables('fullVnetDeploySubscriptionResourceGroup'))]"
             }
         }
     ],
