@@ -981,9 +981,7 @@
                             "name": "[variables('names').allAzureIpGroup]",
                             "location": "[variables('constants').location]",
                             "properties": {
-                                "ipAddresses": [
-                                    "[parameters('hubVnetAddressSpace')]"
-                                ]
+                                "ipAddresses": "[json(string(concat(array(parameters('hubVnetAddressSpace')), parameters('spokeVnetAddressSpace'))))]"
                             }
                         },
                         {
