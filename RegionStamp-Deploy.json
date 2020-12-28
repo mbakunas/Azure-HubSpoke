@@ -88,7 +88,7 @@
                 "description": "Address space of the subnet housing the domain controllers in CIDR notation."
             }
         },
-        "dcVmContributorsAadGroupId": {
+        "dcAdminsAadGroupId": {
             "type": "string",
             "metadata": {
                 "description": "The object ID of the group that will be able to join VMs to the domain controllers subnet.  Leave blank to skip the RBAC assignment."
@@ -190,7 +190,7 @@
             },
             "defaultValue": []
         },
-        "spokeVmContributorsAadGroupId": {
+        "appTeamsAadGroupId": {
             "type": "array",
             "metadata": {
                 "description": "The object IDs of the group(s) that will be able to join VMs to the spoke subnets.  Enter a single object ID to use the same group for all spoke RBAC assignments.  Leave blank to skip the RBAC assignment."
@@ -370,8 +370,8 @@
                     "addressSpace": "[parameters('spokeVnetAddressSpace')[copyIndex('objSpokeVnet')]]",
                     "ipGroupsName": "[concat(parameters('spokeVnetName')[copyIndex('objSpokeVnet')], '-', variables('names').ipGroupsSuffix)]",
                     "virtualMachineContributorRoleId": "[concat('/subscriptions/', split(variables('fullSpokeDeploySubscriptionResourceGroup')[copyIndex('objSpokeVnet')], '/')[0], '/providers/Microsoft.Authorization/roleDefinitions/9980e02c-c2be-4d73-94e8-173b1dc7cf3c')]",
-                    "spokeVmContributorsAadGroupId": "[if(equals(length(parameters('spokeVmContributorsAadGroupId')), 0), 'Skip', if(equals(length(parameters('spokeVmContributorsAadGroupId')), 1), parameters('spokeVmContributorsAadGroupId')[0], parameters('spokeVmContributorsAadGroupId')[copyIndex('objSpokeVnet')]))]",
-                    "spokeVmContributorsRoleAssignmentID": "[if(equals(length(parameters('spokeVmContributorsAadGroupId')), 0), 'Skip', parameters('spokeVmContributorsRoleAssignmentID')[copyIndex('objSpokeVnet')])]",
+                    "appTeamsAadGroupId": "[if(equals(length(parameters('appTeamsAadGroupId')), 0), 'Skip', if(equals(length(parameters('appTeamsAadGroupId')), 1), parameters('appTeamsAadGroupId')[0], parameters('appTeamsAadGroupId')[copyIndex('objSpokeVnet')]))]",
+                    "spokeVmContributorsRoleAssignmentID": "[if(equals(length(parameters('appTeamsAadGroupId')), 0), 'Skip', parameters('spokeVmContributorsRoleAssignmentID')[copyIndex('objSpokeVnet')])]",
                     "subnets":{
                         "bastionSubnet": {
                             "name": "AzureBastionSubnet",
@@ -464,9 +464,9 @@
             "readerRoleId": "[concat('/subscriptions/', split(variables('constants').currentSubRg, '/')[0], '/providers/Microsoft.Authorization/roleDefinitions/acdd72a7-3385-48ef-bd42-f606fba81ae7')]",
             "virtualMachineContributorRoleId": "[concat('/subscriptions/', split(variables('constants').currentSubRg, '/')[0], '/providers/Microsoft.Authorization/roleDefinitions/9980e02c-c2be-4d73-94e8-173b1dc7cf3c')]",
             "networkContributorRoleId": "[concat('/subscriptions/', split(variables('constants').currentSubRg, '/')[0], '/providers/Microsoft.Authorization/roleDefinitions/4d97b98b-1d4f-4787-a291-c67834d212e7')]",
-            "vmContributorAadGroupId": "[if(equals(parameters('dcVmContributorsAadGroupId'), ''), 'Skip', parameters('dcVmContributorsAadGroupId'))]",
-            "dcVmContributorsRoleAssignmentID": "[if(equals(parameters('dcVmContributorsAadGroupId'), ''), 'Skip', parameters('dcVmContributorsRoleAssignmentID')[0])]",
-            "dcVnetReaderRoleAssignmentID": "[if(equals(parameters('dcVmContributorsAadGroupId'), ''), 'Skip', parameters('dcVmContributorsRoleAssignmentID')[1])]",
+            "dcAdminsAadGroupId": "[if(equals(parameters('dcAdminsAadGroupId'), ''), 'Skip', parameters('dcAdminsAadGroupId'))]",
+            "dcVmContributorsRoleAssignmentID": "[if(equals(parameters('dcAdminsAadGroupId'), ''), 'Skip', parameters('dcVmContributorsRoleAssignmentID')[0])]",
+            "dcVnetReaderRoleAssignmentID": "[if(equals(parameters('dcAdminsAadGroupId'), ''), 'Skip', parameters('dcVmContributorsRoleAssignmentID')[1])]",
             "subnets": {
                 "gatewaySubnet": {
                     "name": "GatewaySubnet",
@@ -831,26 +831,26 @@
                     "resources": [
                         {
                             "comments": "DC subnet contributor RBAC assignment",
-                            "condition": "[not(equals(variables('objHubVnet').vmContributorAadGroupId, 'Skip'))]",
+                            "condition": "[not(equals(variables('objHubVnet').dcAdminsAadGroupId, 'Skip'))]",
                             "name": "[variables('objHubVnet').dcVmContributorsRoleAssignmentID]",
                             "type": "Microsoft.Authorization/roleAssignments",
                             "apiVersion": "2020-04-01-preview",
                             "scope": "[concat('Microsoft.Network/virtualNetworks/', variables('objHubVnet').name, '/subnets/',variables('objHubVnet').subnets.dcSubnet.name)]",
                             "properties": {
                                 "roleDefinitionId": "[variables('objHubVnet').virtualMachineContributorRoleId]",
-                                "principalId": "[variables('objHubVnet').vmContributorAadGroupId]"
+                                "principalId": "[variables('objHubVnet').dcAdminsAadGroupId]"
                             }
                         },
                         {
                             "comments": "Hub VNet reader RBAC assignment",
-                            "condition": "[not(equals(variables('objHubVnet').vmContributorAadGroupId, 'Skip'))]",
+                            "condition": "[not(equals(variables('objHubVnet').dcAdminsAadGroupId, 'Skip'))]",
                             "name": "[variables('objHubVnet').dcVnetReaderRoleAssignmentID]",
                             "type": "Microsoft.Authorization/roleAssignments",
                             "apiVersion": "2020-04-01-preview",
                             "scope": "[concat('Microsoft.Network/virtualNetworks/', variables('objHubVnet').name)]",
                             "properties": {
                                 "roleDefinitionId": "[variables('objHubVnet').readerRoleId]",
-                                "principalId": "[variables('objHubVnet').vmContributorAadGroupId]"
+                                "principalId": "[variables('objHubVnet').dcAdminsAadGroupId]"
                             }
                         }
                     ]
@@ -883,7 +883,7 @@
                             "scope": "[concat('Microsoft.Network/virtualNetworks/', variables('objSpokeVnet')[copyIndex()].name)]",
                             "properties": {
                                 "roleDefinitionId": "[variables('objHubVnet').virtualMachineContributorRoleId]",
-                                "principalId": "[variables('objSpokeVnet')[copyIndex()].spokeVmContributorsAadGroupId]"
+                                "principalId": "[variables('objSpokeVnet')[copyIndex()].appTeamsAadGroupId]"
                             }
                         }
                     ]

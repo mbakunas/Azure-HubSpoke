@@ -68,7 +68,7 @@
         "hubSubnet4AddressSpace": {
             "value": "10.0.1.96/27"
         },
-        "dcVmContributorsAadGroupId": {
+        "dcAdminsAadGroupId": {
             "value": "17ba8236-a5e8-4173-8ce9-c69b17743ac2"
         },
         "dcVmContributorsRoleAssignmentID": {
@@ -151,7 +151,7 @@
                 "10.3.3.0/24"
             ]
         },
-        "spokeVmContributorsAadGroupId": {
+        "appTeamsAadGroupId": {
             "value": [
                 "c2ecad99-6ed7-4e11-8acc-0fa0262a2c69"
             ]
