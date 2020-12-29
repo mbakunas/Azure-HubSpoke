@@ -57,6 +57,13 @@ Outbound edge security is handled by the Azure Firewall.  If deployed, a route t
 * Allow AzureCloud
 * Allow WindowsUpdate
 
+If the firewall is deployed, there are IP groups deployed that represent the following:
+* The entire hub and spoke address space
+* The hub address space
+* Each spoke address space
+* Each hub subnet
+* Each spoke subnet
+
 The intent is that the inbound edge security will be handled by app gateways running WAF, hence the option for an app gateway subnet in the spokes.
 
 ### Role-Based Access Control (RBAC)
