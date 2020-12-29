@@ -15,7 +15,7 @@
 
 ### Hub VNet
 
-The hub VNet could have the following subnets:
+The hub VNet has the following subnets:
 
 * GatewaySubnet for the ExpressRoute and VNet gateways
 * AzureFirewallSubnet for the Azure Firewall (optional)
@@ -29,7 +29,7 @@ The hub VNet could have the following subnets:
 
 ### Spoke VNet(s)
 
-This soltion deploys spokes that could have the following subnuts:
+This soltion deploys spokes that with the following subnuts:
 
 * AzureBastionSubnet for the Azure Bastion (optional)
 * A subnet for the application gateways (optional)
@@ -46,11 +46,18 @@ This soltion deploys spokes that could have the following subnuts:
 * High security does not deploy the NSG rule that allows intra-subnet traffic
 * Both Medium and High security deploy the following NSG rules:
   * The DCs subnet allows inbound ports and protocols as specified [in the Microsoft documentation](https://docs.microsoft.com/en-us/troubleshoot/windows-server/networking/service-overview-and-network-port-requirements#active-directory-local-security-authority)
-  * If the AzureBastion is deployed in any VNet an NSG rule is deployed allowing RDP from the Azure Bastion subnet
+  * If the AzureBastion is deployed in any VNet an NSG rule is deployed allowing RDP from the Azure Bastion subnet to the rest of the VNet's subnets
 
 ### Role-Based Access Control (RBAC)
 
+RBAC is set as follows:
+* A specified AAD group has VM contributor to the spoke VNet(s).  The intention is that the application development teams and anyone else needing to deploy VMs to the spoke VNet are members of this group
+* A specified AAD group has VM contributor to the hub subnets.  The intention is that the server team or anyone needing to deploy infrastructure to the hub are members of this group
+* An optional specified AAD group that has VM contributor to the DCs subnet.  If specified this group, instead of the above group, will have VM conributor to the DCs subnet.  The intention is that the identity team (or whichever team is responsible for the DCs) are members of this group
+
 ### Resource Locks
+
+The last step in the deployment is to place a DoNotDelete lock on all the resource groups to which this solution deploys resources.
 
 ### Forced Naming Convention
 
@@ -75,19 +82,10 @@ This solution must be deployed to an existing resource group in an existing subs
 
 This solution will only deploy the necessary networking components, not any VMs.
 
+### Limitations
+
 ### Pre-Requisites
 
 ### Subscription and resource groups
 
 Azure deployments must be deployed to an existing resource group in an existing subecription.  The hub VNet will be deployed to this subecription/resource group combination. The spoke VNet(s) can be deployed to any existing subscription/resource group (requires at least contributor access). 
-
-
-
-
-
-
-
-#### Network Security Groups (NSGs)
-
-### Naming convention used by this solution
-
