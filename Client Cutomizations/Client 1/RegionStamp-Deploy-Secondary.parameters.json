@@ -1,0 +1,170 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "assetLocationURI": {
+            "value": "https://raw.githubusercontent.com/mbakunas/Azure-HubSpoke/master/"
+        },
+        "vnetDdosProtectionLevel": {
+            "value": "Standard - Create New"
+        },
+        "vnetDdosProtectionPlanName": {
+            "value": "DDOS-Plan-01"
+        },
+        "vnetNsgSecurityLevel": {
+            "value": "Medium"
+        },
+        "routeTableName": {
+            "value": "RouteTable-01"
+        },
+        "hubVnetName": {
+            "value": "HUB-NorthCentralUS-01"
+        },
+        "hubVnetAddressSpace": {
+            "value": "10.202.40.0/23"
+        },
+        "hubSubnetGatewayAddressSpace": {
+            "value": "10.202.40.0/26"
+        },
+        "hubSubnetFirewallAddressSpace": {
+            "value": "10.202.40.64/26"
+        },
+        "hubSubnetBastionAddressSpace": {
+            "value": "0.0.0.0/0"
+        },
+        "hubSubnetDcName": {
+            "value": "InternalDCs"
+        },
+        "hubSubnetDcAddressSpace": {
+            "value": "10.202.40.128/27"
+        },
+        "hubSubnetJumpHostsName": {
+            "value": "JumpHosts"
+        },
+        "hubSubnetJumpHostsAddressSpace": {
+            "value": "10.202.9.0/26"
+        },
+        "hubSubnet1Name": {
+            "value": "EdgeDCs"
+        },
+        "hubSubnet1AddressSpace": {
+            "value": "10.202.40.160/27"
+        },
+        "hubSubnet2Name": {
+            "value": "DNS"
+        },
+        "hubSubnet2AddressSpace": {
+            "value": "10.202.41.0/26"
+        },
+        "hubSubnet3Name": {
+            "value": "Infrastructure"
+        },
+        "hubSubnet3AddressSpace": {
+            "value": "0.0.0.0/0"
+        },
+        "hubSubnet4Name": {
+            "value": "Subnet4"
+        },
+        "hubSubnet4AddressSpace": {
+            "value": "0.0.0.0/0"
+        },
+        "dcSubnetVmContAadGroupId": {
+            "value": "17ba8236-a5e8-4173-8ce9-c69b17743ac2"
+        },
+        "dcVmContributorsRoleAssignmentID": {
+            "value": [
+                "184540aa-dae3-42cd-a5aa-0f1c34c17d98",
+                "bde41287-27a2-4a80-b587-6ac6d56a303a"
+            ]
+        },
+        "hubSubnetVmContAadGroupId": {
+            "value": "5eb970ea-e71a-4bf9-ba78-0529b3aeb2f3"
+        },
+        "hubSubnetVmContRoleAssignmantId": {
+            "value": [
+                "0702dcd4-0b65-4ebb-8ebd-873e2729904b",
+                "594fd8bf-f554-4272-8b19-9725c7b706b4",
+                "b3f5340d-28be-4029-bc10-56af7e20ac75",
+                "7a1689a7-66d8-4010-9213-c837316f8a30"
+            ]
+        },
+        "spokeVnetName": {
+            "value": [
+                "Spoke-Prod-NorthCentralUS-01",
+                "Spoke-NonProd-NorthCentralUS-01"
+            ]
+        },
+        "spokeVnetAddressSpace": {
+            "value": [
+                "10.202.48.0/21",
+                "10.202.56.0/21"
+            ]
+        },
+        "spokeDeploySubscriptionResourceGroup": {
+            "value": [
+                "",
+                "c64ca001-2cce-46de-837e-03f5564fc802/HubSpoke-02"
+            ]
+        },
+        "spokeSubnetBastionAddressSpace": {
+            "value": [
+                "0.0.0.0/0"
+            ]
+        },
+        "spokeSubnetAppGwName": {
+            "value": [
+                "AppGW"
+            ]
+        },
+        "spokeSubnetAppGwAddressSpace": {
+            "value": [
+                "10.202.49.0/24",
+                "10.202.57.0/24"
+            ]
+        },
+        "spokeSubnet1Name": {
+            "value": [
+                "Edge"
+            ]
+        },
+        "spokeSubnet1AddressSpace": {
+            "value": [
+                "10.202.48.0/25",
+                "10.202.56.0/25"
+            ]
+        },
+        "spokeSubnet2Name": {
+            "value": [
+                "Mid"
+            ]
+        },
+        "spokeSubnet2AddressSpace": {
+            "value": [
+                "10.202.48.128/25",
+                "10.202.56.128/25"
+            ]
+        },
+        "spokeSubnet3Name": {
+            "value": [
+                "Internal"
+            ]
+        },
+        "spokeSubnet3AddressSpace": {
+            "value": [
+                "10.202.50.0/23",
+                "10.202.57.0/24"
+            ]
+        },
+        "spokeVmContAadGroupId": {
+            "value": [
+                "c2ecad99-6ed7-4e11-8acc-0fa0262a2c69"
+            ]
+        },
+        "spokeVmContributorsRoleAssignmentID": {
+            "value": [
+                "5a29e932-06c6-4e07-8e1b-d5f96c3524cf",
+                "ce7a113f-e760-4b94-a223-a52a1d2113d6"
+            ]
+        }
+    }
+}
