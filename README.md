@@ -53,6 +53,8 @@ This solution deploys spokes that with the following subnets:
 
 ### Edge Security
 
+#### Egress
+
 Outbound edge security is handled by the Azure Firewall.  If deployed, a route table is deployed directing all Internet-bound traffic to the Azure Firewall which has the following default rules:
 * Allow AzureCloud
 * Allow WindowsUpdate
@@ -63,6 +65,8 @@ If the firewall is deployed, there are IP groups deployed that represent the fol
 * Each spoke address space
 * Each hub subnet
 * Each spoke subnet
+
+#### Ingress
 
 The intent is that the inbound edge security will be handled by app gateways running WAF, hence the option for an app gateway subnet in the spokes.
 
