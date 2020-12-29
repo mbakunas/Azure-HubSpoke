@@ -29,7 +29,7 @@ The hub VNet has the following subnets:
 
 ### Spoke VNet(s)
 
-This soltion deploys spokes that with the following subnuts:
+This solution deploys spokes that with the following subnets:
 
 * AzureBastionSubnet for the Azure Bastion (optional)
 * A subnet for the application gateways (optional)
@@ -41,7 +41,7 @@ This soltion deploys spokes that with the following subnuts:
 
 * Medium security configures three NSG rules on all subnets:
   * Allow intra-subnet traffic
-  * Allow inbund RDP from the JumpHosts subnet (if that subnet is deployed)
+  * Allow inbound RDP from the JumpHosts subnet (if that subnet is deployed)
   * Deny inbound traffic from VirtualNetwork
 * High security does not deploy the NSG rule that allows intra-subnet traffic
 * Both Medium and High security deploy the following NSG rules:
@@ -53,7 +53,7 @@ This soltion deploys spokes that with the following subnuts:
 RBAC is set as follows:
 * A specified AAD group has VM contributor to the spoke VNet(s).  The intention is that the application development teams and anyone else needing to deploy VMs to the spoke VNet are members of this group
 * A specified AAD group has VM contributor to the hub subnets.  The intention is that the server team or anyone needing to deploy infrastructure to the hub are members of this group
-* An optional specified AAD group that has VM contributor to the DCs subnet.  If specified this group, instead of the above group, will have VM conributor to the DCs subnet.  The intention is that the identity team (or whichever team is responsible for the DCs) are members of this group
+* An optional specified AAD group that has VM contributor to the DCs subnet.  If specified this group, instead of the above group, will have VM contributor to the DCs subnet.  The intention is that the identity team (or whichever team is responsible for the DCs) are members of this group
 
 ### Resource Locks
 
@@ -76,16 +76,12 @@ This solution uses the following naming convention:
 
 ## Using the Solution
 
-### General Instructions
-
-This solution must be deployed to an existing resource group in an existing subscription(s).  The foreign resource group(s) must exist and be in the same region as the resource group being deployed to.  Also, the the user deploying the solution must have at least contributor access to the remote resource group or the deployment will fail (technically the deployment will not pass validation).
-
-This solution will only deploy the necessary networking components, not any VMs.
-
 ### Limitations
+
+This set of templates is not truly idempotent in that if VMs are attached to any of the VNets (or the ExpressRoute gateway) a redeployment will fail.  This situation is due to the way the VNets and subnets are deployed.  In order to make some of the subnets optional, the subnets are deployed as separate resources from the VNet; the VNets are deployed without any subnets.  A subsequent redeploy will attempt to delete the subnets, which will fail if anything is attached.
 
 ### Pre-Requisites
 
-### Subscription and resource groups
+#### Subscription and resource groups
 
-Azure deployments must be deployed to an existing resource group in an existing subecription.  The hub VNet will be deployed to this subecription/resource group combination. The spoke VNet(s) can be deployed to any existing subscription/resource group (requires at least contributor access). 
+Azure deployments must be deployed to an existing resource group in an existing subecription.  The hub VNet will be deployed to this subscription/resource group combination. The spoke VNet(s) can be deployed to any existing subscription/resource group (requires at least contributor access). 
