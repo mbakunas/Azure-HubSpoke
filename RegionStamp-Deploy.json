@@ -275,7 +275,7 @@
             "deployResources": false,
             "allowRdpToDcs": true,
             "useFirewallForEgress": true,
-            "deployExpressRouteGateway": true
+            "deployExpressRouteGateway": false
         },
         "constants": {
             "location": "[resourceGroup().location]",
@@ -478,10 +478,9 @@
             "virtualMachineContributorRoleId": "[concat('/subscriptions/', split(variables('constants').currentSubRg, '/')[0], '/providers/Microsoft.Authorization/roleDefinitions/9980e02c-c2be-4d73-94e8-173b1dc7cf3c')]",
             "networkContributorRoleId": "[concat('/subscriptions/', split(variables('constants').currentSubRg, '/')[0], '/providers/Microsoft.Authorization/roleDefinitions/4d97b98b-1d4f-4787-a291-c67834d212e7')]",
             "dcSubnetVmContAadGroupId": "[if(equals(parameters('dcSubnetVmContAadGroupId'), ''), 'Skip', parameters('dcSubnetVmContAadGroupId'))]",
-            "dcVmContributorsRoleAssignmentID": "[if(equals(parameters('dcSubnetVmContAadGroupId'), ''), 'Skip', parameters('dcVmContributorsRoleAssignmentID')[0])]",
             "dcVnetReaderRoleAssignmentID": "[if(equals(parameters('dcSubnetVmContAadGroupId'), ''), 'Skip', parameters('dcVmContributorsRoleAssignmentID')[1])]",
             "hubSubnetVmContAadGroupId": "[parameters('hubSubnetVmContAadGroupId')]",
-            "hubSubnetVmContRoleAssignmantId": "[parameters('hubSubnetVmContRoleAssignmantId')]",
+            "hubSubnetVmContRoleAssignmantId": "[parameters('hubSubnetVmContRoleAssignmantId')[0]]",
             "subnets": {
                 "gatewaySubnet": {
                     "name": "GatewaySubnet",
@@ -503,7 +502,8 @@
                     "name": "[my.subnetFullName(parameters('hubSubnetDcName'), parameters('hubSubnetDcAddressSpace'))]",
                     "addressSpace": "[parameters('hubSubnetDcAddressSpace')]",
                     "nsgName": "[my.nsgName(my.subnetFullName(parameters('hubSubnetDcName'), parameters('hubSubnetDcAddressSpace')))]",
-                    "ipGroupsName": "[my.ipGroupsName(parameters('hubVnetName'), my.subnetFullName(parameters('hubSubnetDcName'), parameters('hubSubnetDcAddressSpace')), variables('names').ipGroupsSuffix)]"
+                    "ipGroupsName": "[my.ipGroupsName(parameters('hubVnetName'), my.subnetFullName(parameters('hubSubnetDcName'), parameters('hubSubnetDcAddressSpace')), variables('names').ipGroupsSuffix)]",
+                    "hubSubnetVmContRoleAssignmantId": "[parameters('dcVmContributorsRoleAssignmentID')[0]]"
                 },
                 "jhSubnet": {
                     "subscriptionId": "[split(variables('constants').currentSubRg, '/')[0]]",
@@ -511,7 +511,8 @@
                     "name": "[my.subnetFullName(parameters('hubSubnetJumpHostsName'), parameters('hubSubnetJumpHostsAddressSpace'))]",
                     "addressSpace": "[parameters('hubSubnetJumpHostsAddressSpace')]",
                     "nsgName": "[my.nsgName(my.subnetFullName(parameters('hubSubnetJumpHostsName'), parameters('hubSubnetJumpHostsAddressSpace')))]",
-                    "ipGroupsName": "[my.ipGroupsName(parameters('hubVnetName'), my.subnetFullName(parameters('hubSubnetJumpHostsName'), parameters('hubSubnetJumpHostsAddressSpace')), variables('names').ipGroupsSuffix)]"
+                    "ipGroupsName": "[my.ipGroupsName(parameters('hubVnetName'), my.subnetFullName(parameters('hubSubnetJumpHostsName'), parameters('hubSubnetJumpHostsAddressSpace')), variables('names').ipGroupsSuffix)]",
+                    "hubSubnetVmContRoleAssignmantId": "[if(equals(parameters('hubSubnetJumpHostsAddressSpace'), '0.0.0.0/0'), 'SkipJumpHostsSubnetRBAC', parameters('hubSubnetVmContRoleAssignmantId')[1])]"
                 },
                 "subnet1": {
                     "subscriptionId": "[split(variables('constants').currentSubRg, '/')[0]]",
@@ -519,7 +520,8 @@
                     "name": "[my.subnetFullName(parameters('hubSubnet1Name'), parameters('hubSubnet1AddressSpace'))]",
                     "addressSpace": "[parameters('hubSubnet1AddressSpace')]",
                     "nsgName": "[my.nsgName(my.subnetFullName(parameters('hubSubnet1Name'), parameters('hubSubnet1AddressSpace')))]",
-                    "ipGroupsName": "[my.ipGroupsName(parameters('hubVnetName'), my.subnetFullName(parameters('hubSubnet1Name'), parameters('hubSubnet1AddressSpace')), variables('names').ipGroupsSuffix)]"
+                    "ipGroupsName": "[my.ipGroupsName(parameters('hubVnetName'), my.subnetFullName(parameters('hubSubnet1Name'), parameters('hubSubnet1AddressSpace')), variables('names').ipGroupsSuffix)]",
+                    "hubSubnetVmContRoleAssignmantId": "[if(equals(parameters('hubSubnet1AddressSpace'), '0.0.0.0/0'), 'SkipSubnet1RBAC', if(equals(parameters('hubSubnetJumpHostsAddressSpace'), '0.0.0.0/0'), parameters('hubSubnetVmContRoleAssignmantId')[1], parameters('hubSubnetVmContRoleAssignmantId')[2]))]"
                 },
                 "subnet2": {
                     "subscriptionId": "[split(variables('constants').currentSubRg, '/')[0]]",
@@ -527,7 +529,8 @@
                     "name": "[my.subnetFullName(parameters('hubSubnet2Name'), variables('fullHubSubnet2AddressSpace'))]",
                     "addressSpace": "[variables('fullHubSubnet2AddressSpace')]",
                     "nsgName": "[my.nsgName(my.subnetFullName(parameters('hubSubnet2Name'), variables('fullHubSubnet2AddressSpace')))]",
-                    "ipGroupsName": "[my.ipGroupsName(parameters('hubVnetName'), my.subnetFullName(parameters('hubSubnet2Name'), variables('fullHubSubnet2AddressSpace')), variables('names').ipGroupsSuffix)]"
+                    "ipGroupsName": "[my.ipGroupsName(parameters('hubVnetName'), my.subnetFullName(parameters('hubSubnet2Name'), variables('fullHubSubnet2AddressSpace')), variables('names').ipGroupsSuffix)]",
+                    "hubSubnetVmContRoleAssignmantId": "[if(equals(variables('fullHubSubnet2AddressSpace'), '0.0.0.0/0'), 'SkipSubnet2RBAC', if(equals(parameters('hubSubnetJumpHostsAddressSpace'), '0.0.0.0/0'), parameters('hubSubnetVmContRoleAssignmantId')[2], parameters('hubSubnetVmContRoleAssignmantId')[3]))]"
                 },
                 "subnet3": {
                     "subscriptionId": "[split(variables('constants').currentSubRg, '/')[0]]",
@@ -535,7 +538,8 @@
                     "name": "[my.subnetFullName(parameters('hubSubnet3Name'), variables('fullHubSubnet3AddressSpace'))]",
                     "addressSpace": "[variables('fullHubSubnet3AddressSpace')]",
                     "nsgName": "[my.nsgName(my.subnetFullName(parameters('hubSubnet3Name'), variables('fullHubSubnet3AddressSpace')))]",
-                    "ipGroupsName": "[my.ipGroupsName(parameters('hubVnetName'), my.subnetFullName(parameters('hubSubnet3Name'), variables('fullHubSubnet3AddressSpace')), variables('names').ipGroupsSuffix)]"
+                    "ipGroupsName": "[my.ipGroupsName(parameters('hubVnetName'), my.subnetFullName(parameters('hubSubnet3Name'), variables('fullHubSubnet3AddressSpace')), variables('names').ipGroupsSuffix)]",
+                    "hubSubnetVmContRoleAssignmantId": "[if(equals(variables('fullHubSubnet3AddressSpace'), '0.0.0.0/0'), 'SkipSubnet3RBAC', if(equals(parameters('hubSubnetJumpHostsAddressSpace'), '0.0.0.0/0'), parameters('hubSubnetVmContRoleAssignmantId')[3], parameters('hubSubnetVmContRoleAssignmantId')[4]))]"
                 },
                 "subnet4": {
                     "subscriptionId": "[split(variables('constants').currentSubRg, '/')[0]]",
@@ -543,7 +547,8 @@
                     "name": "[my.subnetFullName(parameters('hubSubnet4Name'), variables('fullHubSubnet4AddressSpace'))]",
                     "addressSpace": "[variables('fullHubSubnet4AddressSpace')]",
                     "nsgName": "[my.nsgName(my.subnetFullName(parameters('hubSubnet4Name'), variables('fullHubSubnet4AddressSpace')))]",
-                    "ipGroupsName": "[my.ipGroupsName(parameters('hubVnetName'), my.subnetFullName(parameters('hubSubnet4Name'), variables('fullHubSubnet4AddressSpace')), variables('names').ipGroupsSuffix)]"
+                    "ipGroupsName": "[my.ipGroupsName(parameters('hubVnetName'), my.subnetFullName(parameters('hubSubnet4Name'), variables('fullHubSubnet4AddressSpace')), variables('names').ipGroupsSuffix)]",
+                    "hubSubnetVmContRoleAssignmantId": "[if(equals(variables('fullHubSubnet4AddressSpace'), '0.0.0.0/0'), 'SkipSubnet4RBAC', if(equals(parameters('hubSubnetJumpHostsAddressSpace'), '0.0.0.0/0'), parameters('hubSubnetVmContRoleAssignmantId')[4], parameters('hubSubnetVmContRoleAssignmantId')[5]))]"
                 }
             }
         },
@@ -846,8 +851,7 @@
                     "resources": [
                         {
                             "comments": "DC subnet contributor RBAC assignment",
-                            "condition": "[not(equals(variables('objHubVnet').dcSubnetVmContAadGroupId, 'Skip'))]",
-                            "name": "[variables('objHubVnet').dcVmContributorsRoleAssignmentID]",
+                            "name": "[variables('objHubVnet').subnets.dcSubnet.hubSubnetVmContRoleAssignmantId]",
                             "type": "Microsoft.Authorization/roleAssignments",
                             "apiVersion": "2020-04-01-preview",
                             "scope": "[concat('Microsoft.Network/virtualNetworks/', variables('objHubVnet').name, '/subnets/',variables('objHubVnet').subnets.dcSubnet.name)]",
@@ -870,7 +874,7 @@
                         },
                         {
                             "comments": "Hub VNet reader RBAC assignment for server admins",
-                            "name": "[variables('objHubVnet').hubSubnetVmContRoleAssignmantId[0]]",
+                            "name": "[variables('objHubVnet').hubSubnetVmContRoleAssignmantId]",
                             "type": "Microsoft.Authorization/roleAssignments",
                             "apiVersion": "2020-04-01-preview",
                             "scope": "[concat('Microsoft.Network/virtualNetworks/', variables('objHubVnet').name)]",
@@ -882,7 +886,7 @@
                         {
                             "comments": "Jump Hosts subnet contributor RBAC assignment",
                             "condition": "[not(equals(variables('objHubVnet').subnets.jhSubnet.addressSpace, '0.0.0.0/0'))]",
-                            "name": "[variables('objHubVnet').hubSubnetVmContRoleAssignmantId[1]]",
+                            "name": "[variables('objHubVnet').subnets.jhSubnet.hubSubnetVmContRoleAssignmantId]",
                             "type": "Microsoft.Authorization/roleAssignments",
                             "apiVersion": "2020-04-01-preview",
                             "scope": "[concat('Microsoft.Network/virtualNetworks/', variables('objHubVnet').name, '/subnets/',variables('objHubVnet').subnets.jhSubnet.name)]",
@@ -894,7 +898,7 @@
                         {
                             "comments": "Subnet1 contributor RBAC assignment",
                             "condition": "[not(equals(variables('objHubVnet').subnets.subnet1.addressSpace, '0.0.0.0/0'))]",
-                            "name": "[if(equals(variables('objHubVnet').subnets.jhSubnet.addressSpace, '0.0.0.0/0'), variables('objHubVnet').hubSubnetVmContRoleAssignmantId[1], variables('objHubVnet').hubSubnetVmContRoleAssignmantId[2])]",
+                            "name": "[variables('objHubVnet').subnets.subnet1.hubSubnetVmContRoleAssignmantId]",
                             "type": "Microsoft.Authorization/roleAssignments",
                             "apiVersion": "2020-04-01-preview",
                             "scope": "[concat('Microsoft.Network/virtualNetworks/', variables('objHubVnet').name, '/subnets/',variables('objHubVnet').subnets.subnet1.name)]",
@@ -906,7 +910,7 @@
                         {
                             "comments": "Subnet2 contributor RBAC assignment",
                             "condition": "[not(equals(variables('objHubVnet').subnets.subnet2.addressSpace, '0.0.0.0/0'))]",
-                            "name": "[if(equals(variables('objHubVnet').subnets.jhSubnet.addressSpace, '0.0.0.0/0'), variables('objHubVnet').hubSubnetVmContRoleAssignmantId[2], variables('objHubVnet').hubSubnetVmContRoleAssignmantId[3])]",
+                            "name": "[variables('objHubVnet').subnets.subnet2.hubSubnetVmContRoleAssignmantId]",
                             "type": "Microsoft.Authorization/roleAssignments",
                             "apiVersion": "2020-04-01-preview",
                             "scope": "[concat('Microsoft.Network/virtualNetworks/', variables('objHubVnet').name, '/subnets/',variables('objHubVnet').subnets.subnet2.name)]",
@@ -918,7 +922,7 @@
                         {
                             "comments": "Subnet3 contributor RBAC assignment",
                             "condition": "[not(equals(variables('objHubVnet').subnets.subnet3.addressSpace, '0.0.0.0/0'))]",
-                            "name": "[if(equals(variables('objHubVnet').subnets.jhSubnet.addressSpace, '0.0.0.0/0'), variables('objHubVnet').hubSubnetVmContRoleAssignmantId[3], variables('objHubVnet').hubSubnetVmContRoleAssignmantId[4])]",
+                            "name": "[variables('objHubVnet').subnets.subnet3.hubSubnetVmContRoleAssignmantId]",
                             "type": "Microsoft.Authorization/roleAssignments",
                             "apiVersion": "2020-04-01-preview",
                             "scope": "[concat('Microsoft.Network/virtualNetworks/', variables('objHubVnet').name, '/subnets/',variables('objHubVnet').subnets.subnet3.name)]",
@@ -930,7 +934,7 @@
                         {
                             "comments": "Subnet4 contributor RBAC assignment",
                             "condition": "[not(equals(variables('objHubVnet').subnets.subnet4.addressSpace, '0.0.0.0/0'))]",
-                            "name": "[if(equals(variables('objHubVnet').subnets.jhSubnet.addressSpace, '0.0.0.0/0'), variables('objHubVnet').hubSubnetVmContRoleAssignmantId[4], variables('objHubVnet').hubSubnetVmContRoleAssignmantId[5])]",
+                            "name": "[variables('objHubVnet').subnets.subnet4.hubSubnetVmContRoleAssignmantId]",
                             "type": "Microsoft.Authorization/roleAssignments",
                             "apiVersion": "2020-04-01-preview",
                             "scope": "[concat('Microsoft.Network/virtualNetworks/', variables('objHubVnet').name, '/subnets/',variables('objHubVnet').subnets.subnet4.name)]",
