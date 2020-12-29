@@ -47,6 +47,17 @@ This solution deploys spokes that with the following subnets:
 * Both Medium and High security deploy the following NSG rules:
   * The DCs subnet allows inbound ports and protocols as specified [in the Microsoft documentation](https://docs.microsoft.com/en-us/troubleshoot/windows-server/networking/service-overview-and-network-port-requirements#active-directory-local-security-authority)
   * If the AzureBastion is deployed in any VNet an NSG rule is deployed allowing RDP from the Azure Bastion subnet to the rest of the VNet's subnets
+* If the app gateway subnet is deployed in the spoke(s), the following rules are added to subnet 1:
+  * Allow 80/443 inbound from the app gateway subnet
+  * Allow AzureLoadBalancer inbound from the app gateway subnet
+
+### Edge Security
+
+Outbound edge security is handled by the Azure Firewall.  If deployed, a route table is deployed directing all Internet-bound traffic to the Azure Firewall which has the following default rules:
+* Allow AzureCloud
+* Allow WindowsUpdate
+
+The intent is that the inbound edge security will be handled by app gateways running WAF, hence the option for an app gateway subnet in the spokes.
 
 ### Role-Based Access Control (RBAC)
 
@@ -71,7 +82,7 @@ This solution uses the following naming convention:
 | Network Security Group | [Subnet Name]-NSG | Infra-10.64.0.192-27-NSG |
 | Azure Bastion | [VNet Name]-Bastion | HUB-EastUS2-01-Bastion |
 | Azure Firewall | [VNet Name]-Firewall | HUB-EastUS2-01-Firewall |
-| IP Groups | [VNet Name]-[Subnet Name] | HUB-EastUS2-01-Infra-10.64.0.192-27 |
+| IP Groups | [VNet Name]-[Subnet Name]-IpGroup | HUB-EastUS2-01-Infra-10.64.0.192-27-IpGroup |
 | Public IP Address | [Resource Name]-IP | HUB-EastUS2-01-Firewall-IP |
 
 ## Using the Solution
