@@ -79,7 +79,7 @@ RBAC is set as follows:
 
 ### DDOS Protection
 
-This solution optionally deploys a DDOS Protection Plan.  
+This solution optionally deploys a DDoS Protection Plan.  Since a [single DDoS Protection Plan can be used across multiple subscriptions in a tenant](https://azure.microsoft.com/en-us/pricing/details/ddos-protection/), the solution can use an existing Plan.
 
 ### Resource Locks
 
