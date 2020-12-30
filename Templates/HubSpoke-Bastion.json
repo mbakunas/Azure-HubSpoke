@@ -14,6 +14,10 @@
         "bastionIpName": {
             "type": "string",
             "defaultValue": "VNet-Hub-01-Bastion-IP"
+        },
+        "location": {
+            "type": "string",
+            "defaultValue": "eastus2"
         }
     },
     "variables": {
@@ -24,7 +28,7 @@
             "type": "Microsoft.Network/bastionHosts",
             "name": "[parameters('bastionName')]",
             "apiVersion": "2020-03-01",
-            "location": "[resourceGroup().location]",
+            "location": "[parameters('location')]",
             "dependsOn": [
                 "[resourceId('Microsoft.Network/publicIPAddresses', parameters('bastionIpName'))]"
             ],

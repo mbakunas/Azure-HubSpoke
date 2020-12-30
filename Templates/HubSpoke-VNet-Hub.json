@@ -92,10 +92,13 @@
         },
         "ddosPlanId": {
             "type": "string"
+        },
+        "location": {
+            "type": "string",
+            "defaultValue": "eastus2"
         }
     },
     "variables": {
-        "location": "[resourceGroup().location]",
         "routeTableIdJSON": "[json(concat('{\"id\": \"', resourceId('Microsoft.Network/routeTables', parameters('routeTableName')), '\"}'))]",
         "ddosPlanIdJSON": "[json(concat('{\"id\": \"', parameters('ddosPlanId'), '\"}'))]"
     },
@@ -105,7 +108,7 @@
             "type": "Microsoft.Network/virtualNetworks",
             "apiVersion": "2020-05-01",
             "name": "[parameters('virtualNetwork_name')]",
-            "location": "[variables('location')]",
+            "location": "[parameters('location')]",
             "dependsOn": [
                 "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_JH_name'))]",
                 "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_DC_name'))]",
@@ -205,7 +208,7 @@
             "type": "Microsoft.Network/networkSecurityGroups",
             "apiVersion": "2020-05-01",
             "name": "[parameters('nsg_DC_name')]",
-            "location": "[variables('location')]",
+            "location": "[parameters('location')]",
             "properties": {
                 "securityRules": []
             }
@@ -237,7 +240,7 @@
             "type": "Microsoft.Network/networkSecurityGroups",
             "apiVersion": "2020-05-01",
             "name": "[parameters('nsg_JH_name')]",
-            "location": "[variables('location')]",
+            "location": "[parameters('location')]",
             "properties": {
                 "securityRules": []
             }
@@ -270,7 +273,7 @@
             "type": "Microsoft.Network/networkSecurityGroups",
             "apiVersion": "2020-05-01",
             "name": "[parameters('nsg_1_name')]",
-            "location": "[variables('location')]",
+            "location": "[parameters('location')]",
             "properties": {
                 "securityRules": []
             }
@@ -302,7 +305,7 @@
             "type": "Microsoft.Network/networkSecurityGroups",
             "apiVersion": "2020-05-01",
             "name": "[parameters('nsg_2_name')]",
-            "location": "[variables('location')]",
+            "location": "[parameters('location')]",
             "properties": {
                 "securityRules": []
             }
@@ -334,7 +337,7 @@
             "type": "Microsoft.Network/networkSecurityGroups",
             "apiVersion": "2020-05-01",
             "name": "[parameters('nsg_3_name')]",
-            "location": "[variables('location')]",
+            "location": "[parameters('location')]",
             "properties": {
                 "securityRules": []
             }
@@ -366,7 +369,7 @@
             "type": "Microsoft.Network/networkSecurityGroups",
             "apiVersion": "2020-05-01",
             "name": "[parameters('nsg_4_name')]",
-            "location": "[variables('location')]",
+            "location": "[parameters('location')]",
             "properties": {
                 "securityRules": []
             }

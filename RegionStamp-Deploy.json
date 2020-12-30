@@ -721,7 +721,8 @@
                     "contentVersion": "1.0.0.0"
                 },
                 "parameters": {
-                    "ddosProtectionPlans_name": {"value": "[parameters('vnetDdosProtectionPlanName')]"}
+                    "ddosProtectionPlans_name": {"value": "[parameters('vnetDdosProtectionPlanName')]"},
+                    "location": {"value": "[variables('constants').location]"}
                 }
             }
         },
@@ -741,7 +742,8 @@
                 },
                 "parameters": {
                     "routeTables_name": {"value": "[parameters('routeTableName')]"},
-                    "routeTables_nextHopIpAddress": {"value": "[variables('objHubVnet').subnets.firewallSubnet.firewallPriveateIp]"}
+                    "routeTables_nextHopIpAddress": {"value": "[variables('objHubVnet').subnets.firewallSubnet.firewallPriveateIp]"},
+                    "location": {"value": "[variables('constants').location]"}
                 }
             },
             "copy": {
@@ -791,7 +793,8 @@
                     "nsg_4_name": {"value": "[variables('objHubVnet').subnets.subnet4.nsgName]"},
                     "configureRouteTable": {"value": "[and(not(equals(parameters('hubSubnetFirewallAddressSpace'), '0.0.0.0/0')), equals(variables('settings').useFirewallForEgress, 'Yes'))]"},
                     "routeTableName": {"value": "[parameters('routeTableName')]"},
-                    "ddosPlanId": {"value": "[if(equals(parameters('vnetDdosProtectionLevel'), 'Standard - Create New'), if(variables('settings').deployResources, reference(variables('deploymentNames').ddosPlan).outputs.ddosPlanId.value, json('null')), if(equals(parameters('vnetDdosProtectionLevel'), 'Standard - Use Existing'), parameters('vnetDdosProtectionPlanName'), 'Skip'))]"}
+                    "ddosPlanId": {"value": "[if(equals(parameters('vnetDdosProtectionLevel'), 'Standard - Create New'), if(variables('settings').deployResources, reference(variables('deploymentNames').ddosPlan).outputs.ddosPlanId.value, json('null')), if(equals(parameters('vnetDdosProtectionLevel'), 'Standard - Use Existing'), parameters('vnetDdosProtectionPlanName'), 'Skip'))]"},
+                    "location": {"value": "[variables('constants').location]"}
                 }
             }
         },
@@ -830,7 +833,8 @@
                     "nsg_3_name": {"value": "[variables('objSpokeVnet')[copyIndex()].subnets.subnet3.nsgName]"},
                     "configureRouteTable": {"value": "[and(not(equals(parameters('hubSubnetFirewallAddressSpace'), '0.0.0.0/0')), equals(variables('settings').useFirewallForEgress, 'Yes'))]"},
                     "routeTableName": {"value": "[parameters('routeTableName')]"},
-                    "ddosPlanId": {"value": "[if(equals(parameters('vnetDdosProtectionLevel'), 'Standard - Create New'), if(variables('settings').deployResources, reference(variables('deploymentNames').ddosPlan).outputs.ddosPlanId.value, json('null')), if(equals(parameters('vnetDdosProtectionLevel'), 'Standard - Use Existing'), parameters('vnetDdosProtectionPlanName'), 'Skip'))]"}
+                    "ddosPlanId": {"value": "[if(equals(parameters('vnetDdosProtectionLevel'), 'Standard - Create New'), if(variables('settings').deployResources, reference(variables('deploymentNames').ddosPlan).outputs.ddosPlanId.value, json('null')), if(equals(parameters('vnetDdosProtectionLevel'), 'Standard - Use Existing'), parameters('vnetDdosProtectionPlanName'), 'Skip'))]"},
+                    "location": {"value": "[variables('constants').location]"}
                 }
             },
             "copy": {
@@ -1252,7 +1256,8 @@
                 "parameters": {
                     "vnetName": {"value": "[variables('objHubVnet').name]"},
                     "bastionName": {"value": "[my.bastionName(variables('objHubVnet').name, variables('names').bastionSuffix)]"},
-                    "bastionIpName": {"value": "[my.publicIpName(my.bastionName(variables('objHubVnet').name, variables('names').bastionSuffix), variables('names').publicIpSuffix)]"}
+                    "bastionIpName": {"value": "[my.publicIpName(my.bastionName(variables('objHubVnet').name, variables('names').bastionSuffix), variables('names').publicIpSuffix)]"},
+                    "location": {"value": "[variables('constants').location]"}
                 }
             }
         },
@@ -1276,7 +1281,8 @@
                 "parameters": {
                     "vnetName": {"value": "[variables('objSpokeVnet')[copyIndex()].name]"},
                     "bastionName": {"value": "[my.bastionName(variables('objSpokeVnet')[copyIndex()].name, variables('names').bastionSuffix)]"},
-                    "bastionIpName": {"value": "[my.publicIpName(my.bastionName(variables('objSpokeVnet')[copyIndex()].name, variables('names').bastionSuffix), variables('names').publicIpSuffix)]"}
+                    "bastionIpName": {"value": "[my.publicIpName(my.bastionName(variables('objSpokeVnet')[copyIndex()].name, variables('names').bastionSuffix), variables('names').publicIpSuffix)]"},
+                    "location": {"value": "[variables('constants').location]"}
                 }
             },
             "copy": {
@@ -1309,7 +1315,8 @@
                     "netRuleCollName": {"value": "[variables('constants').firewallApplicationRuleCollectionName]"},
                     "netRuleCollPriority": {"value": "[variables('constants').firewallApplicationRuleCollectionPriority]"},
                     "appRuleCollName": {"value": "[variables('constants').firewallNetworkRuleCollectionName]"},
-                    "appRuleCollPriority": {"value": "[variables('constants').firewallNetworkRuleCollectionPriority]"}
+                    "appRuleCollPriority": {"value": "[variables('constants').firewallNetworkRuleCollectionPriority]"},
+                    "location": {"value": "[variables('constants').location]"}
                 }
             }
         },

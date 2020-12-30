@@ -4,18 +4,20 @@
     "parameters": {
         "ddosProtectionPlans_name": {
             "type": "string"
+        },
+        "location": {
+            "type": "string",
+            "defaultValue": "eastus2"
         }
     },
-    "variables": {
-        "location": "[resourceGroup().location]"
-    },
+    "variables": {},
     "functions": [],
     "resources": [
         {
             "type": "Microsoft.Network/ddosProtectionPlans",
             "apiVersion": "2020-05-01",
             "name": "[parameters('ddosProtectionPlans_name')]",
-            "location": "[variables('location')]",
+            "location": "[parameters('location')]",
             "properties": { }
         }
     ],
