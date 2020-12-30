@@ -1,10 +1,63 @@
 {
-    "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+    "$schema": "https://schema.management.azure.com/schemas/2019-08-01/managementGroupDeploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "resourceGroupName": {
+        "resourceGroupsRegion": {
             "type": "string",
-            "defaultValue": "fooGroup"
+            "defaultValue": "East US 2",
+            "allowedValues": [
+                "East Asia",
+                "Southeast Asia",
+                "Central US",
+                "East US",
+                "East US 2",
+                "West US",
+                "North Central US",
+                "South Central US",
+                "North Europe",
+                "West Europe",
+                "Japan West",
+                "Japan East",
+                "Brazil South",
+                "Australia East",
+                "Australia Southeast",
+                "South India",
+                "Central India",
+                "West India",
+                "Canada Central",
+                "Canada East",
+                "UK South",
+                "UK West",
+                "West Central US",
+                "West US 2",
+                "Korea Central",
+                "Korea South",
+                "France Central",
+                "France South",
+                "Australia Central",
+                "Australia Central 2",
+                "UAE Central",
+                "UAE North",
+                "South Africa North",
+                "South Africa West",
+                "Switzerland North",
+                "Switzerland West",
+                "Germany North",
+                "Germany West Central",
+                "Norway West",
+                "Norway East",
+                "Brazil Southeast"
+            ]
+        },
+        "spokeDeploySubscriptionResourceGroup": {
+            "type": "array",
+            "metadata": {
+                "description": "Subscription IDs and resource groups into which to deploy the spoke VNet(s) separated by a /.  Use \"\" to deploy to the current subscription and resource group.  The default will deploy all spokes to the current subscription and resource group."
+            },
+            "defaultValue": [
+                "f0bb6c48-80fd-445c-98cb-c38b5f817d52/fooGroup1",
+                "c64ca001-2cce-46de-837e-03f5564fc802/fooGroup2"
+            ]
         },
         "vnetName": {
             "type": "string",
@@ -17,22 +70,94 @@
         "subnet1": {
             "type": "string",
             "defaultValue": "10.0.0.0/24"
-        },
-        "subnet2": {
-            "type": "string",
-            "defaultValue": "0.0.0.0/0"
         }
     },
     "variables": {
-        "location": "[deployment().location]"
+        "location": "[deployment().location]",
+        "azureRegion": {
+            "East Asia":"eastasia",
+            "Southeast Asia":"southeastasia",
+            "Central US":"centralus",
+            "East US":"eastus",
+            "East US 2":"eastus2",
+            "West US":"westus",
+            "North Central US":"northcentralus",
+            "South Central US":"southcentralus",
+            "North Europe":"northeurope",
+            "West Europe":"westeurope",
+            "Japan West":"japanwest",
+            "Japan East":"japaneast",
+            "Brazil South":"brazilsouth",
+            "Australia East":"australiaeast",
+            "Australia Southeast":"australiasoutheast",
+            "South India":"southindia",
+            "Central India":"centralindia",
+            "West India":"westindia",
+            "Canada Central":"canadacentral",
+            "Canada East":"canadaeast",
+            "UK South":"uksouth",
+            "UK West":"ukwest",
+            "West Central US":"westcentralus",
+            "West US 2":"westus2",
+            "Korea Central":"koreacentral",
+            "Korea South":"koreasouth",
+            "France Central":"francecentral",
+            "France South":"francesouth",
+            "Australia Central":"australiacentral",
+            "Australia Central 2":"australiacentral2",
+            "UAE Central":"uaecentral",
+            "UAE North":"uaenorth",
+            "South Africa North":"southafricanorth",
+            "South Africa West":"southafricawest",
+            "Switzerland North":"switzerlandnorth",
+            "Switzerland West":"switzerlandwest",
+            "Germany North":"germanynorth",
+            "Germany West Central":"germanywestcentral",
+            "Norway West":"norwaywest",
+            "Norway East":"norwayeast",
+            "Brazil Southeast":"brazilsoutheast"
+        }
     },
     "functions": [],
     "resources": [
         {
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
-            "name": "[concat(deployment().name, '-ResourceGroup')]",
-            "location": "[variables('location')]",
+            "name": "[concat(deployment().name, '-SubscriptionLookup-', copyIndex(1))]",
+            "subscriptionId": "[split(parameters('spokeDeploySubscriptionResourceGroup')[copyIndex()], '/')[0]]",
+            "resourceGroup": "[split(parameters('spokeDeploySubscriptionResourceGroup')[copyIndex()], '/')[1]]",
+            "properties": {
+                "expressionEvaluationOptions": {
+                    "scope": "Inner"
+                },
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "resources": [],
+                    "outputs": {
+                        "displayName": {
+                            "type": "string",
+                            "value": "[subscription().displayName]"
+                        },
+                        "subscriptionId": {
+                            "type": "string",
+                            "value": "[subscription().subscriptionId]"
+                        }
+                    }
+                }
+            },
+            "copy": {
+                "count": "[length(parameters('spokeDeploySubscriptionResourceGroup'))]",
+                "name": "subscriptionLookupLoop"
+            }
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "name": "[concat(deployment().name, '-', 'sub', copyIndex(1), '-', split(parameters('spokeDeploySubscriptionResourceGroup')[copyIndex()], '/')[1])]",
+            "location": "[variables('azureRegion')[parameters('resourceGroupsRegion')]]",
+            "subscriptionId": "[split(parameters('spokeDeploySubscriptionResourceGroup')[copyIndex()], '/')[0]]",
             "properties": {
                 "mode": "Incremental",
                 "template": {
@@ -42,20 +167,26 @@
                         {
                             "type": "Microsoft.Resources/resourceGroups",
                             "apiVersion": "2020-10-01",
-                            "name": "[parameters('resourceGroupName')]",
-                            "location": "[variables('location')]"
+                            "name": "[split(parameters('spokeDeploySubscriptionResourceGroup')[copyIndex()], '/')[1]]",
+                            "location": "[variables('azureRegion')[parameters('resourceGroupsRegion')]]"
                         }
                     ]
                 }
+            },
+            "copy": {
+                "count": "[length(parameters('spokeDeploySubscriptionResourceGroup'))]",
+                "name": "resourceGroupLoop"
             }
         },
         {
+            "condition": false,
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
             "name": "[concat(deployment().name, '-VNet')]",
-            "resourceGroup": "[parameters('resourceGroupName')]",
+            "subscriptionId": "[split(parameters('spokeDeploySubscriptionResourceGroup')[0], '/')[0]]",
+            "resourceGroup": "[split(parameters('spokeDeploySubscriptionResourceGroup')[0], '/')[1]]",
             "dependsOn": [
-                "[resourceId('Microsoft.Resources/deployments', concat(deployment().name, '-ResourceGroup'))]"
+                "resourceGroupLoop"
             ],
             "properties": {
                 "mode": "Incremental",
