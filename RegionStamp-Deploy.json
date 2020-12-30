@@ -711,9 +711,11 @@
         {
             "comments": "DDOS Protection Plan",
             "condition": "[and(equals(parameters('vnetDdosProtectionLevel'), 'Standard - Create New'), variables('settings').deployResources)]",
+            "name": "[variables('deploymentNames').ddosPlan]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
-            "name": "[variables('deploymentNames').ddosPlan]",
+            "subscriptionId": "[variables('objHubVnet').subscriptionId]",
+            "resourceGroup": "[variables('objHubVnet').resourceGroup]",
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
@@ -757,6 +759,8 @@
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
             "name": "[variables('deploymentNames').hub]",
+            "subscriptionId": "[variables('objHubVnet').subscriptionId]",
+            "resourceGroup": "[variables('objHubVnet').resourceGroup]",
             "dependsOn": [
                 "routeTableLoop",
                 "[variables('deploymentNames').ddosPlan]"
@@ -848,6 +852,8 @@
             "name": "[variables('deploymentNames').hubRbac]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
+            "subscriptionId": "[variables('objHubVnet').subscriptionId]",
+            "resourceGroup": "[variables('objHubVnet').resourceGroup]",
             "dependsOn": [
                 "[variables('deploymentNames').hub]"
             ],
@@ -999,6 +1005,8 @@
             "name": "[variables('deploymentNames').hubErGateway]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
+            "subscriptionId": "[variables('objHubVnet').subscriptionId]",
+            "resourceGroup": "[variables('objHubVnet').resourceGroup]",
             "dependsOn": [
                 "[variables('deploymentNames').hub]"
             ],
@@ -1067,6 +1075,8 @@
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
             "name": "[variables('deploymentNames').ipGroupsHub]",
+            "subscriptionId": "[variables('objHubVnet').subscriptionId]",
+            "resourceGroup": "[variables('objHubVnet').resourceGroup]",
             "properties": {
                 "mode": "Incremental",
                 "template": {
@@ -1174,6 +1184,8 @@
             "condition": "[and(not(equals(variables('objHubVnet').subnets.firewallSubnet.addressSpace, '0.0.0.0/0')), variables('settings').deployResources)]",
             "name": "[concat(variables('deploymentNames').ipGroupsSpoke, copyIndex(1))]",
             "type": "Microsoft.Resources/deployments",
+            "subscriptionId": "[variables('objHubVnet').subscriptionId]",
+            "resourceGroup": "[variables('objHubVnet').resourceGroup]",
             "apiVersion": "2020-06-01",
             "properties": {
                 "mode": "Incremental",
@@ -1244,6 +1256,8 @@
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
             "name": "[variables('deploymentNames').bastionHhub]",
+            "subscriptionId": "[variables('objHubVnet').subscriptionId]",
+            "resourceGroup": "[variables('objHubVnet').resourceGroup]",
             "dependsOn": [
                 "[variables('deploymentNames').hub]"
             ],
@@ -1296,6 +1310,8 @@
             "name": "[variables('deploymentNames').firewall]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
+            "subscriptionId": "[variables('objHubVnet').subscriptionId]",
+            "resourceGroup": "[variables('objHubVnet').resourceGroup]",
             "dependsOn": [
                 "[variables('deploymentNames').hub]",
                 "[variables('deploymentNames').ipGroupsHub]",
@@ -1326,6 +1342,8 @@
             "name": "[concat(variables('deploymentNames').peerOutbound, copyIndex(1))]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
+            "subscriptionId": "[variables('objHubVnet').subscriptionId]",
+            "resourceGroup": "[variables('objHubVnet').resourceGroup]",
             "dependsOn": [
                 "[variables('deploymentNames').hub]",
                 "spokeLoop",
@@ -1510,6 +1528,8 @@
             "name": "[concat(variables('deploymentNames').nsgRulesHubAll, copyIndex(1))]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
+            "subscriptionId": "[variables('allHubSubnetNsgs')[copyIndex()].subscriptionId]",
+            "resourceGroup": "[variables('allHubSubnetNsgs')[copyIndex()].resourceGroup]",
             "dependsOn": [
                 "allNsgRulesLoop"
             ],
@@ -1555,6 +1575,8 @@
             "name": "[variables('deploymentNames').nsgRulesDc]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
+            "subscriptionId": "[variables('objHubVnet').subscriptionId]",
+            "resourceGroup": "[variables('objHubVnet').resourceGroup]",
             "dependsOn": [
                 "allHubNsgRulesLoop"
             ],
@@ -1652,6 +1674,8 @@
             "name": "[variables('deploymentNames').nsgRulesJh]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
+            "subscriptionId": "[variables('objHubVnet').subscriptionId]",
+            "resourceGroup": "[variables('objHubVnet').resourceGroup]",
             "dependsOn": [
                 "allHubNsgRulesLoop"
             ],
@@ -1692,6 +1716,8 @@
             "name": "[variables('deploymentNames').nsgRulesHubSubnet1]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
+            "subscriptionId": "[variables('objHubVnet').subscriptionId]",
+            "resourceGroup": "[variables('objHubVnet').resourceGroup]",
             "dependsOn": [
                 "allHubNsgRulesLoop"
             ],
@@ -1711,6 +1737,8 @@
             "name": "[variables('deploymentNames').nsgRulesHubSubnet2]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
+            "subscriptionId": "[variables('objHubVnet').subscriptionId]",
+            "resourceGroup": "[variables('objHubVnet').resourceGroup]",
             "dependsOn": [
                 "allHubNsgRulesLoop"
             ],
@@ -1730,6 +1758,8 @@
             "name": "[variables('deploymentNames').nsgRulesHubSubnet3]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
+            "subscriptionId": "[variables('objHubVnet').subscriptionId]",
+            "resourceGroup": "[variables('objHubVnet').resourceGroup]",
             "dependsOn": [
                 "allHubNsgRulesLoop"
             ],
@@ -1749,6 +1779,8 @@
             "name": "[variables('deploymentNames').nsgRulesHubSubnet4]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
+            "subscriptionId": "[variables('objHubVnet').subscriptionId]",
+            "resourceGroup": "[variables('objHubVnet').resourceGroup]",
             "dependsOn": [
                 "allHubNsgRulesLoop"
             ],
