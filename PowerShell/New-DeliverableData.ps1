@@ -1,5 +1,5 @@
-$parametersFile = "$env:USERPROFILE\Documents\GitHub\Azure-HubSpoke\Archived\JSON.json"
-$deliverableDataFilePath = "$env:USERPROFILE\Documents\GitHub\Azure-HubSpoke\PowerShell\deliverableData.csv"
+$parametersFile = "$env:USERPROFILE\Documents\GitHub\Azure-HubSpoke\Client Cutomizations\Client 1\Output.json"
+$deliverableDataFilePath = "$env:USERPROFILE\Documents\GitHub\Azure-HubSpoke\Client Cutomizations\Client 1\deliverableData.csv"
 
 # load the output file
 $output = Get-Content $parametersFile | Out-String | ConvertFrom-Json
@@ -165,9 +165,31 @@ for ($i = 1; $i -lt $output.Count; $i++) {
         }
 }
 
+
+# NSGs
+
+Connect-AzAccount -Tenant 0dedc571-3c56-411b-acad-e2bd5b567394 -ErrorAction SilentlyContinue -ErrorVariable $loginError
+
+if (-not $loginError) {
+    # We're logged-in, now get the NSGs
+    $nsgs = [PSCustomObject]@{
+        nsgName = $output[0].subnets.dcSubnet.nsgName
+        subscriptionId = $output[0].subnets.dcSubnet.subscriptionId
+        resourceGroup = $output[0].subnets.dcSubnet.resourceGroup
+    }
+    $nsg = Get-AzNetworkSecurityGroup -Name $nsgs.nsgName -ResourceGroupName $nsgs.resourceGroup
+    $nsg.SecurityRules | Sort-Object -Property priority | Format-Table -Property name, priority, destinationPortRange, Protocol, SourceAddressPrefix, DestinationAddressPrefix, Access
+
+}
+
+
+
+
+
+
 # write output to file
 
-$csvOutput | Export-Csv -Path $deliverableDataFilePath -NoTypeInformation
+$csvOutput | Export-Csv -Path $deliverableDataFilePath -NoTypeInformation -
 function Get-IPrangeStartEnd { 
     <#  
       .SYNOPSIS   
