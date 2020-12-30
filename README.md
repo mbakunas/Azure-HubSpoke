@@ -101,7 +101,7 @@ This solution uses the following naming convention:
 | Public IP Address | [Resource Name]-IP | HUB-EastUS2-01-Firewall-IP |
 | Route Table* | [Descriptive Text]-[Region]-## | RouteTable-EastUS2-01
 
-* Naming convention is recommended but not forced by the solution.
+&ast; Naming convention is recommended but not forced by the solution.
 
 ## Using the Solution
 
