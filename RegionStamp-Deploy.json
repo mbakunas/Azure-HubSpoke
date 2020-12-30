@@ -1054,7 +1054,7 @@
         },
         {
             "comments": "IP Groups for hub VNet and subnets",
-            "condition": "[variables('settings').deployResources]",
+            "condition": "[and(not(equals(variables('objHubVnet').subnets.firewallSubnet.addressSpace, '0.0.0.0/0')), variables('settings').deployResources)]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
             "name": "[variables('deploymentNames').ipGroupsHub]",
@@ -1162,7 +1162,7 @@
         },
         {
             "comments": "IP Groups for spoke VNet and subnets",
-            "condition": "[variables('settings').deployResources]",
+            "condition": "[and(not(equals(variables('objHubVnet').subnets.firewallSubnet.addressSpace, '0.0.0.0/0')), variables('settings').deployResources)]",
             "name": "[concat(variables('deploymentNames').ipGroupsSpoke, copyIndex(1))]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
