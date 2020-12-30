@@ -15,13 +15,16 @@
             "value": "Medium"
         },
         "routeTableName": {
-            "value": "RouteTable-01"
+            "value": "RouteTable-EastUS2-01"
         },
         "hubVnetName": {
             "value": "HUB-EastUS2-01"
         },
         "hubVnetAddressSpace": {
             "value": "10.0.0.0/23"
+        },
+        "hubDeploySubscriptionResourceGroup": {
+            "value": "f0bb6c48-80fd-445c-98cb-c38b5f817d52/HubSpoke-01"
         },
         "hubSubnetGatewayAddressSpace": {
             "value": "10.0.0.0/26"
@@ -106,7 +109,7 @@
         },
         "spokeDeploySubscriptionResourceGroup": {
             "value": [
-                "",
+                "f0bb6c48-80fd-445c-98cb-c38b5f817d52/HubSpoke-01",
                 "c64ca001-2cce-46de-837e-03f5564fc802/HubSpoke-02",
                 "16936380-29b0-4326-8f6b-db86da154736/HubSpoke-03"
             ]
