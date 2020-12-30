@@ -91,7 +91,7 @@ This solution uses the following naming convention:
 
 | Resource Type | Naming convention | Example |
 | --------------| ----------------- | ------- |
-| Virtual Network |[HUB/SPOKE-PROD/SPOKE-NONPROD]-[Region]-## | HUB-EastUS2-01 |
+| Virtual Network* |[HUB/SPOKE-PROD/SPOKE-NONPROD]-[Region]-## | HUB-EastUS2-01 |
 | Subnet | [Descriptive Text]-[Address Space] | Infra-10.64.0.192-27 |
 | VNet Gateway | [VNet Name]-GW-# | HUB-EastUS2-01-GW-1 |
 | Network Security Group | [Subnet Name]-NSG | Infra-10.64.0.192-27-NSG |
@@ -99,6 +99,9 @@ This solution uses the following naming convention:
 | Azure Firewall | [VNet Name]-Firewall | HUB-EastUS2-01-Firewall |
 | IP Groups | [VNet Name]-[Subnet Name]-IpGroup | HUB-EastUS2-01-Infra-10.64.0.192-27-IpGroup |
 | Public IP Address | [Resource Name]-IP | HUB-EastUS2-01-Firewall-IP |
+| Route Table* | [Descriptive Text]-[Region]-## | RouteTable-EastUS2-01
+
+* Naming convention is recommended but not forced by the solution.
 
 ## Using the Solution
 
