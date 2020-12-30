@@ -77,7 +77,7 @@ RBAC is set as follows:
 * A specified AAD group has VM contributor to the hub subnets.  The intention is that the server team or anyone needing to deploy infrastructure to the hub are members of this group
 * An optional specified AAD group that has VM contributor to the DCs subnet.  If specified this group, instead of the above group, will have VM contributor to the DCs subnet.  The intention is that the identity team (or whichever team is responsible for the DCs) are members of this group
 
-### DDOS Protection
+### DDoS Protection
 
 This solution optionally deploys a DDoS Protection Plan.  Since a [single DDoS Protection Plan can be used across multiple subscriptions in a tenant](https://azure.microsoft.com/en-us/pricing/details/ddos-protection/), the solution can use an existing Plan.
 
