@@ -427,7 +427,7 @@
             {
                 "name": "fullSpokeDeploySubscriptionResourceGroup",
                 "count": "[length(parameters('spokeVnetName'))]",
-                "input": "[if(equals(length(parameters('spokeDeploySubscriptionResourceGroup')), 1), parameters('spokeDeploySubscriptionResourceGroup')[copyIndex('fullSpokeDeploySubscriptionResourceGroup')], parameters('spokeDeploySubscriptionResourceGroup')[copyIndex('fullSpokeDeploySubscriptionResourceGroup')])]"
+                "input": "[if(equals(length(parameters('spokeDeploySubscriptionResourceGroup')), 1), parameters('spokeDeploySubscriptionResourceGroup')[0], parameters('spokeDeploySubscriptionResourceGroup')[copyIndex('fullSpokeDeploySubscriptionResourceGroup')])]"
             },
             {
                 "name": "fullSpokeSubnetAppGwAddressSpace",
