@@ -970,9 +970,7 @@
             },
             "copy": {
                 "name": "spokeLoop",
-                "count": "[length(variables('objSpokeVnet'))]",
-                "mode": "Serial",
-                "batchSize": 1
+                "count": "[length(variables('objSpokeVnet'))]"
             }
         },
         {
