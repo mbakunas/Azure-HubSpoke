@@ -9,6 +9,10 @@
         "routeTables_nextHopIpAddress": {
             "defaultValue": "",
             "type": "String"
+        },
+        "location": {
+            "type": "string",
+            "defaultValue": "eastus2"
         }
     },
     "variables": {
@@ -19,7 +23,7 @@
             "type": "Microsoft.Network/routeTables",
             "apiVersion": "2020-05-01",
             "name": "[parameters('routeTables_name')]",
-            "location": "[resourceGroup().location]",
+            "location": "[parameters('location')]",
             "properties": {
                 "disableBgpRoutePropagation": false,
                 "routes": [

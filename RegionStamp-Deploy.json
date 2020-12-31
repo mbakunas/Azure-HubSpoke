@@ -1,7 +1,54 @@
 {
-    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "$schema": "https://schema.management.azure.com/schemas/2019-08-01/managementGroupDeploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
+        "resourceGroupsRegion": {
+            "type": "string",
+            "defaultValue": "East US 2",
+            "allowedValues": [
+                "East Asia",
+                "Southeast Asia",
+                "Central US",
+                "East US",
+                "East US 2",
+                "West US",
+                "North Central US",
+                "South Central US",
+                "North Europe",
+                "West Europe",
+                "Japan West",
+                "Japan East",
+                "Brazil South",
+                "Australia East",
+                "Australia Southeast",
+                "South India",
+                "Central India",
+                "West India",
+                "Canada Central",
+                "Canada East",
+                "UK South",
+                "UK West",
+                "West Central US",
+                "West US 2",
+                "Korea Central",
+                "Korea South",
+                "France Central",
+                "France South",
+                "Australia Central",
+                "Australia Central 2",
+                "UAE Central",
+                "UAE North",
+                "South Africa North",
+                "South Africa West",
+                "Switzerland North",
+                "Switzerland West",
+                "Germany North",
+                "Germany West Central",
+                "Norway West",
+                "Norway East",
+                "Brazil Southeast"
+            ]
+        },
         "assetLocationURI": {
             "type": "string",
             "metadata": {
@@ -48,6 +95,12 @@
             "type": "string",
             "metadata": {
                 "description": "Address space of the hub VNet in CIDR notation."
+            }
+        },
+        "hubDeploySubscriptionResourceGroup": {
+            "type": "string",
+            "metadata": {
+                "description": "Subscription IDs and resource groups into which to deploy the hub VNet separated by a /."
             }
         },
         "hubSubnetGatewayAddressSpace": {
@@ -198,7 +251,7 @@
         "spokeDeploySubscriptionResourceGroup": {
             "type": "array",
             "metadata": {
-                "description": "Subscription IDs and resource groups into which to deploy the spoke VNet(s) separated by a /.  Use \"\" to deploy to the current subscription and resource group.  The default will deploy all spokes to the current subscription and resource group."
+                "description": "Subscription IDs and resource groups into which to deploy the spoke VNet(s) separated by a /."
             },
             "defaultValue": []
         },
@@ -278,8 +331,8 @@
             "deployExpressRouteGateway": false
         },
         "constants": {
-            "location": "[resourceGroup().location]",
-            "currentSubRg": "[concat(subscription().subscriptionId, '/', resourceGroup().name)]",
+            "location": "[deployment().location]",
+            "resourceGroupLocation": "[variables('azureRegion')[parameters('resourceGroupsRegion')]]",
             "templateLocationURI": "[concat(parameters('assetLocationURI'), 'Templates/')]",
             "firewallNetworkRuleCollectionName": "InfraAllowCollection",
             "firewallNetworkRuleCollectionPriority": 1000,
@@ -324,6 +377,49 @@
             "spokeRbac": "[concat(variables('deploymentName'), '-SpokeVNetRBAC-')]",
             "resourceLock": "[concat(variables('deploymentName'), '-ResourceLock-')]"
         },
+        "azureRegion": {
+            "East Asia":"eastasia",
+            "Southeast Asia":"southeastasia",
+            "Central US":"centralus",
+            "East US":"eastus",
+            "East US 2":"eastus2",
+            "West US":"westus",
+            "North Central US":"northcentralus",
+            "South Central US":"southcentralus",
+            "North Europe":"northeurope",
+            "West Europe":"westeurope",
+            "Japan West":"japanwest",
+            "Japan East":"japaneast",
+            "Brazil South":"brazilsouth",
+            "Australia East":"australiaeast",
+            "Australia Southeast":"australiasoutheast",
+            "South India":"southindia",
+            "Central India":"centralindia",
+            "West India":"westindia",
+            "Canada Central":"canadacentral",
+            "Canada East":"canadaeast",
+            "UK South":"uksouth",
+            "UK West":"ukwest",
+            "West Central US":"westcentralus",
+            "West US 2":"westus2",
+            "Korea Central":"koreacentral",
+            "Korea South":"koreasouth",
+            "France Central":"francecentral",
+            "France South":"francesouth",
+            "Australia Central":"australiacentral",
+            "Australia Central 2":"australiacentral2",
+            "UAE Central":"uaecentral",
+            "UAE North":"uaenorth",
+            "South Africa North":"southafricanorth",
+            "South Africa West":"southafricawest",
+            "Switzerland North":"switzerlandnorth",
+            "Switzerland West":"switzerlandwest",
+            "Germany North":"germanynorth",
+            "Germany West Central":"germanywestcentral",
+            "Norway West":"norwaywest",
+            "Norway East":"norwayeast",
+            "Brazil Southeast":"brazilsoutheast"
+        },
         "fullHubSubnet2AddressSpace": "[if(equals(parameters('hubSubnet1AddressSpace'), '0.0.0.0/0'), '0.0.0.0/0', parameters('hubSubnet2AddressSpace'))]",
         "fullHubSubnet3AddressSpace": "[if(equals(variables('fullHubSubnet2AddressSpace'), '0.0.0.0/0'), '0.0.0.0/0', parameters('hubSubnet3AddressSpace'))]",
         "fullHubSubnet4AddressSpace": "[if(equals(variables('fullHubSubnet3AddressSpace'), '0.0.0.0/0'), '0.0.0.0/0', parameters('hubSubnet4AddressSpace'))]",
@@ -331,7 +427,7 @@
             {
                 "name": "fullSpokeDeploySubscriptionResourceGroup",
                 "count": "[length(parameters('spokeVnetName'))]",
-                "input": "[if(equals(length(parameters('spokeDeploySubscriptionResourceGroup')), 0), variables('constants').currentSubRg, if(equals(parameters('spokeDeploySubscriptionResourceGroup')[copyIndex('fullSpokeDeploySubscriptionResourceGroup')], ''), variables('constants').currentSubRg, parameters('spokeDeploySubscriptionResourceGroup')[copyIndex('fullSpokeDeploySubscriptionResourceGroup')]))]"
+                "input": "[if(equals(length(parameters('spokeDeploySubscriptionResourceGroup')), 1), parameters('spokeDeploySubscriptionResourceGroup')[0], parameters('spokeDeploySubscriptionResourceGroup')[copyIndex('fullSpokeDeploySubscriptionResourceGroup')])]"
             },
             {
                 "name": "fullSpokeSubnetAppGwAddressSpace",
@@ -467,16 +563,16 @@
                 }
             }
         ],
-        "fullVnetDeploySubscriptionResourceGroup": "[union(concat(array(variables('constants').currentSubRg), variables('fullSpokeDeploySubscriptionResourceGroup')), concat(array(variables('constants').currentSubRg), variables('fullSpokeDeploySubscriptionResourceGroup')))]",
+        "fullVnetDeploySubscriptionResourceGroup": "[union(concat(array(parameters('hubDeploySubscriptionResourceGroup')), variables('fullSpokeDeploySubscriptionResourceGroup')), concat(array(parameters('hubDeploySubscriptionResourceGroup')), variables('fullSpokeDeploySubscriptionResourceGroup')))]",
         "objHubVnet": {
-            "subscriptionId": "[split(variables('constants').currentSubRg, '/')[0]]",
-            "resourceGroup": "[split(variables('constants').currentSubRg, '/')[1]]",
+            "subscriptionId": "[split(parameters('hubDeploySubscriptionResourceGroup'), '/')[0]]",
+            "resourceGroup": "[split(parameters('hubDeploySubscriptionResourceGroup'), '/')[1]]",
             "name": "[parameters('hubVnetName')]",
             "addressSpace": "[parameters('hubVnetAddressSpace')]",
             "ipGroupsName": "[concat(parameters('hubVnetName'), '-', variables('names').ipGroupsSuffix)]",
-            "readerRoleId": "[concat('/subscriptions/', split(variables('constants').currentSubRg, '/')[0], '/providers/Microsoft.Authorization/roleDefinitions/acdd72a7-3385-48ef-bd42-f606fba81ae7')]",
-            "virtualMachineContributorRoleId": "[concat('/subscriptions/', split(variables('constants').currentSubRg, '/')[0], '/providers/Microsoft.Authorization/roleDefinitions/9980e02c-c2be-4d73-94e8-173b1dc7cf3c')]",
-            "networkContributorRoleId": "[concat('/subscriptions/', split(variables('constants').currentSubRg, '/')[0], '/providers/Microsoft.Authorization/roleDefinitions/4d97b98b-1d4f-4787-a291-c67834d212e7')]",
+            "readerRoleId": "[concat('/subscriptions/', split(parameters('hubDeploySubscriptionResourceGroup'), '/')[0], '/providers/Microsoft.Authorization/roleDefinitions/acdd72a7-3385-48ef-bd42-f606fba81ae7')]",
+            "virtualMachineContributorRoleId": "[concat('/subscriptions/', split(parameters('hubDeploySubscriptionResourceGroup'), '/')[0], '/providers/Microsoft.Authorization/roleDefinitions/9980e02c-c2be-4d73-94e8-173b1dc7cf3c')]",
+            "networkContributorRoleId": "[concat('/subscriptions/', split(parameters('hubDeploySubscriptionResourceGroup'), '/')[0], '/providers/Microsoft.Authorization/roleDefinitions/4d97b98b-1d4f-4787-a291-c67834d212e7')]",
             "dcSubnetVmContAadGroupId": "[if(equals(parameters('dcSubnetVmContAadGroupId'), ''), 'Skip', parameters('dcSubnetVmContAadGroupId'))]",
             "dcVnetReaderRoleAssignmentID": "[if(equals(parameters('dcSubnetVmContAadGroupId'), ''), 'Skip', parameters('dcVmContributorsRoleAssignmentID')[1])]",
             "hubSubnetVmContAadGroupId": "[parameters('hubSubnetVmContAadGroupId')]",
@@ -497,8 +593,8 @@
                     "addressSpace": "[parameters('hubSubnetBastionAddressSpace')]"
                 },
                 "dcSubnet": {
-                    "subscriptionId": "[split(variables('constants').currentSubRg, '/')[0]]",
-                    "resourceGroup": "[split(variables('constants').currentSubRg, '/')[1]]",
+                    "subscriptionId": "[split(parameters('hubDeploySubscriptionResourceGroup'), '/')[0]]",
+                    "resourceGroup": "[split(parameters('hubDeploySubscriptionResourceGroup'), '/')[1]]",
                     "name": "[my.subnetFullName(parameters('hubSubnetDcName'), parameters('hubSubnetDcAddressSpace'))]",
                     "addressSpace": "[parameters('hubSubnetDcAddressSpace')]",
                     "nsgName": "[my.nsgName(my.subnetFullName(parameters('hubSubnetDcName'), parameters('hubSubnetDcAddressSpace')))]",
@@ -506,8 +602,8 @@
                     "hubSubnetVmContRoleAssignmantId": "[parameters('dcVmContributorsRoleAssignmentID')[0]]"
                 },
                 "jhSubnet": {
-                    "subscriptionId": "[split(variables('constants').currentSubRg, '/')[0]]",
-                    "resourceGroup": "[split(variables('constants').currentSubRg, '/')[1]]",
+                    "subscriptionId": "[split(parameters('hubDeploySubscriptionResourceGroup'), '/')[0]]",
+                    "resourceGroup": "[split(parameters('hubDeploySubscriptionResourceGroup'), '/')[1]]",
                     "name": "[my.subnetFullName(parameters('hubSubnetJumpHostsName'), parameters('hubSubnetJumpHostsAddressSpace'))]",
                     "addressSpace": "[parameters('hubSubnetJumpHostsAddressSpace')]",
                     "nsgName": "[my.nsgName(my.subnetFullName(parameters('hubSubnetJumpHostsName'), parameters('hubSubnetJumpHostsAddressSpace')))]",
@@ -515,8 +611,8 @@
                     "hubSubnetVmContRoleAssignmantId": "[if(equals(parameters('hubSubnetJumpHostsAddressSpace'), '0.0.0.0/0'), 'SkipJumpHostsSubnetRBAC', parameters('hubSubnetVmContRoleAssignmantId')[1])]"
                 },
                 "subnet1": {
-                    "subscriptionId": "[split(variables('constants').currentSubRg, '/')[0]]",
-                    "resourceGroup": "[split(variables('constants').currentSubRg, '/')[1]]",
+                    "subscriptionId": "[split(parameters('hubDeploySubscriptionResourceGroup'), '/')[0]]",
+                    "resourceGroup": "[split(parameters('hubDeploySubscriptionResourceGroup'), '/')[1]]",
                     "name": "[my.subnetFullName(parameters('hubSubnet1Name'), parameters('hubSubnet1AddressSpace'))]",
                     "addressSpace": "[parameters('hubSubnet1AddressSpace')]",
                     "nsgName": "[my.nsgName(my.subnetFullName(parameters('hubSubnet1Name'), parameters('hubSubnet1AddressSpace')))]",
@@ -524,8 +620,8 @@
                     "hubSubnetVmContRoleAssignmantId": "[if(equals(parameters('hubSubnet1AddressSpace'), '0.0.0.0/0'), 'SkipSubnet1RBAC', if(equals(parameters('hubSubnetJumpHostsAddressSpace'), '0.0.0.0/0'), parameters('hubSubnetVmContRoleAssignmantId')[1], parameters('hubSubnetVmContRoleAssignmantId')[2]))]"
                 },
                 "subnet2": {
-                    "subscriptionId": "[split(variables('constants').currentSubRg, '/')[0]]",
-                    "resourceGroup": "[split(variables('constants').currentSubRg, '/')[1]]",
+                    "subscriptionId": "[split(parameters('hubDeploySubscriptionResourceGroup'), '/')[0]]",
+                    "resourceGroup": "[split(parameters('hubDeploySubscriptionResourceGroup'), '/')[1]]",
                     "name": "[my.subnetFullName(parameters('hubSubnet2Name'), variables('fullHubSubnet2AddressSpace'))]",
                     "addressSpace": "[variables('fullHubSubnet2AddressSpace')]",
                     "nsgName": "[my.nsgName(my.subnetFullName(parameters('hubSubnet2Name'), variables('fullHubSubnet2AddressSpace')))]",
@@ -533,8 +629,8 @@
                     "hubSubnetVmContRoleAssignmantId": "[if(equals(variables('fullHubSubnet2AddressSpace'), '0.0.0.0/0'), 'SkipSubnet2RBAC', if(equals(parameters('hubSubnetJumpHostsAddressSpace'), '0.0.0.0/0'), parameters('hubSubnetVmContRoleAssignmantId')[2], parameters('hubSubnetVmContRoleAssignmantId')[3]))]"
                 },
                 "subnet3": {
-                    "subscriptionId": "[split(variables('constants').currentSubRg, '/')[0]]",
-                    "resourceGroup": "[split(variables('constants').currentSubRg, '/')[1]]",
+                    "subscriptionId": "[split(parameters('hubDeploySubscriptionResourceGroup'), '/')[0]]",
+                    "resourceGroup": "[split(parameters('hubDeploySubscriptionResourceGroup'), '/')[1]]",
                     "name": "[my.subnetFullName(parameters('hubSubnet3Name'), variables('fullHubSubnet3AddressSpace'))]",
                     "addressSpace": "[variables('fullHubSubnet3AddressSpace')]",
                     "nsgName": "[my.nsgName(my.subnetFullName(parameters('hubSubnet3Name'), variables('fullHubSubnet3AddressSpace')))]",
@@ -542,8 +638,8 @@
                     "hubSubnetVmContRoleAssignmantId": "[if(equals(variables('fullHubSubnet3AddressSpace'), '0.0.0.0/0'), 'SkipSubnet3RBAC', if(equals(parameters('hubSubnetJumpHostsAddressSpace'), '0.0.0.0/0'), parameters('hubSubnetVmContRoleAssignmantId')[3], parameters('hubSubnetVmContRoleAssignmantId')[4]))]"
                 },
                 "subnet4": {
-                    "subscriptionId": "[split(variables('constants').currentSubRg, '/')[0]]",
-                    "resourceGroup": "[split(variables('constants').currentSubRg, '/')[1]]",
+                    "subscriptionId": "[split(parameters('hubDeploySubscriptionResourceGroup'), '/')[0]]",
+                    "resourceGroup": "[split(parameters('hubDeploySubscriptionResourceGroup'), '/')[1]]",
                     "name": "[my.subnetFullName(parameters('hubSubnet4Name'), variables('fullHubSubnet4AddressSpace'))]",
                     "addressSpace": "[variables('fullHubSubnet4AddressSpace')]",
                     "nsgName": "[my.nsgName(my.subnetFullName(parameters('hubSubnet4Name'), variables('fullHubSubnet4AddressSpace')))]",
@@ -704,11 +800,44 @@
     ],
     "resources": [
         {
-            "comments": "DDOS Protection Plan",
-            "condition": "[and(equals(parameters('vnetDdosProtectionLevel'), 'Standard - Create New'), variables('settings').deployResources)]",
+            "comments": "Resource Groups",
+            "condition": "[variables('settings').deployResources]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
+            "name": "[concat(deployment().name, '-', 'sub', copyIndex(1), '-', split(variables('fullVnetDeploySubscriptionResourceGroup')[copyIndex()], '/')[1])]",
+            "location": "[variables('constants').resourceGroupLocation]",
+            "subscriptionId": "[split(variables('fullVnetDeploySubscriptionResourceGroup')[copyIndex()], '/')[0]]",
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "resources": [
+                        {
+                            "type": "Microsoft.Resources/resourceGroups",
+                            "apiVersion": "2020-10-01",
+                            "name": "[split(variables('fullVnetDeploySubscriptionResourceGroup')[copyIndex()], '/')[1]]",
+                            "location": "[variables('azureRegion')[parameters('resourceGroupsRegion')]]"
+                        }
+                    ]
+                }
+            },
+            "copy": {
+                "count": "[length(variables('fullVnetDeploySubscriptionResourceGroup'))]",
+                "name": "resourceGroupLoop"
+            }
+        },
+        {
+            "comments": "DDOS Protection Plan",
+            "condition": "[and(equals(parameters('vnetDdosProtectionLevel'), 'Standard - Create New'), variables('settings').deployResources)]",
             "name": "[variables('deploymentNames').ddosPlan]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "subscriptionId": "[variables('objHubVnet').subscriptionId]",
+            "resourceGroup": "[variables('objHubVnet').resourceGroup]",
+            "dependsOn": [
+                "resourceGroupLoop"
+            ],
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
@@ -716,7 +845,8 @@
                     "contentVersion": "1.0.0.0"
                 },
                 "parameters": {
-                    "ddosProtectionPlans_name": {"value": "[parameters('vnetDdosProtectionPlanName')]"}
+                    "ddosProtectionPlans_name": {"value": "[parameters('vnetDdosProtectionPlanName')]"},
+                    "location": {"value": "[variables('constants').location]"}
                 }
             }
         },
@@ -728,6 +858,9 @@
             "name": "[concat(variables('deploymentNames').routeTable, copyIndex(1))]",
             "subscriptionId": "[split(variables('fullVnetDeploySubscriptionResourceGroup')[copyIndex()], '/')[0]]",
             "resourceGroup": "[split(variables('fullVnetDeploySubscriptionResourceGroup')[copyIndex()], '/')[1]]",
+            "dependsOn": [
+                "resourceGroupLoop"
+            ],
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
@@ -736,7 +869,8 @@
                 },
                 "parameters": {
                     "routeTables_name": {"value": "[parameters('routeTableName')]"},
-                    "routeTables_nextHopIpAddress": {"value": "[variables('objHubVnet').subnets.firewallSubnet.firewallPriveateIp]"}
+                    "routeTables_nextHopIpAddress": {"value": "[variables('objHubVnet').subnets.firewallSubnet.firewallPriveateIp]"},
+                    "location": {"value": "[variables('constants').location]"}
                 }
             },
             "copy": {
@@ -750,9 +884,12 @@
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
             "name": "[variables('deploymentNames').hub]",
+            "subscriptionId": "[variables('objHubVnet').subscriptionId]",
+            "resourceGroup": "[variables('objHubVnet').resourceGroup]",
             "dependsOn": [
                 "routeTableLoop",
-                "[variables('deploymentNames').ddosPlan]"
+                "[variables('deploymentNames').ddosPlan]",
+                "resourceGroupLoop"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -786,7 +923,8 @@
                     "nsg_4_name": {"value": "[variables('objHubVnet').subnets.subnet4.nsgName]"},
                     "configureRouteTable": {"value": "[and(not(equals(parameters('hubSubnetFirewallAddressSpace'), '0.0.0.0/0')), equals(variables('settings').useFirewallForEgress, 'Yes'))]"},
                     "routeTableName": {"value": "[parameters('routeTableName')]"},
-                    "ddosPlanId": {"value": "[if(equals(parameters('vnetDdosProtectionLevel'), 'Standard - Create New'), if(variables('settings').deployResources, reference(variables('deploymentNames').ddosPlan).outputs.ddosPlanId.value, json('null')), if(equals(parameters('vnetDdosProtectionLevel'), 'Standard - Use Existing'), parameters('vnetDdosProtectionPlanName'), 'Skip'))]"}
+                    "ddosPlanId": {"value": "[if(equals(parameters('vnetDdosProtectionLevel'), 'Standard - Create New'), if(variables('settings').deployResources, reference(variables('deploymentNames').ddosPlan).outputs.ddosPlanId.value, json('null')), if(equals(parameters('vnetDdosProtectionLevel'), 'Standard - Use Existing'), parameters('vnetDdosProtectionPlanName'), 'Skip'))]"},
+                    "location": {"value": "[variables('constants').location]"}
                 }
             }
         },
@@ -800,7 +938,8 @@
             "resourceGroup": "[variables('objSpokeVnet')[copyIndex()].resourceGroup]",
             "dependsOn": [
                 "routeTableLoop",
-                "[variables('deploymentNames').ddosPlan]"
+                "[variables('deploymentNames').ddosPlan]",
+                "resourceGroupLoop"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -825,7 +964,8 @@
                     "nsg_3_name": {"value": "[variables('objSpokeVnet')[copyIndex()].subnets.subnet3.nsgName]"},
                     "configureRouteTable": {"value": "[and(not(equals(parameters('hubSubnetFirewallAddressSpace'), '0.0.0.0/0')), equals(variables('settings').useFirewallForEgress, 'Yes'))]"},
                     "routeTableName": {"value": "[parameters('routeTableName')]"},
-                    "ddosPlanId": {"value": "[if(equals(parameters('vnetDdosProtectionLevel'), 'Standard - Create New'), if(variables('settings').deployResources, reference(variables('deploymentNames').ddosPlan).outputs.ddosPlanId.value, json('null')), if(equals(parameters('vnetDdosProtectionLevel'), 'Standard - Use Existing'), parameters('vnetDdosProtectionPlanName'), 'Skip'))]"}
+                    "ddosPlanId": {"value": "[if(equals(parameters('vnetDdosProtectionLevel'), 'Standard - Create New'), if(variables('settings').deployResources, reference(variables('deploymentNames').ddosPlan).outputs.ddosPlanId.value, json('null')), if(equals(parameters('vnetDdosProtectionLevel'), 'Standard - Use Existing'), parameters('vnetDdosProtectionPlanName'), 'Skip'))]"},
+                    "location": {"value": "[variables('constants').location]"}
                 }
             },
             "copy": {
@@ -839,6 +979,8 @@
             "name": "[variables('deploymentNames').hubRbac]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
+            "subscriptionId": "[variables('objHubVnet').subscriptionId]",
+            "resourceGroup": "[variables('objHubVnet').resourceGroup]",
             "dependsOn": [
                 "[variables('deploymentNames').hub]"
             ],
@@ -990,6 +1132,8 @@
             "name": "[variables('deploymentNames').hubErGateway]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
+            "subscriptionId": "[variables('objHubVnet').subscriptionId]",
+            "resourceGroup": "[variables('objHubVnet').resourceGroup]",
             "dependsOn": [
                 "[variables('deploymentNames').hub]"
             ],
@@ -1058,6 +1202,11 @@
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
             "name": "[variables('deploymentNames').ipGroupsHub]",
+            "subscriptionId": "[variables('objHubVnet').subscriptionId]",
+            "resourceGroup": "[variables('objHubVnet').resourceGroup]",
+            "dependsOn": [
+                "resourceGroupLoop"
+            ],
             "properties": {
                 "mode": "Incremental",
                 "template": {
@@ -1165,6 +1314,11 @@
             "condition": "[and(not(equals(variables('objHubVnet').subnets.firewallSubnet.addressSpace, '0.0.0.0/0')), variables('settings').deployResources)]",
             "name": "[concat(variables('deploymentNames').ipGroupsSpoke, copyIndex(1))]",
             "type": "Microsoft.Resources/deployments",
+            "subscriptionId": "[variables('objHubVnet').subscriptionId]",
+            "resourceGroup": "[variables('objHubVnet').resourceGroup]",
+            "dependsOn": [
+                "resourceGroupLoop"
+            ],
             "apiVersion": "2020-06-01",
             "properties": {
                 "mode": "Incremental",
@@ -1235,6 +1389,8 @@
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
             "name": "[variables('deploymentNames').bastionHhub]",
+            "subscriptionId": "[variables('objHubVnet').subscriptionId]",
+            "resourceGroup": "[variables('objHubVnet').resourceGroup]",
             "dependsOn": [
                 "[variables('deploymentNames').hub]"
             ],
@@ -1247,7 +1403,8 @@
                 "parameters": {
                     "vnetName": {"value": "[variables('objHubVnet').name]"},
                     "bastionName": {"value": "[my.bastionName(variables('objHubVnet').name, variables('names').bastionSuffix)]"},
-                    "bastionIpName": {"value": "[my.publicIpName(my.bastionName(variables('objHubVnet').name, variables('names').bastionSuffix), variables('names').publicIpSuffix)]"}
+                    "bastionIpName": {"value": "[my.publicIpName(my.bastionName(variables('objHubVnet').name, variables('names').bastionSuffix), variables('names').publicIpSuffix)]"},
+                    "location": {"value": "[variables('constants').location]"}
                 }
             }
         },
@@ -1271,7 +1428,8 @@
                 "parameters": {
                     "vnetName": {"value": "[variables('objSpokeVnet')[copyIndex()].name]"},
                     "bastionName": {"value": "[my.bastionName(variables('objSpokeVnet')[copyIndex()].name, variables('names').bastionSuffix)]"},
-                    "bastionIpName": {"value": "[my.publicIpName(my.bastionName(variables('objSpokeVnet')[copyIndex()].name, variables('names').bastionSuffix), variables('names').publicIpSuffix)]"}
+                    "bastionIpName": {"value": "[my.publicIpName(my.bastionName(variables('objSpokeVnet')[copyIndex()].name, variables('names').bastionSuffix), variables('names').publicIpSuffix)]"},
+                    "location": {"value": "[variables('constants').location]"}
                 }
             },
             "copy": {
@@ -1285,6 +1443,8 @@
             "name": "[variables('deploymentNames').firewall]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
+            "subscriptionId": "[variables('objHubVnet').subscriptionId]",
+            "resourceGroup": "[variables('objHubVnet').resourceGroup]",
             "dependsOn": [
                 "[variables('deploymentNames').hub]",
                 "[variables('deploymentNames').ipGroupsHub]",
@@ -1304,7 +1464,8 @@
                     "netRuleCollName": {"value": "[variables('constants').firewallApplicationRuleCollectionName]"},
                     "netRuleCollPriority": {"value": "[variables('constants').firewallApplicationRuleCollectionPriority]"},
                     "appRuleCollName": {"value": "[variables('constants').firewallNetworkRuleCollectionName]"},
-                    "appRuleCollPriority": {"value": "[variables('constants').firewallNetworkRuleCollectionPriority]"}
+                    "appRuleCollPriority": {"value": "[variables('constants').firewallNetworkRuleCollectionPriority]"},
+                    "location": {"value": "[variables('constants').location]"}
                 }
             }
         },
@@ -1314,6 +1475,8 @@
             "name": "[concat(variables('deploymentNames').peerOutbound, copyIndex(1))]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
+            "subscriptionId": "[variables('objHubVnet').subscriptionId]",
+            "resourceGroup": "[variables('objHubVnet').resourceGroup]",
             "dependsOn": [
                 "[variables('deploymentNames').hub]",
                 "spokeLoop",
@@ -1498,6 +1661,8 @@
             "name": "[concat(variables('deploymentNames').nsgRulesHubAll, copyIndex(1))]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
+            "subscriptionId": "[variables('allHubSubnetNsgs')[copyIndex()].subscriptionId]",
+            "resourceGroup": "[variables('allHubSubnetNsgs')[copyIndex()].resourceGroup]",
             "dependsOn": [
                 "allNsgRulesLoop"
             ],
@@ -1543,6 +1708,8 @@
             "name": "[variables('deploymentNames').nsgRulesDc]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
+            "subscriptionId": "[variables('objHubVnet').subscriptionId]",
+            "resourceGroup": "[variables('objHubVnet').resourceGroup]",
             "dependsOn": [
                 "allHubNsgRulesLoop"
             ],
@@ -1640,6 +1807,8 @@
             "name": "[variables('deploymentNames').nsgRulesJh]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
+            "subscriptionId": "[variables('objHubVnet').subscriptionId]",
+            "resourceGroup": "[variables('objHubVnet').resourceGroup]",
             "dependsOn": [
                 "allHubNsgRulesLoop"
             ],
@@ -1680,6 +1849,8 @@
             "name": "[variables('deploymentNames').nsgRulesHubSubnet1]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
+            "subscriptionId": "[variables('objHubVnet').subscriptionId]",
+            "resourceGroup": "[variables('objHubVnet').resourceGroup]",
             "dependsOn": [
                 "allHubNsgRulesLoop"
             ],
@@ -1699,6 +1870,8 @@
             "name": "[variables('deploymentNames').nsgRulesHubSubnet2]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
+            "subscriptionId": "[variables('objHubVnet').subscriptionId]",
+            "resourceGroup": "[variables('objHubVnet').resourceGroup]",
             "dependsOn": [
                 "allHubNsgRulesLoop"
             ],
@@ -1718,6 +1891,8 @@
             "name": "[variables('deploymentNames').nsgRulesHubSubnet3]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
+            "subscriptionId": "[variables('objHubVnet').subscriptionId]",
+            "resourceGroup": "[variables('objHubVnet').resourceGroup]",
             "dependsOn": [
                 "allHubNsgRulesLoop"
             ],
@@ -1737,6 +1912,8 @@
             "name": "[variables('deploymentNames').nsgRulesHubSubnet4]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
+            "subscriptionId": "[variables('objHubVnet').subscriptionId]",
+            "resourceGroup": "[variables('objHubVnet').resourceGroup]",
             "dependsOn": [
                 "allHubNsgRulesLoop"
             ],
@@ -1980,6 +2157,11 @@
         "allNsgs": {
             "type": "array",
             "value": "[variables('allSubnetNsgs')]"
+        },
+        "ddosPlanId": {
+            "condition": "[equals(parameters('vnetDdosProtectionLevel'), 'Standard - Create New')]",
+            "type": "string",
+            "value": "[reference(variables('deploymentNames').ddosPlan).outputs.ddosPlanId.value]"
         }
     }
 }
