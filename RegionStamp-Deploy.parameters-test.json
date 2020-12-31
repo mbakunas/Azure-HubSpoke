@@ -5,6 +5,9 @@
         "assetLocationURI": {
             "value": "https://raw.githubusercontent.com/mbakunas/Azure-HubSpoke/dev/"
         },
+        "resourceGroupsRegion": {
+            "value": "East US 2"
+        },
         "vnetDdosProtectionLevel": {
             "value": "Basic"
         },

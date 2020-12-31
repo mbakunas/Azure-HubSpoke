@@ -1,7 +1,54 @@
 {
-    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "$schema": "https://schema.management.azure.com/schemas/2019-08-01/managementGroupDeploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
+        "resourceGroupsRegion": {
+            "type": "string",
+            "defaultValue": "East US 2",
+            "allowedValues": [
+                "East Asia",
+                "Southeast Asia",
+                "Central US",
+                "East US",
+                "East US 2",
+                "West US",
+                "North Central US",
+                "South Central US",
+                "North Europe",
+                "West Europe",
+                "Japan West",
+                "Japan East",
+                "Brazil South",
+                "Australia East",
+                "Australia Southeast",
+                "South India",
+                "Central India",
+                "West India",
+                "Canada Central",
+                "Canada East",
+                "UK South",
+                "UK West",
+                "West Central US",
+                "West US 2",
+                "Korea Central",
+                "Korea South",
+                "France Central",
+                "France South",
+                "Australia Central",
+                "Australia Central 2",
+                "UAE Central",
+                "UAE North",
+                "South Africa North",
+                "South Africa West",
+                "Switzerland North",
+                "Switzerland West",
+                "Germany North",
+                "Germany West Central",
+                "Norway West",
+                "Norway East",
+                "Brazil Southeast"
+            ]
+        },
         "assetLocationURI": {
             "type": "string",
             "metadata": {
@@ -284,7 +331,8 @@
             "deployExpressRouteGateway": false
         },
         "constants": {
-            "location": "[resourceGroup().location]",
+            "location": "[deployment().location]",
+            "resourceGroupLocation": "[variables('azureRegion')[parameters('resourceGroupsRegion')]]",
             "templateLocationURI": "[concat(parameters('assetLocationURI'), 'Templates/')]",
             "firewallNetworkRuleCollectionName": "InfraAllowCollection",
             "firewallNetworkRuleCollectionPriority": 1000,
@@ -328,6 +376,49 @@
             "hubRbac": "[concat(variables('deploymentName'), '-HubVNetRBAC')]",
             "spokeRbac": "[concat(variables('deploymentName'), '-SpokeVNetRBAC-')]",
             "resourceLock": "[concat(variables('deploymentName'), '-ResourceLock-')]"
+        },
+        "azureRegion": {
+            "East Asia":"eastasia",
+            "Southeast Asia":"southeastasia",
+            "Central US":"centralus",
+            "East US":"eastus",
+            "East US 2":"eastus2",
+            "West US":"westus",
+            "North Central US":"northcentralus",
+            "South Central US":"southcentralus",
+            "North Europe":"northeurope",
+            "West Europe":"westeurope",
+            "Japan West":"japanwest",
+            "Japan East":"japaneast",
+            "Brazil South":"brazilsouth",
+            "Australia East":"australiaeast",
+            "Australia Southeast":"australiasoutheast",
+            "South India":"southindia",
+            "Central India":"centralindia",
+            "West India":"westindia",
+            "Canada Central":"canadacentral",
+            "Canada East":"canadaeast",
+            "UK South":"uksouth",
+            "UK West":"ukwest",
+            "West Central US":"westcentralus",
+            "West US 2":"westus2",
+            "Korea Central":"koreacentral",
+            "Korea South":"koreasouth",
+            "France Central":"francecentral",
+            "France South":"francesouth",
+            "Australia Central":"australiacentral",
+            "Australia Central 2":"australiacentral2",
+            "UAE Central":"uaecentral",
+            "UAE North":"uaenorth",
+            "South Africa North":"southafricanorth",
+            "South Africa West":"southafricawest",
+            "Switzerland North":"switzerlandnorth",
+            "Switzerland West":"switzerlandwest",
+            "Germany North":"germanynorth",
+            "Germany West Central":"germanywestcentral",
+            "Norway West":"norwaywest",
+            "Norway East":"norwayeast",
+            "Brazil Southeast":"brazilsoutheast"
         },
         "fullHubSubnet2AddressSpace": "[if(equals(parameters('hubSubnet1AddressSpace'), '0.0.0.0/0'), '0.0.0.0/0', parameters('hubSubnet2AddressSpace'))]",
         "fullHubSubnet3AddressSpace": "[if(equals(variables('fullHubSubnet2AddressSpace'), '0.0.0.0/0'), '0.0.0.0/0', parameters('hubSubnet3AddressSpace'))]",
@@ -709,6 +800,34 @@
     ],
     "resources": [
         {
+            "comments": "Resource Groups",
+            "condition": "[variables('settings').deployResources]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "name": "[concat(deployment().name, '-', 'sub', copyIndex(1), '-', split(variables('fullVnetDeploySubscriptionResourceGroup')[copyIndex()], '/')[1])]",
+            "location": "[variables('constants').resourceGroupLocation]",
+            "subscriptionId": "[split(variables('fullVnetDeploySubscriptionResourceGroup')[copyIndex()], '/')[0]]",
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "resources": [
+                        {
+                            "type": "Microsoft.Resources/resourceGroups",
+                            "apiVersion": "2020-10-01",
+                            "name": "[split(variables('fullVnetDeploySubscriptionResourceGroup')[copyIndex()], '/')[1]]",
+                            "location": "[variables('azureRegion')[parameters('resourceGroupsRegion')]]"
+                        }
+                    ]
+                }
+            },
+            "copy": {
+                "count": "[length(variables('fullVnetDeploySubscriptionResourceGroup'))]",
+                "name": "resourceGroupLoop"
+            }
+        },
+        {
             "comments": "DDOS Protection Plan",
             "condition": "[and(equals(parameters('vnetDdosProtectionLevel'), 'Standard - Create New'), variables('settings').deployResources)]",
             "name": "[variables('deploymentNames').ddosPlan]",
@@ -716,6 +835,9 @@
             "apiVersion": "2020-06-01",
             "subscriptionId": "[variables('objHubVnet').subscriptionId]",
             "resourceGroup": "[variables('objHubVnet').resourceGroup]",
+            "dependsOn": [
+                "resourceGroupLoop"
+            ],
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
@@ -736,6 +858,9 @@
             "name": "[concat(variables('deploymentNames').routeTable, copyIndex(1))]",
             "subscriptionId": "[split(variables('fullVnetDeploySubscriptionResourceGroup')[copyIndex()], '/')[0]]",
             "resourceGroup": "[split(variables('fullVnetDeploySubscriptionResourceGroup')[copyIndex()], '/')[1]]",
+            "dependsOn": [
+                "resourceGroupLoop"
+            ],
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
@@ -763,7 +888,8 @@
             "resourceGroup": "[variables('objHubVnet').resourceGroup]",
             "dependsOn": [
                 "routeTableLoop",
-                "[variables('deploymentNames').ddosPlan]"
+                "[variables('deploymentNames').ddosPlan]",
+                "resourceGroupLoop"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -812,7 +938,8 @@
             "resourceGroup": "[variables('objSpokeVnet')[copyIndex()].resourceGroup]",
             "dependsOn": [
                 "routeTableLoop",
-                "[variables('deploymentNames').ddosPlan]"
+                "[variables('deploymentNames').ddosPlan]",
+                "resourceGroupLoop"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -843,7 +970,9 @@
             },
             "copy": {
                 "name": "spokeLoop",
-                "count": "[length(variables('objSpokeVnet'))]"
+                "count": "[length(variables('objSpokeVnet'))]",
+                "mode": "Serial",
+                "batchSize": 1
             }
         },
         {
@@ -1077,6 +1206,9 @@
             "name": "[variables('deploymentNames').ipGroupsHub]",
             "subscriptionId": "[variables('objHubVnet').subscriptionId]",
             "resourceGroup": "[variables('objHubVnet').resourceGroup]",
+            "dependsOn": [
+                "resourceGroupLoop"
+            ],
             "properties": {
                 "mode": "Incremental",
                 "template": {
@@ -1186,6 +1318,9 @@
             "type": "Microsoft.Resources/deployments",
             "subscriptionId": "[variables('objHubVnet').subscriptionId]",
             "resourceGroup": "[variables('objHubVnet').resourceGroup]",
+            "dependsOn": [
+                "resourceGroupLoop"
+            ],
             "apiVersion": "2020-06-01",
             "properties": {
                 "mode": "Incremental",
