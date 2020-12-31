@@ -3,7 +3,7 @@
     "contentVersion": "1.0.0.0",
     "parameters": {
         "assetLocationURI": {
-            "value": "https://raw.githubusercontent.com/mbakunas/Azure-HubSpoke/dev/"
+            "value": "https://raw.githubusercontent.com/mbakunas/Azure-HubSpoke/master/"
         },
         "resourceGroupsRegion": {
             "value": "East US 2"
