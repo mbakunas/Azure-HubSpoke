@@ -2158,13 +2158,10 @@
             "type": "array",
             "value": "[variables('allSubnetNsgs')]"
         },
-        "output1": {
-            "type": "int",
-            "value": "[length(variables('objSpokeVnet'))]"
-        },
-        "output2": {
-            "type": "array",
-            "value": "[variables('objSpokeVnet')]"
+        "ddosPlanId": {
+            "condition": "[equals(parameters('vnetDdosProtectionLevel'), 'Standard - Create New')]",
+            "type": "string",
+            "value": "[reference(variables('deploymentNames').ddosPlan).outputs.ddosPlanId.value]"
         }
     }
 }
