@@ -2189,14 +2189,6 @@
             "condition": "[equals(parameters('vnetDdosProtectionLevel'), 'Standard - Create New')]",
             "type": "string",
             "value": "[reference(variables('deploymentNames').ddosPlan).outputs.ddosPlanId.value]"
-        },
-        "output1": {
-            "type": "string",
-            "value": "[ResourceId('Microsoft.Network/publicIPAddresses', my.publicIpName(variables('names').expressRouteGatewayName, variables('names').publicIpSuffix))]"
-        },
-        "output2": {
-            "type": "string",
-            "value": "[concat('/subscriptions/', variables('objHubVnet').subscriptionId, '/resourceGroups/', variables('objHubVnet').resourceGroup, ResourceId('Microsoft.Network/publicIPAddresses', my.publicIpName(variables('names').expressRouteGatewayName, variables('names').publicIpSuffix)))]"
         }
     }
 }
