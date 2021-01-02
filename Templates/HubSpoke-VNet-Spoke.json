@@ -92,7 +92,22 @@
                         "[parameters('virtualNetwork_addressSpace')]"
                     ]
                 },
-                "subnets": [],
+                "subnets": [
+                    {
+                        "name": "[parameters('subnet_1_name')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('subnet_1_addressSpace')]",
+                            "serviceEndpoints": [],
+                            "delegations": [],
+                            "privateEndpointNetworkPolicies": "Enabled",
+                            "privateLinkServiceNetworkPolicies": "Enabled",
+                            "networkSecurityGroup": {
+                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_1_name'))]"
+                            },
+                            "routeTable": "[if(parameters('configureRouteTable'), variables('routeTableIdJSON'), json('null'))]"
+                        }
+                    }
+                ],
                 "virtualNetworkPeerings": [],
                 "enableDdosProtection": "[if(equals(parameters('ddosPlanId'), 'Skip'), 'false', 'true')]",
                 "enableVmProtection": false,
@@ -135,27 +150,6 @@
             }
         },
         {
-            "comments": "Subnet 1",
-            "type": "Microsoft.Network/virtualNetworks/subnets",
-            "apiVersion": "2020-05-01",
-            "name": "[concat(parameters('virtualNetwork_name'), '/',parameters('subnet_1_name'))]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetwork_name'))]",
-                "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetwork_name'), parameters('subnet_appGw_name'))]"
-            ],
-            "properties": {
-                "addressPrefix": "[parameters('subnet_1_addressSpace')]",
-                "serviceEndpoints": [],
-                "delegations": [],
-                "privateEndpointNetworkPolicies": "Enabled",
-                "privateLinkServiceNetworkPolicies": "Enabled",
-                "networkSecurityGroup": {
-                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_1_name'))]"
-                },
-                "routeTable": "[if(parameters('configureRouteTable'), variables('routeTableIdJSON'), json('null'))]"
-            }
-        },
-        {
             "comments": "Subnet 1 NSG",
             "type": "Microsoft.Network/networkSecurityGroups",
             "apiVersion": "2020-05-01",
@@ -172,7 +166,9 @@
             "apiVersion": "2020-05-01",
             "name": "[concat(parameters('virtualNetwork_name'), '/',parameters('subnet_2_name'))]",
             "dependsOn": [
-                "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetwork_name'), parameters('subnet_1_name'))]"
+                "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetwork_name'))]",
+                "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetwork_name'), parameters('subnet_appGw_name'))]",
+                "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetwork_name'), 'AzureBastionSubnet')]"
             ],
             "properties": {
                 "addressPrefix": "[parameters('subnet_2_addressSpace')]",
