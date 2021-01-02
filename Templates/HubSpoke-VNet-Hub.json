@@ -123,7 +123,32 @@
                         "[parameters('virtualNetwork_addressSpace')]"
                     ]
                 },
-                "subnets": [],
+                "subnets": [
+                    {
+                        "name": "GatewaySubnet",
+                        "properties": {
+                            "addressPrefix": "[parameters('subnet_gateway_addressSpace')]",
+                            "serviceEndpoints": [],
+                            "delegations": [],
+                            "privateEndpointNetworkPolicies": "Enabled",
+                            "privateLinkServiceNetworkPolicies": "Enabled"
+                        }
+                    },
+                    {
+                        "name": "[concat(parameters('virtualNetwork_name'),'/',parameters('subnet_DC_name'))]",
+                        "properties": {
+                            "addressPrefix": "[parameters('subnet_DC_addressSpace')]",
+                            "networkSecurityGroup": {
+                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_DC_name'))]"
+                            },
+                            "routeTable": "[if(parameters('configureRouteTable'), variables('routeTableIdJSON'), json('null'))]",
+                            "serviceEndpoints": [],
+                            "delegations": [],
+                            "privateEndpointNetworkPolicies": "Enabled",
+                            "privateLinkServiceNetworkPolicies": "Enabled"
+                        }
+                    }
+                ],
                 "virtualNetworkPeerings": [],
                 "enableDdosProtection": "[if(equals(parameters('ddosPlanId'), 'Skip'), 'false', 'true')]",
                 "enableVmProtection": false,
@@ -131,6 +156,7 @@
             }
         },
         {
+            "condition": false,
             "comments": "Gateway subnet",
             "type": "Microsoft.Network/virtualNetworks/subnets",
             "apiVersion": "2020-05-01",
@@ -182,6 +208,7 @@
             }
         },
         {
+            "condition": false,
             "comments": "DCs subnet",
             "type": "Microsoft.Network/virtualNetworks/subnets",
             "apiVersion": "2020-05-01",
