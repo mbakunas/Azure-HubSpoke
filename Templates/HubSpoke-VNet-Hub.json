@@ -135,18 +135,6 @@
                         }
                     },
                     {
-                        "name": "AzureFirewallSubnet",
-                        "properties": {
-                            "addressPrefix": "[parameters('subnet_firewall_addressSpace')]"
-                        }
-                    },
-                    {
-                        "name": "AzureBastionSubnet",
-                        "properties": {
-                            "addressPrefix": "[parameters('subnet_bastion_addressSpace')]"
-                        }
-                    },
-                    {
                         "name": "[parameters('subnet_DC_name')]",
                         "properties": {
                             "addressPrefix": "[parameters('subnet_DC_addressSpace')]",
@@ -158,36 +146,6 @@
                             "delegations": [],
                             "privateEndpointNetworkPolicies": "Enabled",
                             "privateLinkServiceNetworkPolicies": "Enabled"
-                        }
-                    },
-                    {
-                        "name": "[parameters('subnet_JH_name')]",
-                        "properties": {
-                            "addressPrefix": "[parameters('subnet_JH_addressSpace')]"
-                        }
-                    },
-                    {
-                        "name": "[parameters('subnet_1_name')]",
-                        "properties": {
-                            "addressPrefix": "[parameters('subnet_1_addressSpace')]"
-                        }
-                    },
-                    {
-                        "name": "[parameters('subnet_2_name')]",
-                        "properties": {
-                            "addressPrefix": "[parameters('subnet_2_addressSpace')]"
-                        }
-                    },
-                    {
-                        "name": "[parameters('subnet_3_name')]",
-                        "properties": {
-                            "addressPrefix": "[parameters('subnet_3_addressSpace')]"
-                        }
-                    },
-                    {
-                        "name": "[parameters('subnet_4_name')]",
-                        "properties": {
-                            "addressPrefix": "[parameters('subnet_4_addressSpace')]"
                         }
                     }
                 ],
