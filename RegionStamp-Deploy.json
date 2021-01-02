@@ -479,6 +479,7 @@
                     "addressSpace": "[parameters('spokeVnetAddressSpace')[copyIndex('objSpokeVnet')]]",
                     "ipGroupsName": "[concat(parameters('spokeVnetName')[copyIndex('objSpokeVnet')], '-', variables('names').ipGroupsSuffix)]",
                     "virtualMachineContributorRoleId": "[concat('/subscriptions/', split(variables('fullSpokeDeploySubscriptionResourceGroup')[copyIndex('objSpokeVnet')], '/')[0], '/providers/Microsoft.Authorization/roleDefinitions/9980e02c-c2be-4d73-94e8-173b1dc7cf3c')]",
+                    "networkContributorRoleId": "[concat('/subscriptions/', split(variables('fullSpokeDeploySubscriptionResourceGroup')[copyIndex('objSpokeVnet')], '/')[0], '/providers/Microsoft.Authorization/roleDefinitions/4d97b98b-1d4f-4787-a291-c67834d212e7')]",
                     "spokeVmContAadGroupId": "[if(equals(length(parameters('spokeVmContAadGroupId')), 0), 'Skip', if(equals(length(parameters('spokeVmContAadGroupId')), 1), parameters('spokeVmContAadGroupId')[0], parameters('spokeVmContAadGroupId')[copyIndex('objSpokeVnet')]))]",
                     "spokeVmContributorsRoleAssignmentID": "[if(equals(length(parameters('spokeVmContAadGroupId')), 0), 'Skip', parameters('spokeVmContributorsRoleAssignmentID')[copyIndex('objSpokeVnet')])]",
                     "subnets":{
@@ -1139,31 +1140,67 @@
             ],
             "properties": {
                 "mode": "Incremental",
+                "expressionEvaluationOptions": {
+                    "scope": "Inner"
+                },
+                "parameters": {
+                    "location": {
+                        "value": "[variables('constants').location]"
+                    },
+                    "expressRouteGatewayName": {
+                        "value": "[variables('names').expressRouteGatewayName]"
+                    },
+                    "ipAddressName": {
+                        "value": "[my.publicIpName(variables('names').expressRouteGatewayName, variables('names').publicIpSuffix)]"
+                    },
+                    "vnetName": {
+                        "value": "[variables('objHubVnet').name]"
+                    },
+                    "subnetName": {
+                        "value": "[variables('objHubVnet').subnets.gatewaySubnet.name]"
+                    }
+                },
                 "template": {
                     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
                     "contentVersion": "1.0.0.0",
-                    "parameters": {},
+                    "parameters": {
+                        "location": {
+                            "type": "string"
+                        },
+                        "expressRouteGatewayName": {
+                            "type": "string"
+                        },
+                        "ipAddressName": {
+                            "type": "string"
+                        },
+                        "vnetName": {
+                            "type": "string"
+                        },
+                        "subnetName": {
+                            "type": "string"
+                        }
+                    },
                     "resources": [
                         {
                             "type": "Microsoft.Network/virtualNetworkGateways",
                             "apiVersion": "2020-05-01",
-                            "name": "[variables('names').expressRouteGatewayName]",
-                            "location": "[variables('constants').location]",
+                            "name": "[parameters('expressRouteGatewayName')]",
+                            "location": "[parameters('location')]",
                             "dependsOn": [
-                                "[resourceId('Microsoft.Network/publicIPAddresses', my.publicIpName(variables('names').expressRouteGatewayName, variables('names').publicIpSuffix))]"
+                                "[resourceId('Microsoft.Network/publicIPAddresses', parameters('ipAddressName'))]"
                             ],
                             "properties": {
                                 "enablePrivateIpAddress": false,
                                 "ipConfigurations": [
                                     {
-                                        "name": "[concat(variables('names').expressRouteGatewayName, 'ipConfig1')]",
+                                        "name": "default",
                                         "properties": {
                                             "privateIPAllocationMethod": "Dynamic",
                                             "publicIPAddress": {
-                                                "id": "[resourceId('Microsoft.Network/publicIPAddresses', my.publicIpName(variables('names').expressRouteGatewayName, variables('names').publicIpSuffix))]"
+                                                "id": "[resourceId('Microsoft.Network/publicIPAddresses', parameters('ipAddressName'))]"
                                             },
                                             "subnet": {
-                                                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('objHubVnet').name, variables('objHubVnet').subnets.gatewaySubnet.name)]"
+                                                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('vnetName'), parameters('subnetName'))]"
                                             }
                                         }
                                     }
@@ -1182,14 +1219,14 @@
                         {
                             "type": "Microsoft.Network/publicIPAddresses",
                             "apiVersion": "2020-05-01",
-                            "name": "[my.publicIpName(variables('names').expressRouteGatewayName, variables('names').publicIpSuffix)]",
-                            "location": "[variables('constants').location]",
+                            "name": "[parameters('ipAddressName')]",
+                            "location": "[parameters('location')]",
                             "sku": {
-                                "name": "Standard"
+                                "name": "Basic"
                             },
                             "properties": {
                                 "publicIPAddressVersion": "IPv4",
-                                "publicIPAllocationMethod": "Static"
+                                "publicIPAllocationMethod": "Dynamic"
                             }
                         }
                     ]
@@ -2162,6 +2199,14 @@
             "condition": "[equals(parameters('vnetDdosProtectionLevel'), 'Standard - Create New')]",
             "type": "string",
             "value": "[reference(variables('deploymentNames').ddosPlan).outputs.ddosPlanId.value]"
+        },
+        "output1": {
+            "type": "string",
+            "value": "[ResourceId('Microsoft.Network/publicIPAddresses', my.publicIpName(variables('names').expressRouteGatewayName, variables('names').publicIpSuffix))]"
+        },
+        "output2": {
+            "type": "string",
+            "value": "[concat('/subscriptions/', variables('objHubVnet').subscriptionId, '/resourceGroups/', variables('objHubVnet').resourceGroup, ResourceId('Microsoft.Network/publicIPAddresses', my.publicIpName(variables('names').expressRouteGatewayName, variables('names').publicIpSuffix)))]"
         }
     }
 }
