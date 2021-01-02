@@ -135,7 +135,7 @@
                         }
                     },
                     {
-                        "name": "[concat(parameters('virtualNetwork_name'),'/',parameters('subnet_DC_name'))]",
+                        "name": "[parameters('subnet_DC_name')]",
                         "properties": {
                             "addressPrefix": "[parameters('subnet_DC_addressSpace')]",
                             "networkSecurityGroup": {
