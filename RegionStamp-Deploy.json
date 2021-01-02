@@ -1144,21 +1144,11 @@
                     "scope": "Inner"
                 },
                 "parameters": {
-                    "location": {
-                        "value": "[variables('constants').location]"
-                    },
-                    "expressRouteGatewayName": {
-                        "value": "[variables('names').expressRouteGatewayName]"
-                    },
-                    "ipAddressName": {
-                        "value": "[my.publicIpName(variables('names').expressRouteGatewayName, variables('names').publicIpSuffix)]"
-                    },
-                    "vnetName": {
-                        "value": "[variables('objHubVnet').name]"
-                    },
-                    "subnetName": {
-                        "value": "[variables('objHubVnet').subnets.gatewaySubnet.name]"
-                    }
+                    "location": {"value": "[variables('constants').location]"},
+                    "expressRouteGatewayName": {"value": "[variables('names').expressRouteGatewayName]"},
+                    "ipAddressName": {"value": "[my.publicIpName(variables('names').expressRouteGatewayName, variables('names').publicIpSuffix)]"},
+                    "vnetName": {"value": "[variables('objHubVnet').name]"},
+                    "subnetName": {"value": "[variables('objHubVnet').subnets.gatewaySubnet.name]"}
                 },
                 "template": {
                     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
