@@ -85,6 +85,18 @@
             ],
             "defaultValue": "Low"
         },
+        "networkContributorsAadGroupId": {
+            "type": "string",
+            "metadata": {
+                "description": "The object ID of the group that will be able to manage and create VNets."
+            }
+        },
+        "networkContributorsRoleAssignmentId": {
+            "type": "array",
+            "metadata": {
+                "description": "A list of GUIDs, one per resource group, to identify the new role assignment."
+            }
+        },
         "hubVnetName": {
             "type": "string",
             "metadata": {
@@ -562,6 +574,17 @@
                     "vnetBastionAddressSpace": "[variables('objSpokeVnet')[copyIndex('objAllSpokeSubnet3Nsgs')].subnets.Subnet3.vnetBastionAddressSpace]",
                     "vnetAppGatewayAddressSpace": "[variables('objSpokeVnet')[copyIndex('objAllSpokeSubnet3Nsgs')].subnets.Subnet3.vnetAppGatewayAddressSpace]"
                 }
+            },
+            {
+                "name": "objAllResourceGroupRBAC",
+                "count": "[length(variables('fullVnetDeploySubscriptionResourceGroup'))]",
+                "input": {
+                    "subscriptionId": "[split(variables('fullVnetDeploySubscriptionResourceGroup')[copyIndex('objAllResourceGroupRBAC')], '/')[0]]",
+                    "resourceGroup": "[split(variables('fullVnetDeploySubscriptionResourceGroup')[copyIndex('objAllResourceGroupRBAC')], '/')[1]]",
+                    "networkContributorsRoleAssignmentId": "[parameters('networkContributorsRoleAssignmentId')[copyIndex('objAllResourceGroupRBAC')]]",
+                    "networkContributorRoleId": "[concat('/subscriptions/', split(variables('fullVnetDeploySubscriptionResourceGroup')[copyIndex('objAllResourceGroupRBAC')], '/')[0], '/providers/Microsoft.Authorization/roleDefinitions/4d97b98b-1d4f-4787-a291-c67834d212e7')]",
+                    "networkContributorsAadGroupId": "[parameters('networkContributorsAadGroupId')]"
+                }
             }
         ],
         "fullVnetDeploySubscriptionResourceGroup": "[union(concat(array(parameters('hubDeploySubscriptionResourceGroup')), variables('fullSpokeDeploySubscriptionResourceGroup')), concat(array(parameters('hubDeploySubscriptionResourceGroup')), variables('fullSpokeDeploySubscriptionResourceGroup')))]",
@@ -805,9 +828,9 @@
             "condition": "[variables('settings').deployResources]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
-            "name": "[concat(deployment().name, '-', 'sub', copyIndex(1), '-', split(variables('fullVnetDeploySubscriptionResourceGroup')[copyIndex()], '/')[1])]",
+            "name": "[concat(deployment().name, '-', 'sub', copyIndex(1), '-', variables('objAllResourceGroupRBAC')[copyIndex()].resourceGroup)]",
             "location": "[variables('constants').resourceGroupLocation]",
-            "subscriptionId": "[split(variables('fullVnetDeploySubscriptionResourceGroup')[copyIndex()], '/')[0]]",
+            "subscriptionId": "[variables('objAllResourceGroupRBAC')[copyIndex()].subscriptionId]",
             "properties": {
                 "mode": "Incremental",
                 "template": {
@@ -817,15 +840,49 @@
                         {
                             "type": "Microsoft.Resources/resourceGroups",
                             "apiVersion": "2020-10-01",
-                            "name": "[split(variables('fullVnetDeploySubscriptionResourceGroup')[copyIndex()], '/')[1]]",
+                            "name": "[variables('objAllResourceGroupRBAC')[copyIndex()].resourceGroup]",
                             "location": "[variables('azureRegion')[parameters('resourceGroupsRegion')]]"
                         }
                     ]
                 }
             },
             "copy": {
-                "count": "[length(variables('fullVnetDeploySubscriptionResourceGroup'))]",
+                "count": "[length(variables('objAllResourceGroupRBAC'))]",
                 "name": "resourceGroupLoop"
+            }
+        },
+        {
+            "comments": "Resource Group RBAC",
+            "condition": "[variables('settings').deployResources]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "name": "[concat(deployment().name, '-', 'sub', copyIndex(1), '-', variables('objAllResourceGroupRBAC')[copyIndex()].resourceGroup, '-RBAC')]",
+            "subscriptionId": "[variables('objAllResourceGroupRBAC')[copyIndex()].subscriptionId]",
+            "resourceGroup": "[variables('objAllResourceGroupRBAC')[copyIndex()].resourceGroup]",
+            "dependsOn": [
+                "resourceGroupLoop"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "resources": [
+                        {
+                            "type": "Microsoft.Authorization/roleAssignments",
+                            "apiVersion": "2020-04-01-preview",
+                            "name": "[variables('objAllResourceGroupRBAC')[copyIndex()].networkContributorsRoleAssignmentId]",
+                            "properties": {
+                                "roleDefinitionId": "[variables('objAllResourceGroupRBAC')[copyIndex()].networkContributorRoleId]",
+                                "principalId": "[variables('objAllResourceGroupRBAC')[copyIndex()].networkContributorsAadGroupId]"
+                            }
+                        }
+                    ]
+                }
+            },
+            "copy": {
+                "count": "[length(variables('objAllResourceGroupRBAC'))]",
+                "name": "resourceGroupRbacLoop"
             }
         },
         {
@@ -2131,6 +2188,7 @@
             "subscriptionId": "[split(variables('fullVnetDeploySubscriptionResourceGroup')[copyIndex()], '/')[0]]",
             "resourceGroup": "[split(variables('fullVnetDeploySubscriptionResourceGroup')[copyIndex()], '/')[1]]",
             "dependsOn": [
+                "resourceGroupRbacLoop",
                 "[variables('deploymentNames').hubRbac]",
                 "spokeRbacLoop",
                 "[variables('deploymentNames').bastionHhub]",
@@ -2189,6 +2247,10 @@
             "condition": "[equals(parameters('vnetDdosProtectionLevel'), 'Standard - Create New')]",
             "type": "string",
             "value": "[reference(variables('deploymentNames').ddosPlan).outputs.ddosPlanId.value]"
+        },
+        "output1": {
+            "type": "array",
+            "value": "[variables('objAllResourceGroupRBAC')]"
         }
     }
 }

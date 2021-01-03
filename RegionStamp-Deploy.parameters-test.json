@@ -20,6 +20,16 @@
         "routeTableName": {
             "value": "RouteTable-EastUS2-01"
         },
+        "networkContributorsAadGroupId": {
+            "value": "931fbead-2296-4d2b-ac29-da61f92c413b"
+        },
+        "networkContributorsRoleAssignmentId": {
+            "value": [
+                "8e5b5f19-21b9-4ed9-b601-799b23a5a1a8",
+                "f4c29215-1369-42c2-8e19-055adfaa7bd4",
+                "f9370c43-cf0d-42d3-b83d-6f3412e5f5ee"
+            ]
+        },
         "hubVnetName": {
             "value": "HUB-EastUS2-01"
         },
