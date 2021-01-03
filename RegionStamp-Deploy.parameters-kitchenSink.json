@@ -9,7 +9,7 @@
             "value": "East US 2"
         },
         "vnetDdosProtectionLevel": {
-            "value": "Basic"
+            "value": "Standard - Create New"
         },
         "vnetDdosProtectionPlanName": {
             "value": "DDOS-Plan-01"
@@ -43,10 +43,10 @@
             "value": "10.0.0.0/26"
         },
         "hubSubnetFirewallAddressSpace": {
-            "value": "0.0.0.0/0"
+            "value": "10.0.0.64/26"
         },
         "hubSubnetBastionAddressSpace": {
-            "value": "0.0.0.0/0"
+            "value": "10.0.0.128/26"
         },
         "hubSubnetDcName": {
             "value": "Infra"
@@ -129,7 +129,9 @@
         },
         "spokeSubnetBastionAddressSpace": {
             "value": [
-                "0.0.0.0/0"
+                "10.1.0.0/26",
+                "10.2.0.0/26",
+                "10.3.0.0/26"
             ]
         },
         "spokeSubnetAppGwName": {
