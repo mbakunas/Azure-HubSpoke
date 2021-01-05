@@ -8,10 +8,6 @@
 
 * This solution deploys a single hub VNet along with a number of spoke VNets specified in the parameters file.  The intent is for the spokes to be identical, but there is some flexibility to have different subnet design for each spoke
 * The Hub is peered with each spoke and allows gateway transit from the spokes
-* There is an NSG attached to each subnet.  The level of NSG rule security restriction is configurable:
-  * Low    = only the default NSG rules are deployed
-  * Medium = inbound traffic is restricted but intra-subnet (traffic between VMs within the subnet) traffic is allowed
-  * High   = microsegmentation, where traffic between VMs within the same subnet is restricted (except for the DCs subnet)
 
 ### Hub VNet
 
@@ -39,6 +35,10 @@ This solution deploys spokes that with the following subnets:
 
 ### Network Security Groups (NSGs)
 
+* There is an NSG attached to each subnet.  The level of NSG rule security restriction is configurable:
+  * Low    = only the default NSG rules are deployed
+  * Medium = inbound traffic is restricted but intra-subnet (traffic between VMs within the subnet) traffic is allowed
+  * High   = microsegmentation, where traffic between VMs within the same subnet is restricted (except for the DCs subnet)
 * Medium security configures three NSG rules on all subnets:
   * Allow intra-subnet traffic
   * Allow inbound RDP from the JumpHosts subnet (if that subnet is deployed)
