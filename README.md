@@ -76,6 +76,7 @@ RBAC is set as follows:
 * A specified AAD group has VM contributor to the spoke VNet(s).  The intention is that the application development teams and anyone else needing to deploy VMs to the spoke VNet are members of this group
 * A specified AAD group has VM contributor to the hub subnets.  The intention is that the server team or anyone needing to deploy infrastructure to the hub are members of this group
 * An optional specified AAD group that has VM contributor to the DCs subnet.  If specified this group, instead of the above group, will have VM contributor to the DCs subnet.  The intention is that the identity team (or whichever team is responsible for the DCs) are members of this group
+* A specified AAD group has network contributor to all the resource groups
 
 ### DDoS Protection
 
