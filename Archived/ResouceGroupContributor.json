@@ -1,0 +1,48 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "roleDefinitionName": {
+            "type": "string",
+            "metadata": {
+                "description": "GUID that will be used as the name for the new role definition"
+            }
+        },
+        "subscriptions": {
+            "type": "array",
+            "metadata": {
+                "description": "List of subscription IDs where the new role will be created."
+            }
+        }
+    },
+    "functions": [],
+    "variables": {
+        "roleName": "Resource Group Contributor",
+        "roleDescription": "Create and read resource groups.",
+        "actions": [
+            "Microsoft.Resources/subscriptions/resourceGroups/read",
+            "Microsoft.Resources/subscriptions/resourceGroups/write"
+        ]
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Authorization/roleDefinitions",
+            "apiVersion": "2018-01-01-preview",
+            "name": "[parameters('roleDefinitionName')]",
+            "properties": {
+                "roleName": "[variables('roleName')]",
+                "description": "[variables('roleDescription')]",
+                "permissions": [
+                    {
+                        "actions": "[variables('actions')]"
+                    }
+                ],
+                //"assignableScopes": "[json(string(parameters('subscriptions')))]"
+                "assignableScopes": [
+                    "[subscription().id]"
+                ]
+            }
+        }
+    ],
+    "outputs": {}
+}
