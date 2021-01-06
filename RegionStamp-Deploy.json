@@ -432,6 +432,7 @@
             "Norway East":"norwayeast",
             "Brazil Southeast":"brazilsoutheast"
         },
+        // Fully-qualify all the parameters: turn single-element arrays into appropriate length, if subnet 2 is set to '0.0.0.0/0' set subnet 3 to '0.0.0.0/0', etc.
         "fullHubSubnet2AddressSpace": "[if(equals(parameters('hubSubnet1AddressSpace'), '0.0.0.0/0'), '0.0.0.0/0', parameters('hubSubnet2AddressSpace'))]",
         "fullHubSubnet3AddressSpace": "[if(equals(variables('fullHubSubnet2AddressSpace'), '0.0.0.0/0'), '0.0.0.0/0', parameters('hubSubnet3AddressSpace'))]",
         "fullHubSubnet4AddressSpace": "[if(equals(variables('fullHubSubnet3AddressSpace'), '0.0.0.0/0'), '0.0.0.0/0', parameters('hubSubnet4AddressSpace'))]",
@@ -481,6 +482,7 @@
                 "count": "[length(parameters('spokeVnetName'))]",
                 "input": "[if(or(and(equals(length(parameters('spokeSubnet3AddressSpace')), 1), equals(parameters('spokeSubnet3AddressSpace')[0], '0.0.0.0/0')), equals(variables('fullSpokeSubnet2AddressSpace')[copyIndex('fullSpokeSubnet3Name')], '0.0.0.0/0')), 'NotDeployed', if(equals(length(parameters('spokeSubnet3Name')), 1), parameters('spokeSubnet3Name')[0], parameters('spokeSubnet3Name')[copyIndex('fullSpokeSubnet3Name')]))]"
             },
+            // build the spoke VNet objects
             {
                 "name": "objSpokeVnet",
                 "count": "[length(parameters('spokeVnetName'))]",
@@ -536,6 +538,7 @@
                     }
                 }
             },
+            // build the NSG objects
             {
                 "name": "objAllSpokeSubnet1Nsgs",
                 "count": "[length(parameters('spokeVnetName'))]",
@@ -581,13 +584,16 @@
                 "input": {
                     "subscriptionId": "[split(variables('fullVnetDeploySubscriptionResourceGroup')[copyIndex('objAllResourceGroupRBAC')], '/')[0]]",
                     "resourceGroup": "[split(variables('fullVnetDeploySubscriptionResourceGroup')[copyIndex('objAllResourceGroupRBAC')], '/')[1]]",
+                    "location": "[variables('azureRegion')[parameters('resourceGroupsRegion')]]",
                     "networkContributorsRoleAssignmentId": "[parameters('networkContributorsRoleAssignmentId')[copyIndex('objAllResourceGroupRBAC')]]",
                     "networkContributorRoleId": "[concat('/subscriptions/', split(variables('fullVnetDeploySubscriptionResourceGroup')[copyIndex('objAllResourceGroupRBAC')], '/')[0], '/providers/Microsoft.Authorization/roleDefinitions/4d97b98b-1d4f-4787-a291-c67834d212e7')]",
                     "networkContributorsAadGroupId": "[parameters('networkContributorsAadGroupId')]"
                 }
             }
         ],
+        // build the array of subscriptions/resource groups
         "fullVnetDeploySubscriptionResourceGroup": "[union(concat(array(parameters('hubDeploySubscriptionResourceGroup')), variables('fullSpokeDeploySubscriptionResourceGroup')), concat(array(parameters('hubDeploySubscriptionResourceGroup')), variables('fullSpokeDeploySubscriptionResourceGroup')))]",
+        // build the hub VNet object
         "objHubVnet": {
             "subscriptionId": "[split(parameters('hubDeploySubscriptionResourceGroup'), '/')[0]]",
             "resourceGroup": "[split(parameters('hubDeploySubscriptionResourceGroup'), '/')[1]]",
@@ -841,7 +847,7 @@
                             "type": "Microsoft.Resources/resourceGroups",
                             "apiVersion": "2020-10-01",
                             "name": "[variables('objAllResourceGroupRBAC')[copyIndex()].resourceGroup]",
-                            "location": "[variables('azureRegion')[parameters('resourceGroupsRegion')]]"
+                            "location": "[variables('objAllResourceGroupRBAC')[copyIndex()].location]"
                         }
                     ]
                 }
