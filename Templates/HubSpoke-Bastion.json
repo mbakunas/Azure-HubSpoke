@@ -29,6 +29,7 @@
             "name": "[parameters('bastionName')]",
             "apiVersion": "2020-03-01",
             "location": "[parameters('location')]",
+            "tags": "[resourceGroup().tags]",
             "dependsOn": [
                 "[resourceId('Microsoft.Network/publicIPAddresses', parameters('bastionIpName'))]"
             ],
@@ -54,6 +55,7 @@
             "name": "[parameters('bastionIpName')]",
             "apiVersion": "2020-03-01",
             "location": "[resourceGroup().location]",
+            "tags": "[resourceGroup().tags]",
             "sku": {
                 "name": "Standard"
             },

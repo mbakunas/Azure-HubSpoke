@@ -109,6 +109,7 @@
             "apiVersion": "2020-05-01",
             "name": "[parameters('virtualNetwork_name')]",
             "location": "[parameters('location')]",
+            "tags": "[resourceGroup().tags]",
             "dependsOn": [
                 "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_JH_name'))]",
                 "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_DC_name'))]",
@@ -196,6 +197,7 @@
             "apiVersion": "2020-05-01",
             "name": "[parameters('nsg_DC_name')]",
             "location": "[parameters('location')]",
+            "tags": "[resourceGroup().tags]",
             "properties": {
                 "securityRules": []
             }
@@ -230,6 +232,7 @@
             "apiVersion": "2020-05-01",
             "name": "[parameters('nsg_JH_name')]",
             "location": "[parameters('location')]",
+            "tags": "[resourceGroup().tags]",
             "properties": {
                 "securityRules": []
             }
@@ -265,6 +268,7 @@
             "apiVersion": "2020-05-01",
             "name": "[parameters('nsg_1_name')]",
             "location": "[parameters('location')]",
+            "tags": "[resourceGroup().tags]",
             "properties": {
                 "securityRules": []
             }
@@ -298,6 +302,7 @@
             "apiVersion": "2020-05-01",
             "name": "[parameters('nsg_2_name')]",
             "location": "[parameters('location')]",
+            "tags": "[resourceGroup().tags]",
             "properties": {
                 "securityRules": []
             }
@@ -331,6 +336,7 @@
             "apiVersion": "2020-05-01",
             "name": "[parameters('nsg_3_name')]",
             "location": "[parameters('location')]",
+            "tags": "[resourceGroup().tags]",
             "properties": {
                 "securityRules": []
             }
@@ -364,6 +370,7 @@
             "apiVersion": "2020-05-01",
             "name": "[parameters('nsg_4_name')]",
             "location": "[parameters('location')]",
+            "tags": "[resourceGroup().tags]",
             "properties": {
                 "securityRules": []
             }
