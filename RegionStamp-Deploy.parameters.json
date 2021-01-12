@@ -8,6 +8,22 @@
         "resourceGroupsRegion": {
             "value": "East US 2"
         },
+        "resourceGroupTags": {
+            "value": {
+                "HS-01": {
+                    "AppTaxonomy": "IT/Network",
+                    "EnvironmentType": "Production"
+                },
+                "HS-02": {
+                    "AppTaxonomy": "IT/Network",
+                    "EnvironmentType": "Test"
+                },
+                "HS-03": {
+                    "AppTaxonomy": "IT/Network",
+                    "EnvironmentType": "Development"
+                }
+            }
+        },
         "vnetDdosProtectionLevel": {
             "value": "Basic"
         },

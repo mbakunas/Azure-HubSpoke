@@ -1,0 +1,69 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "resourceGroups": {
+            "type": "array",
+            "defaultValue": [
+                "Foo1",
+                "Foo2",
+                "Foo3",
+                "Foo4"
+            ]
+        },
+        "resourceGroupTags": {
+            "type": "object",
+            "defaultValue": {
+                "Foo1": {
+                    "AppTaxonomy": "IT/Network",
+                    "EnvironmentType": "Production"
+                },
+                "Foo2": {
+                    "AppTaxonomy": "IT/Network",
+                    "EnvironmentType": "Production"
+                },
+                "Foo4": {
+                    "AppTaxonomy": "IT/Network",
+                    "EnvironmentType": "Development"
+                },
+                "Foo3": {
+                    "AppTaxonomy": "IT/Network",
+                    "EnvironmentType": "Test"
+                }
+            }
+        }
+    },
+    "functions": [],
+    "variables": {
+        "copy": [
+            {
+                "name": "resourceGroupObject",
+                "count": "[length(parameters('resourceGroups'))]",
+                "input": {
+                    "name": "[parameters('resourceGroups')[copyIndex('resourceGroupObject')]]",
+                    "tags": "[if(equals(length(parameters('resourceGroupTags')), 0), '', parameters('resourceGroupTags')[parameters('resourceGroups')[copyIndex('resourceGroupObject')]])]"
+                }
+            }
+        ]
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Resources/resourceGroups",
+            "apiVersion": "2020-10-01",
+            "name": "[variables('resourceGroupObject')[copyIndex()].name]",
+            "location": "[deployment().location]",
+            "tags": "[if(equals(variables('resourceGroupObject')[copyIndex()].tags, ''), json('null'), json(string(variables('resourceGroupObject')[copyIndex()].tags)))]",
+                        
+            "copy": {
+                "count": "[length(variables('resourceGroupObject'))]",
+                "name": "resourceGroupLoop"
+            }
+        }
+    ],
+    "outputs": {
+        "output1": {
+            "type": "array",
+            "value": "[variables('resourceGroupObject')]"
+        }
+    }
+}

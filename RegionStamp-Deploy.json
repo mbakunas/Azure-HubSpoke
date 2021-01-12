@@ -49,6 +49,13 @@
                 "Brazil Southeast"
             ]
         },
+        "resourceGroupTags": {
+            "type": "object",
+            "metadata": {
+                "description": "Tags that are applied to the resource groups this solution touches."
+            },
+            "defaultValue": {}
+        },
         "assetLocationURI": {
             "type": "string",
             "metadata": {
@@ -587,7 +594,8 @@
                     "location": "[variables('azureRegion')[parameters('resourceGroupsRegion')]]",
                     "networkContributorsRoleAssignmentId": "[parameters('networkContributorsRoleAssignmentId')[copyIndex('objAllResourceGroupRBAC')]]",
                     "networkContributorRoleId": "[concat('/subscriptions/', split(variables('fullVnetDeploySubscriptionResourceGroup')[copyIndex('objAllResourceGroupRBAC')], '/')[0], '/providers/Microsoft.Authorization/roleDefinitions/4d97b98b-1d4f-4787-a291-c67834d212e7')]",
-                    "networkContributorsAadGroupId": "[parameters('networkContributorsAadGroupId')]"
+                    "networkContributorsAadGroupId": "[parameters('networkContributorsAadGroupId')]",
+                    "tags": "[if(equals(length(parameters('resourceGroupTags')), 0), '', parameters('resourceGroupTags')[split(variables('fullVnetDeploySubscriptionResourceGroup')[copyIndex('objAllResourceGroupRBAC')], '/')[1]])]"
                 }
             }
         ],
@@ -847,7 +855,8 @@
                             "type": "Microsoft.Resources/resourceGroups",
                             "apiVersion": "2020-10-01",
                             "name": "[variables('objAllResourceGroupRBAC')[copyIndex()].resourceGroup]",
-                            "location": "[variables('objAllResourceGroupRBAC')[copyIndex()].location]"
+                            "location": "[variables('objAllResourceGroupRBAC')[copyIndex()].location]",
+                            "tags": "[if(equals(variables('objAllResourceGroupRBAC')[copyIndex()].tags, ''), json('null'), json(string(variables('objAllResourceGroupRBAC')[copyIndex()].tags)))]"
                         }
                     ]
                 }
@@ -2254,7 +2263,7 @@
             "type": "string",
             "value": "[reference(variables('deploymentNames').ddosPlan).outputs.ddosPlanId.value]"
         },
-        "output1": {
+        "resourceGroups": {
             "type": "array",
             "value": "[variables('objAllResourceGroupRBAC')]"
         }
