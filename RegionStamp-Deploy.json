@@ -1319,7 +1319,7 @@
                             "apiVersion": "2020-05-01",
                             "name": "[variables('names').allAzureIpGroup]",
                             "location": "[variables('constants').location]",
-                            "tags": "[resourceGroup().tags]",
+                            "tags": "[if(equals(length(parameters('resourceGroupTags')), 0), '', parameters('resourceGroupTags')[variables('objHubVnet').resourceGroup])]",
                             "properties": {
                                 "ipAddresses": "[json(string(concat(array(parameters('hubVnetAddressSpace')), parameters('spokeVnetAddressSpace'))))]"
                             }
@@ -1329,7 +1329,7 @@
                             "apiVersion": "2020-05-01",
                             "name": "[variables('objHubVnet').ipGroupsName]",
                             "location": "[variables('constants').location]",
-                            "tags": "[resourceGroup().tags]",
+                            "tags": "[if(equals(length(parameters('resourceGroupTags')), 0), '', parameters('resourceGroupTags')[variables('objHubVnet').resourceGroup])]",
                             "properties": {
                                 "ipAddresses": [
                                     "[variables('objHubVnet').addressSpace]"
@@ -1341,7 +1341,7 @@
                             "apiVersion": "2020-05-01",
                             "name": "[variables('objHubVnet').subnets.dcSubnet.ipGroupsName]",
                             "location": "[variables('constants').location]",
-                            "tags": "[resourceGroup().tags]",
+                            "tags": "[if(equals(length(parameters('resourceGroupTags')), 0), '', parameters('resourceGroupTags')[variables('objHubVnet').resourceGroup])]",
                             "properties": {
                                 "ipAddresses": [
                                     "[variables('objHubVnet').subnets.dcSubnet.addressSpace]"
@@ -1354,7 +1354,7 @@
                             "apiVersion": "2020-05-01",
                             "name": "[variables('objHubVnet').subnets.jhSubnet.ipGroupsName]",
                             "location": "[variables('constants').location]",
-                            "tags": "[resourceGroup().tags]",
+                            "tags": "[if(equals(length(parameters('resourceGroupTags')), 0), '', parameters('resourceGroupTags')[variables('objHubVnet').resourceGroup])]",
                             "properties": {
                                 "ipAddresses": [
                                     "[variables('objHubVnet').subnets.jhSubnet.addressSpace]"
@@ -1367,7 +1367,7 @@
                             "apiVersion": "2020-05-01",
                             "name": "[variables('objHubVnet').subnets.subnet1.ipGroupsName]",
                             "location": "[variables('constants').location]",
-                            "tags": "[resourceGroup().tags]",
+                            "tags": "[if(equals(length(parameters('resourceGroupTags')), 0), '', parameters('resourceGroupTags')[variables('objHubVnet').resourceGroup])]",
                             "properties": {
                                 "ipAddresses": [
                                     "[variables('objHubVnet').subnets.subnet1.addressSpace]"
@@ -1380,7 +1380,7 @@
                             "apiVersion": "2020-05-01",
                             "name": "[variables('objHubVnet').subnets.subnet2.ipGroupsName]",
                             "location": "[variables('constants').location]",
-                            "tags": "[resourceGroup().tags]",
+                            "tags": "[if(equals(length(parameters('resourceGroupTags')), 0), '', parameters('resourceGroupTags')[variables('objHubVnet').resourceGroup])]",
                             "properties": {
                                 "ipAddresses": [
                                     "[variables('objHubVnet').subnets.subnet2.addressSpace]"
@@ -1393,7 +1393,7 @@
                             "apiVersion": "2020-05-01",
                             "name": "[variables('objHubVnet').subnets.subnet3.ipGroupsName]",
                             "location": "[variables('constants').location]",
-                            "tags": "[resourceGroup().tags]",
+                            "tags": "[if(equals(length(parameters('resourceGroupTags')), 0), '', parameters('resourceGroupTags')[variables('objHubVnet').resourceGroup])]",
                             "properties": {
                                 "ipAddresses": [
                                     "[variables('objHubVnet').subnets.subnet3.addressSpace]"
@@ -1406,7 +1406,7 @@
                             "apiVersion": "2020-05-01",
                             "name": "[variables('objHubVnet').subnets.subnet4.ipGroupsName]",
                             "location": "[variables('constants').location]",
-                            "tags": "[resourceGroup().tags]",
+                            "tags": "[if(equals(length(parameters('resourceGroupTags')), 0), '', parameters('resourceGroupTags')[variables('objHubVnet').resourceGroup])]",
                             "properties": {
                                 "ipAddresses": [
                                     "[variables('objHubVnet').subnets.subnet4.addressSpace]"
@@ -1440,7 +1440,7 @@
                             "apiVersion": "2020-05-01",
                             "name": "[variables('objSpokeVnet')[copyIndex()].ipGroupsName]",
                             "location": "[variables('constants').location]",
-                            "tags": "[resourceGroup().tags]",
+                            "tags": "[if(equals(length(parameters('resourceGroupTags')), 0), '', parameters('resourceGroupTags')[variables('objHubVnet').resourceGroup])]",
                             "properties": {
                                 "ipAddresses": [
                                     "[variables('objSpokeVnet')[copyIndex()].addressSpace]"
@@ -1452,7 +1452,7 @@
                             "apiVersion": "2020-05-01",
                             "name": "[variables('objSpokeVnet')[copyIndex()].subnets.subnet1.ipGroupsName]",
                             "location": "[variables('constants').location]",
-                            "tags": "[resourceGroup().tags]",
+                            "tags": "[if(equals(length(parameters('resourceGroupTags')), 0), '', parameters('resourceGroupTags')[variables('objHubVnet').resourceGroup])]",
                             "properties": {
                                 "ipAddresses": [
                                     "[variables('objSpokeVnet')[copyIndex()].subnets.subnet1.addressSpace]"
@@ -1465,7 +1465,7 @@
                             "apiVersion": "2020-05-01",
                             "name": "[variables('objSpokeVnet')[copyIndex()].subnets.subnet2.ipGroupsName]",
                             "location": "[variables('constants').location]",
-                            "tags": "[resourceGroup().tags]",
+                            "tags": "[if(equals(length(parameters('resourceGroupTags')), 0), '', parameters('resourceGroupTags')[variables('objHubVnet').resourceGroup])]",
                             "properties": {
                                 "ipAddresses": [
                                     "[variables('objSpokeVnet')[copyIndex()].subnets.subnet2.addressSpace]"
@@ -1478,7 +1478,7 @@
                             "apiVersion": "2020-05-01",
                             "name": "[variables('objSpokeVnet')[copyIndex()].subnets.subnet3.ipGroupsName]",
                             "location": "[variables('constants').location]",
-                            "tags": "[resourceGroup().tags]",
+                            "tags": "[if(equals(length(parameters('resourceGroupTags')), 0), '', parameters('resourceGroupTags')[variables('objHubVnet').resourceGroup])]",
                             "properties": {
                                 "ipAddresses": [
                                     "[variables('objSpokeVnet')[copyIndex()].subnets.subnet3.addressSpace]"
