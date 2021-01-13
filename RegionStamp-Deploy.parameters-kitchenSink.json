@@ -27,7 +27,8 @@
             "value": [
                 "8e5b5f19-21b9-4ed9-b601-799b23a5a1a8",
                 "f4c29215-1369-42c2-8e19-055adfaa7bd4",
-                "f9370c43-cf0d-42d3-b83d-6f3412e5f5ee"
+                "f9370c43-cf0d-42d3-b83d-6f3412e5f5ee",
+                "8d7739f2-1859-44c0-a184-b45e84ba363d"
             ]
         },
         "hubVnetName": {
@@ -37,7 +38,7 @@
             "value": "10.0.0.0/23"
         },
         "hubDeploySubscriptionResourceGroup": {
-            "value": "f0bb6c48-80fd-445c-98cb-c38b5f817d52/HS-01"
+            "value": "f0bb6c48-80fd-445c-98cb-c38b5f817d52/CoreNetwork-01"
         },
         "hubSubnetGatewayAddressSpace": {
             "value": "10.0.0.0/26"
@@ -106,6 +107,26 @@
                 "6cba977a-462f-4d8c-b291-2dad991f85a0"
             ]
         },
+        "resourceGroupTags": {
+            "value": {
+                "CoreNetwork-01": {
+                    "AppTaxonomy": "IT/Network",
+                    "EnvironmentType": "Production"
+                },
+                "CoreNetwork-02": {
+                    "AppTaxonomy": "IT/Network",
+                    "EnvironmentType": "Production"
+                },
+                "CoreNetwork-03": {
+                    "AppTaxonomy": "IT/Network",
+                    "EnvironmentType": "Test"
+                },
+                "CoreNetwork-04": {
+                    "AppTaxonomy": "IT/Network",
+                    "EnvironmentType": "Development"
+                }
+            }
+        },
         "spokeVnetName": {
             "value": [
                 "Spoke-Prod-EastUS2-01",
@@ -122,9 +143,9 @@
         },
         "spokeDeploySubscriptionResourceGroup": {
             "value": [
-                "f0bb6c48-80fd-445c-98cb-c38b5f817d52/HS-01",
-                "c64ca001-2cce-46de-837e-03f5564fc802/HS-02",
-                "16936380-29b0-4326-8f6b-db86da154736/HS-03"
+                "c64ca001-2cce-46de-837e-03f5564fc802/CoreNetwork-02",
+                "fac1ea11-e5a7-4e74-8d7e-965344c54f56/CoreNetwork-03",
+                "16936380-29b0-4326-8f6b-db86da154736/CoreNetwork-04"
             ]
         },
         "spokeSubnetBastionAddressSpace": {

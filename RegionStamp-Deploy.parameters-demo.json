@@ -107,6 +107,26 @@
                 "6cba977a-462f-4d8c-b291-2dad991f85a0"
             ]
         },
+        "resourceGroupTags": {
+            "value": {
+                "CoreNetwork-01": {
+                    "AppTaxonomy": "IT/Network",
+                    "EnvironmentType": "Production"
+                },
+                "CoreNetwork-02": {
+                    "AppTaxonomy": "IT/Network",
+                    "EnvironmentType": "Production"
+                },
+                "CoreNetwork-03": {
+                    "AppTaxonomy": "IT/Network",
+                    "EnvironmentType": "Test"
+                },
+                "CoreNetwork-04": {
+                    "AppTaxonomy": "IT/Network",
+                    "EnvironmentType": "Development"
+                }
+            }
+        },
         "spokeVnetName": {
             "value": [
                 "Spoke-Prod-EastUS2-01",
