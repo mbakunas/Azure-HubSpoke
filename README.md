@@ -84,7 +84,7 @@ This solution optionally deploys a DDoS Protection Plan.  Since a [single DDoS P
 
 ### Resource Locks
 
-The last step in the deployment is to place a DoNotDelete lock on all the resource groups to which this solution deploys resources.  Since only a [single DDOS Protection Plan is required per tenant](https://azure.microsoft.com/en-us/pricing/details/ddos-protection/), this solution can use an existing plan.
+The last step in the deployment is to place a DoNotDelete lock on all the resource groups to which this solution deploys resources.
 
 ### Forced Naming Convention
 
